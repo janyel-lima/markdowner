@@ -3,8 +3,8 @@
 
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Markdowner - A Markdown Editor by Janyel Lima</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Markdowner | MD Editor & Viewer</title>
   <link
     href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500&family=IBM+Plex+Sans:wght@300;400;500;600;700&display=swap"
     rel="stylesheet">
@@ -22,11 +22,39 @@
       --a1r: 232, 160, 32;
       --a2: #2fa88a;
       --a2r: 47, 168, 138;
+
+      /* ── Fluid header heights ── */
       --hh: 48px;
+      --hh-mob: 84px;
+      /* two-row mobile header */
+
       --rr: 4px;
       --ff: 'IBM Plex Sans', sans-serif;
       --fm: 'IBM Plex Mono', monospace;
       --tw: 0.16s ease;
+
+      /* ── Fluid typography tokens ── */
+      --fs-2xs: clamp(8.5px, 1.6vw, 10px);
+      --fs-xs: clamp(9.5px, 1.9vw, 11px);
+      --fs-sm: clamp(10px, 2.1vw, 11.5px);
+      --fs-md: clamp(11px, 2.6vw, 13px);
+      --fs-lg: clamp(12px, 3vw, 14px);
+      --fs-xl: clamp(13px, 3.4vw, 15px);
+
+      --fs-mono-xs: clamp(9px, 1.8vw, 10.5px);
+      --fs-mono-sm: clamp(10px, 2.2vw, 12px);
+      --fs-mono-md: clamp(11px, 2.6vw, 13px);
+      --fs-editor: clamp(11.5px, 2.8vw, 13px);
+
+      --fs-prev-body: clamp(12px, 3vw, 13.5px);
+      --fs-prev-h1: clamp(17px, 4.5vw, 22px);
+      --fs-prev-h2: clamp(12.5px, 3.2vw, 15px);
+      --fs-prev-h3: clamp(12px, 2.8vw, 13px);
+      --fs-prev-h4: clamp(11.5px, 2.6vw, 12.5px);
+      --fs-prev-code: clamp(10.5px, 2.3vw, 12px);
+      --fs-prev-pre: clamp(10.5px, 2.4vw, 12.5px);
+      --fs-prev-tbl: clamp(10.5px, 2.3vw, 12.5px);
+      --fs-prev-th: clamp(9.5px, 2vw, 11px);
     }
 
     [data-theme="dark"] {
@@ -84,7 +112,10 @@
       color: var(--tx);
       overflow: hidden;
       transition: background var(--tw), color var(--tw);
-      -webkit-font-smoothing: antialiased
+      -webkit-font-smoothing: antialiased;
+      -webkit-text-size-adjust: 100%;
+      /* prevent iOS auto font bump */
+      text-size-adjust: 100%;
     }
 
     ::-webkit-scrollbar {
@@ -119,7 +150,8 @@
       z-index: 100;
       box-shadow: var(--sh);
       transition: background var(--tw), border-color var(--tw);
-      user-select: none
+      user-select: none;
+      flex-shrink: 0;
     }
 
     .brand {
@@ -130,7 +162,8 @@
       border-right: 1px solid var(--bd);
       margin-right: 14px;
       flex-shrink: 0;
-      transition: border-color var(--tw)
+      transition: border-color var(--tw);
+      height: 100%;
     }
 
     .brand-mark {
@@ -141,7 +174,8 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      transition: background var(--tw)
+      flex-shrink: 0;
+      transition: background var(--tw);
     }
 
     .brand-mark svg {
@@ -151,22 +185,23 @@
     }
 
     .brand-name {
-      font-size: 13px;
+      font-size: var(--fs-md);
       font-weight: 600;
       color: var(--txh);
       letter-spacing: .02em;
       line-height: 1;
-      transition: color var(--tw)
+      transition: color var(--tw);
+      white-space: nowrap;
     }
 
     .brand-sub {
-      font-size: 10px;
+      font-size: var(--fs-2xs);
       font-weight: 400;
       color: var(--tx3);
       letter-spacing: .06em;
       text-transform: uppercase;
       font-family: var(--fm);
-      transition: color var(--tw)
+      transition: color var(--tw);
     }
 
     .vd {
@@ -175,21 +210,21 @@
       background: var(--bd);
       flex-shrink: 0;
       margin: 0 10px;
-      transition: background var(--tw)
+      transition: background var(--tw);
     }
 
     .toolbar-group {
       display: flex;
       align-items: center;
       gap: 2px;
-      flex-shrink: 0
+      flex-shrink: 0;
     }
 
     .vbtn {
       font-family: var(--ff);
-      font-size: 11.5px;
+      font-size: var(--fs-sm);
       font-weight: 500;
-      padding: 5px 12px;
+      padding: 5px 10px;
       border-radius: var(--rr);
       border: 1px solid transparent;
       background: transparent;
@@ -200,7 +235,9 @@
       display: flex;
       align-items: center;
       gap: 6px;
-      white-space: nowrap
+      white-space: nowrap;
+      min-height: 32px;
+      touch-action: manipulation;
     }
 
     .vbtn:hover {
@@ -217,9 +254,9 @@
 
     .abtn {
       font-family: var(--ff);
-      font-size: 11.5px;
+      font-size: var(--fs-sm);
       font-weight: 500;
-      padding: 5px 13px;
+      padding: 5px 11px;
       border-radius: var(--rr);
       border: 1px solid var(--bd);
       background: var(--s2);
@@ -231,7 +268,9 @@
       align-items: center;
       gap: 6px;
       white-space: nowrap;
-      flex-shrink: 0
+      flex-shrink: 0;
+      min-height: 30px;
+      touch-action: manipulation;
     }
 
     .abtn:hover {
@@ -259,11 +298,11 @@
       border: 1px solid var(--bd);
       border-radius: var(--rr);
       box-shadow: var(--sh2);
-      min-width: 165px;
+      min-width: 160px;
       overflow: hidden;
       display: none;
       flex-direction: column;
-      z-index: 200
+      z-index: 300;
     }
 
     .exp-drop.open {
@@ -272,9 +311,9 @@
 
     .exp-item {
       font-family: var(--ff);
-      font-size: 12px;
+      font-size: var(--fs-sm);
       font-weight: 500;
-      padding: 10px 14px;
+      padding: 11px 14px;
       color: var(--tx);
       cursor: pointer;
       display: flex;
@@ -283,7 +322,9 @@
       border: none;
       background: transparent;
       text-align: left;
-      transition: background var(--tw), color var(--tw)
+      transition: background var(--tw), color var(--tw);
+      touch-action: manipulation;
+      min-height: 44px;
     }
 
     .exp-item:hover {
@@ -306,9 +347,11 @@
       margin-left: auto;
       display: flex;
       align-items: center;
-      gap: 6px
+      gap: 6px;
+      flex-shrink: 0;
     }
 
+    /* ── theme pill ── */
     .theme-pill {
       display: flex;
       align-items: center;
@@ -319,7 +362,9 @@
       padding: 3px 3px 3px 10px;
       cursor: pointer;
       transition: all var(--tw);
-      flex-shrink: 0
+      flex-shrink: 0;
+      min-height: 30px;
+      touch-action: manipulation;
     }
 
     .theme-pill:hover {
@@ -328,12 +373,12 @@
 
     .theme-pill-label {
       font-family: var(--fm);
-      font-size: 10px;
+      font-size: var(--fs-2xs);
       font-weight: 500;
       color: var(--tx2);
       letter-spacing: .08em;
       text-transform: uppercase;
-      line-height: 1
+      line-height: 1;
     }
 
     .theme-knob {
@@ -344,7 +389,7 @@
       border: 1px solid var(--bd);
       display: flex;
       align-items: center;
-      justify-content: center
+      justify-content: center;
     }
 
     .theme-knob svg {
@@ -370,6 +415,7 @@
       display: none
     }
 
+    /* ── color trigger ── */
     .color-wrap {
       position: relative;
       flex-shrink: 0
@@ -385,7 +431,9 @@
       padding: 4px 10px 4px 6px;
       cursor: pointer;
       transition: all var(--tw);
-      flex-shrink: 0
+      flex-shrink: 0;
+      min-height: 30px;
+      touch-action: manipulation;
     }
 
     .color-trigger:hover {
@@ -402,7 +450,7 @@
       height: 14px;
       border-radius: 3px;
       border: 1px solid rgba(255, 255, 255, .12);
-      flex-shrink: 0
+      flex-shrink: 0;
     }
 
     [data-theme="light"] .swatch {
@@ -410,13 +458,14 @@
     }
 
     .color-trigger-label {
-      font-size: 11px;
+      font-size: var(--fs-xs);
       font-weight: 500;
       color: var(--tx2);
       letter-spacing: .02em;
-      line-height: 1
+      line-height: 1;
     }
 
+    /* ── color panel ── */
     .cpanel {
       position: absolute;
       top: calc(100% + 8px);
@@ -429,7 +478,7 @@
       display: none;
       flex-direction: column;
       overflow: hidden;
-      z-index: 200
+      z-index: 300;
     }
 
     .cpanel.open {
@@ -442,11 +491,11 @@
     }
 
     .cpanel-title {
-      font-size: 11px;
+      font-size: var(--fs-xs);
       font-weight: 600;
       letter-spacing: .08em;
       text-transform: uppercase;
-      color: var(--tx2)
+      color: var(--tx2);
     }
 
     .cpanel-body {
@@ -463,11 +512,11 @@
     }
 
     .color-row-label {
-      font-size: 10.5px;
+      font-size: var(--fs-2xs);
       font-weight: 600;
       color: var(--tx3);
       letter-spacing: .06em;
-      text-transform: uppercase
+      text-transform: uppercase;
     }
 
     .presets-grid {
@@ -483,7 +532,8 @@
       border: 2px solid transparent;
       cursor: pointer;
       transition: transform .1s, border-color .1s;
-      outline: none
+      outline: none;
+      touch-action: manipulation;
     }
 
     .ps:hover {
@@ -509,7 +559,7 @@
       background: var(--s2);
       cursor: pointer;
       padding: 2px;
-      flex-shrink: 0
+      flex-shrink: 0;
     }
 
     input[type="color"]::-webkit-color-swatch-wrapper {
@@ -524,7 +574,7 @@
 
     .hex-field {
       font-family: var(--fm);
-      font-size: 12px;
+      font-size: var(--fs-mono-xs);
       background: var(--s2);
       border: 1px solid var(--bd);
       border-radius: var(--rr);
@@ -533,7 +583,7 @@
       width: 88px;
       outline: none;
       transition: border-color var(--tw);
-      letter-spacing: .04em
+      letter-spacing: .04em;
     }
 
     .hex-field:focus {
@@ -545,9 +595,10 @@
       background: var(--bd)
     }
 
+    /* ── tour button ── */
     #tour-btn {
       font-family: var(--ff);
-      font-size: 11.5px;
+      font-size: var(--fs-sm);
       font-weight: 500;
       padding: 5px 11px;
       border-radius: var(--rr);
@@ -560,7 +611,9 @@
       gap: 6px;
       transition: all var(--tw);
       white-space: nowrap;
-      flex-shrink: 0
+      flex-shrink: 0;
+      min-height: 30px;
+      touch-action: manipulation;
     }
 
     #tour-btn:hover {
@@ -577,15 +630,17 @@
     /* ═══════════════════════════════════ WORKSPACE */
     #workspace {
       display: flex;
+      /* Use dvh with vh fallback for proper mobile viewport handling */
       height: calc(100vh - var(--hh));
-      overflow: hidden
+      height: calc(100dvh - var(--hh));
+      overflow: hidden;
     }
 
     .panel {
       display: flex;
       flex-direction: column;
       overflow: hidden;
-      min-width: 80px
+      min-width: 80px;
     }
 
     #ep {
@@ -607,16 +662,16 @@
       padding: 0 14px;
       gap: 8px;
       flex-shrink: 0;
-      transition: background var(--tw), border-color var(--tw)
+      transition: background var(--tw), border-color var(--tw);
     }
 
     .pbar-tag {
-      font-size: 10px;
+      font-size: var(--fs-2xs);
       font-weight: 600;
       letter-spacing: .1em;
       text-transform: uppercase;
       color: var(--tx3);
-      font-family: var(--fm)
+      font-family: var(--fm);
     }
 
     .pbar-dot {
@@ -639,11 +694,12 @@
     .pbar-meta {
       margin-left: auto;
       font-family: var(--fm);
-      font-size: 10px;
+      font-size: var(--fs-mono-xs);
       color: var(--tx3);
-      letter-spacing: .03em
+      letter-spacing: .03em;
     }
 
+    /* ── editor textarea ── */
     #editor {
       flex: 1;
       resize: none;
@@ -652,19 +708,21 @@
       background: var(--bg2);
       color: var(--tx);
       font-family: var(--fm);
-      font-size: 13px;
+      font-size: var(--fs-editor);
       line-height: 1.85;
-      padding: 24px 28px;
+      padding: clamp(16px, 4vw, 24px) clamp(16px, 5vw, 28px);
       overflow-y: auto;
       caret-color: var(--a1);
       tab-size: 2;
-      transition: background var(--tw), color var(--tw)
+      transition: background var(--tw), color var(--tw);
+      -webkit-overflow-scrolling: touch;
     }
 
     #editor::selection {
       background: rgba(var(--a1r), .2)
     }
 
+    /* ── divider ── */
     #dv {
       width: 5px;
       flex-shrink: 0;
@@ -675,7 +733,8 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      transition: background var(--tw)
+      transition: background var(--tw);
+      touch-action: none;
     }
 
     #dv:hover,
@@ -703,9 +762,10 @@
     #preview {
       flex: 1;
       overflow-y: auto;
-      padding: 32px 40px;
+      padding: clamp(20px, 5vw, 32px) clamp(16px, 6vw, 40px);
       background: var(--s1);
-      transition: background var(--tw)
+      transition: background var(--tw);
+      -webkit-overflow-scrolling: touch;
     }
 
     #preview h1,
@@ -714,16 +774,16 @@
     #preview h4 {
       font-family: var(--ff);
       line-height: 1.25;
-      font-weight: 600
+      font-weight: 600;
     }
 
     #preview h1 {
-      font-size: 22px;
+      font-size: var(--fs-prev-h1);
       font-weight: 700;
       color: var(--a1);
       padding-bottom: 10px;
       margin: 0 0 18px;
-      border-bottom: 2px solid var(--a1)
+      border-bottom: 2px solid var(--a1);
     }
 
     #preview h1:not(:first-child) {
@@ -731,22 +791,22 @@
     }
 
     #preview h2 {
-      font-size: 15px;
+      font-size: var(--fs-prev-h2);
       color: var(--a2);
       margin: 28px 0 10px;
       padding: 6px 12px 6px 14px;
       background: var(--ta2);
       border-left: 2px solid var(--a2);
-      border-radius: 0 var(--rr) var(--rr) 0
+      border-radius: 0 var(--rr) var(--rr) 0;
     }
 
     #preview h3 {
-      font-size: 13px;
+      font-size: var(--fs-prev-h3);
       color: var(--tx);
       margin: 22px 0 8px;
       display: flex;
       align-items: center;
-      gap: 7px
+      gap: 7px;
     }
 
     #preview h3::before {
@@ -756,21 +816,21 @@
       height: 13px;
       border-radius: 2px;
       background: var(--a1);
-      flex-shrink: 0
+      flex-shrink: 0;
     }
 
     #preview h4 {
-      font-size: 12.5px;
+      font-size: var(--fs-prev-h4);
       font-weight: 600;
       color: var(--tx2);
-      margin: 16px 0 6px
+      margin: 16px 0 6px;
     }
 
     #preview p {
-      font-size: 13.5px;
+      font-size: var(--fs-prev-body);
       line-height: 1.8;
       color: var(--tx);
-      margin: 6px 0
+      margin: 6px 0;
     }
 
     #preview ul,
@@ -780,10 +840,10 @@
     }
 
     #preview li {
-      font-size: 13.5px;
+      font-size: var(--fs-prev-body);
       line-height: 1.8;
       color: var(--tx);
-      margin: 2px 0
+      margin: 2px 0;
     }
 
     #preview li::marker {
@@ -814,24 +874,24 @@
       padding: 10px 16px;
       background: var(--ta1);
       border-left: 2px solid var(--a1);
-      border-radius: 0 var(--rr) var(--rr) 0
+      border-radius: 0 var(--rr) var(--rr) 0;
     }
 
     #preview blockquote p {
       margin: 0;
-      font-size: 13px;
+      font-size: var(--fs-prev-body);
       color: var(--tx2);
-      line-height: 1.75
+      line-height: 1.75;
     }
 
     #preview code {
       font-family: var(--fm);
-      font-size: 12px;
+      font-size: var(--fs-prev-code);
       background: var(--s3);
       border: 1px solid var(--bd);
       padding: 1px 5px;
       border-radius: 3px;
-      color: var(--a2)
+      color: var(--a2);
     }
 
     #preview pre {
@@ -839,7 +899,7 @@
       border-radius: var(--rr);
       border: 1px solid var(--bd);
       overflow: hidden;
-      background: var(--s2) !important
+      background: var(--s2) !important;
     }
 
     #preview pre code {
@@ -848,15 +908,15 @@
       background: transparent !important;
       border: none;
       color: var(--tx) !important;
-      font-size: 12.5px;
+      font-size: var(--fs-prev-pre);
       overflow-x: auto;
-      line-height: 1.7
+      line-height: 1.7;
     }
 
     #preview a {
       color: var(--a1);
       text-decoration: none;
-      border-bottom: 1px solid rgba(var(--a1r), .4)
+      border-bottom: 1px solid rgba(var(--a1r), .4);
     }
 
     #preview hr {
@@ -869,24 +929,28 @@
     #preview table {
       width: 100%;
       border-collapse: collapse;
-      font-size: 12.5px;
+      font-size: var(--fs-prev-tbl);
       margin: 12px 0;
       border: 1px solid var(--bd);
       border-radius: var(--rr);
-      overflow: hidden
+      overflow: hidden;
+      display: block;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
     }
 
     #preview th {
       background: var(--s2);
       font-family: var(--ff);
       font-weight: 600;
-      font-size: 11px;
+      font-size: var(--fs-prev-th);
       letter-spacing: .07em;
       text-transform: uppercase;
       padding: 8px 12px;
       text-align: left;
       color: var(--tx2);
-      border-bottom: 1px solid var(--bd)
+      border-bottom: 1px solid var(--bd);
+      white-space: nowrap;
     }
 
     #preview td {
@@ -908,13 +972,14 @@
       display: none !important
     }
 
+    /* ── save status ── */
     #save-status {
       font-family: var(--fm);
-      font-size: 10px;
+      font-size: var(--fs-mono-xs);
       color: var(--tx3);
       letter-spacing: .04em;
       white-space: nowrap;
-      transition: color .3s
+      transition: color .3s;
     }
 
     #save-status.saving {
@@ -925,6 +990,7 @@
       color: var(--a2)
     }
 
+    /* ── toast ── */
     .toast {
       position: fixed;
       bottom: 24px;
@@ -934,7 +1000,7 @@
       border: 1px solid var(--bd);
       border-left: 3px solid var(--a1);
       color: var(--tx);
-      font-size: 12px;
+      font-size: var(--fs-sm);
       font-weight: 500;
       padding: 9px 16px;
       border-radius: var(--rr);
@@ -942,22 +1008,92 @@
       transition: transform .28s cubic-bezier(.34, 1.56, .64, 1);
       z-index: 99999;
       pointer-events: none;
-      white-space: nowrap
+      white-space: nowrap;
+      max-width: calc(100vw - 32px);
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
 
     .toast.show {
       transform: translateX(-50%) translateY(0)
     }
 
-    @media(max-width:700px) {
-      #workspace {
-        flex-direction: column
+    /* ═══════════════════════════════════ RESPONSIVE — 700px */
+    @media (max-width: 700px) {
+
+      /* ── two-row header ── */
+      #header {
+        height: var(--hh-mob);
+        flex-wrap: wrap;
+        padding: 0;
+        gap: 0;
+        align-content: flex-start;
       }
 
+      .brand {
+        height: 44px;
+        padding: 0 12px;
+        margin-right: 0;
+        /* keep right border as separator from views */
+      }
+
+      #t-views {
+        height: 44px;
+        padding: 0 6px;
+        gap: 1px;
+      }
+
+      /* hide the lone .vd between views and save-status */
+      #header>.vd {
+        display: none
+      }
+
+      /* push save-status to right end of row 1 */
+      #save-status {
+        margin-left: auto;
+        height: 44px;
+        display: flex;
+        align-items: center;
+        padding: 0 12px;
+      }
+
+      /* row 2: all action buttons in a scrollable strip */
+      .hr {
+        width: 100%;
+        height: 40px;
+        margin-left: 0;
+        border-top: 1px solid var(--bd);
+        padding: 0 10px;
+        overflow-x: auto;
+        overflow-y: hidden;
+        scrollbar-width: none;
+        justify-content: flex-start;
+        gap: 4px;
+        background: var(--bg2);
+        flex-shrink: 0;
+      }
+
+      .hr::-webkit-scrollbar {
+        display: none
+      }
+
+      /* hide dividers inside action row */
+      .hr .vd {
+        display: none
+      }
+
+      /* workspace uses dvh minus two-row header */
+      #workspace {
+        height: calc(100vh - var(--hh-mob));
+        height: calc(100dvh - var(--hh-mob));
+        flex-direction: column;
+      }
+
+      /* vertical divider becomes horizontal */
       #dv {
         width: 100%;
         height: 5px;
-        cursor: row-resize
+        cursor: row-resize;
       }
 
       .grip-dots {
@@ -966,18 +1102,80 @@
 
       .panel {
         min-width: unset;
-        min-height: 80px
+        min-height: 80px;
       }
 
-      .brand-sub,
-      .vbtn .lbl,
+      /* hide text labels in action buttons */
       .abtn .lbl,
+      #tour-btn .lbl {
+        display: none
+      }
+
+      /* compact brand */
+      .brand-sub {
+        display: none
+      }
+
+      /* vbtn labels */
+      .vbtn .lbl {
+        display: none
+      }
+
       .color-trigger-label {
         display: none
       }
+
+      /* bottom-sheet for dropdowns on mobile */
+      .exp-drop {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        top: auto;
+        width: 100%;
+        min-width: unset;
+        border-radius: 12px 12px 0 0;
+        border-bottom: none;
+        z-index: 400;
+        padding-bottom: env(safe-area-inset-bottom, 0px);
+      }
+
+      .cpanel {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        top: auto;
+        width: 100%;
+        border-radius: 12px 12px 0 0;
+        border-bottom: none;
+        max-height: 70vh;
+        overflow-y: auto;
+        z-index: 400;
+        padding-bottom: env(safe-area-inset-bottom, 0px);
+      }
+
+      /* bottom-sheet backdrop overlay */
+      .sheet-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(8, 10, 18, .5);
+        z-index: 390;
+        display: none;
+      }
+
+      .sheet-overlay.vis {
+        display: block
+      }
+
+      /* editor padding */
+      #editor {
+        padding: 14px 14px;
+      }
     }
 
-    @media(max-width:520px) {
+    /* ═══════════════════════════════════ RESPONSIVE — 520px */
+    @media (max-width: 520px) {
       .theme-pill-label {
         display: none
       }
@@ -985,11 +1183,184 @@
       .theme-pill {
         padding: 3px
       }
+
+      .vbtn {
+        padding: 5px 7px
+      }
+
+      .abtn {
+        padding: 5px 8px
+      }
+
+      #tour-btn {
+        padding: 5px 8px
+      }
+
+      .brand-name {
+        font-size: clamp(11px, 3vw, 13px)
+      }
+    }
+
+    /* ═══════════════════════════════════ RESPONSIVE — 400px (very small) */
+    @media (max-width: 400px) {
+      .brand {
+        padding: 0 8px
+      }
+
+      .brand-mark {
+        width: 24px;
+        height: 24px
+      }
+
+      .brand-mark svg {
+        width: 12px;
+        height: 12px
+      }
+
+      .vbtn svg {
+        width: 11px;
+        height: 11px
+      }
+
+      .abtn svg {
+        width: 11px;
+        height: 11px
+      }
+
+      #preview {
+        padding: 12px 12px
+      }
+
+      #editor {
+        padding: 12px 12px
+      }
     }
 
     /* ════════════════════════════════════════════
-   TOUR — WELCOME MODAL
-════════════════════════════════════════════ */
+       IMPORT CONFIRM MODAL
+    ════════════════════════════════════════════ */
+    #imp-backdrop {
+      position: fixed;
+      inset: 0;
+      z-index: 10000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(8, 10, 18, .7);
+      backdrop-filter: blur(4px);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity .22s ease;
+      padding: 16px;
+    }
+
+    #imp-backdrop.vis {
+      opacity: 1;
+      pointer-events: all
+    }
+
+    .imp-card {
+      background: var(--s1);
+      border: 1px solid var(--bd);
+      border-radius: 10px;
+      box-shadow: 0 16px 60px rgba(0, 0, 0, .5);
+      width: min(380px, 100%);
+      padding: clamp(20px, 5vw, 28px);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+      text-align: center;
+      transform: translateY(16px) scale(.97);
+      transition: transform .28s cubic-bezier(.34, 1.3, .64, 1);
+    }
+
+    #imp-backdrop.vis .imp-card {
+      transform: translateY(0) scale(1)
+    }
+
+    .imp-icon {
+      font-size: clamp(22px, 5vw, 28px);
+      line-height: 1
+    }
+
+    .imp-title {
+      font-size: clamp(14px, 3.5vw, 16px);
+      font-weight: 700;
+      color: var(--txh);
+      letter-spacing: -.01em
+    }
+
+    .imp-desc {
+      font-size: clamp(11px, 2.6vw, 12.5px);
+      color: var(--tx2);
+      line-height: 1.65;
+      max-width: 300px
+    }
+
+    .imp-fname {
+      font-family: var(--fm);
+      font-size: clamp(10px, 2.2vw, 11px);
+      color: var(--a1);
+      background: rgba(var(--a1r), .1);
+      border: 1px solid rgba(var(--a1r), .2);
+      border-radius: 4px;
+      padding: 3px 9px;
+      margin-top: -2px;
+      word-break: break-all;
+    }
+
+    .imp-actions {
+      display: flex;
+      gap: 9px;
+      width: 100%;
+      margin-top: 4px
+    }
+
+    .imp-cancel {
+      flex: 1;
+      padding: 10px;
+      background: transparent;
+      color: var(--tx2);
+      border: 1px solid var(--bd);
+      border-radius: var(--rr);
+      font-family: var(--ff);
+      font-size: var(--fs-sm);
+      font-weight: 500;
+      cursor: pointer;
+      transition: all var(--tw);
+      min-height: 40px;
+      touch-action: manipulation;
+    }
+
+    .imp-cancel:hover {
+      background: var(--s2);
+      color: var(--tx)
+    }
+
+    .imp-confirm {
+      flex: 1;
+      padding: 10px;
+      background: var(--a1);
+      color: var(--inv);
+      border: none;
+      border-radius: var(--rr);
+      font-family: var(--ff);
+      font-size: var(--fs-sm);
+      font-weight: 600;
+      cursor: pointer;
+      transition: opacity .15s;
+      min-height: 40px;
+      touch-action: manipulation;
+    }
+
+    .imp-confirm:hover {
+      opacity: .88
+    }
+
+    /* ════════════════════════════════════════════
+       WELCOME MODAL
+    ════════════════════════════════════════════ */
     #tw-backdrop {
       position: fixed;
       inset: 0;
@@ -1002,6 +1373,7 @@
       opacity: 0;
       pointer-events: none;
       transition: opacity .3s ease;
+      padding: 16px;
     }
 
     #tw-backdrop.vis {
@@ -1014,10 +1386,12 @@
       border: 1px solid var(--bd);
       border-radius: 12px;
       box-shadow: 0 24px 80px rgba(0, 0, 0, .55);
-      width: min(500px, 92vw);
+      width: min(500px, 100%);
       overflow: hidden;
       transform: translateY(24px) scale(.96);
       transition: transform .38s cubic-bezier(.34, 1.3, .64, 1);
+      max-height: calc(100dvh - 32px);
+      overflow-y: auto;
     }
 
     #tw-backdrop.vis .tw-card {
@@ -1027,7 +1401,7 @@
     .tw-hero {
       background: linear-gradient(135deg, rgba(var(--a1r), .12) 0%, rgba(var(--a2r), .1) 100%);
       border-bottom: 1px solid var(--bd);
-      padding: 28px 32px 24px;
+      padding: clamp(20px, 5vw, 28px) clamp(20px, 6vw, 32px) clamp(18px, 4vw, 24px);
       position: relative;
       overflow: hidden;
     }
@@ -1040,7 +1414,7 @@
       width: 160px;
       height: 160px;
       border-radius: 50%;
-      background: rgba(var(--a1r), .07)
+      background: rgba(var(--a1r), .07);
     }
 
     .tw-badge {
@@ -1051,7 +1425,7 @@
       border: 1px solid rgba(var(--a1r), .28);
       border-radius: 99px;
       padding: 4px 12px;
-      margin-bottom: 14px
+      margin-bottom: 14px;
     }
 
     .tw-badge-dot {
@@ -1063,20 +1437,20 @@
 
     .tw-badge-label {
       font-family: var(--fm);
-      font-size: 10px;
+      font-size: var(--fs-2xs);
       font-weight: 500;
       color: var(--a1);
       letter-spacing: .08em;
-      text-transform: uppercase
+      text-transform: uppercase;
     }
 
     .tw-title {
-      font-size: 22px;
+      font-size: clamp(17px, 4.5vw, 22px);
       font-weight: 700;
       color: var(--txh);
       letter-spacing: -.02em;
       margin-bottom: 8px;
-      line-height: 1.2
+      line-height: 1.2;
     }
 
     .tw-title em {
@@ -1085,22 +1459,22 @@
     }
 
     .tw-desc {
-      font-size: 13px;
+      font-size: clamp(12px, 2.8vw, 13px);
       color: var(--tx2);
-      line-height: 1.7
+      line-height: 1.7;
     }
 
     .tw-body {
-      padding: 22px 32px 26px;
+      padding: clamp(16px, 4vw, 22px) clamp(16px, 5vw, 32px) clamp(18px, 5vw, 26px);
       display: flex;
       flex-direction: column;
-      gap: 18px
+      gap: 16px;
     }
 
     .tw-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 9px
+      gap: 8px
     }
 
     .tw-feat {
@@ -1110,7 +1484,7 @@
       padding: 9px 11px;
       background: var(--s2);
       border: 1px solid var(--bd);
-      border-radius: 6px
+      border-radius: 6px;
     }
 
     .tw-feat-icon {
@@ -1121,7 +1495,7 @@
       align-items: center;
       justify-content: center;
       flex-shrink: 0;
-      font-size: 12px
+      font-size: 12px;
     }
 
     .fi-a1 {
@@ -1133,14 +1507,14 @@
     }
 
     .tw-feat-name {
-      font-size: 11.5px;
+      font-size: clamp(10.5px, 2.4vw, 11.5px);
       font-weight: 600;
       color: var(--txh);
       margin-bottom: 2px
     }
 
     .tw-feat-sub {
-      font-size: 10.5px;
+      font-size: clamp(9.5px, 2vw, 10.5px);
       color: var(--tx3);
       line-height: 1.4
     }
@@ -1148,25 +1522,29 @@
     .tw-actions {
       display: flex;
       align-items: center;
-      gap: 10px
+      gap: 10px;
+      flex-wrap: wrap
     }
 
     .tw-primary {
       flex: 1;
-      padding: 10px 18px;
+      min-width: 160px;
+      padding: 11px 18px;
       background: var(--a1);
       color: var(--inv);
       border: none;
       border-radius: var(--rr);
       font-family: var(--ff);
-      font-size: 13px;
+      font-size: clamp(12px, 2.8vw, 13px);
       font-weight: 600;
       cursor: pointer;
       display: flex;
       align-items: center;
       justify-content: center;
       gap: 7px;
-      transition: opacity .15s
+      transition: opacity .15s;
+      min-height: 42px;
+      touch-action: manipulation;
     }
 
     .tw-primary:hover {
@@ -1174,16 +1552,18 @@
     }
 
     .tw-secondary {
-      padding: 10px 14px;
+      padding: 11px 14px;
       background: transparent;
       color: var(--tx2);
       border: 1px solid var(--bd);
       border-radius: var(--rr);
       font-family: var(--ff);
-      font-size: 12px;
+      font-size: clamp(11px, 2.4vw, 12px);
       cursor: pointer;
       transition: all var(--tw);
-      white-space: nowrap
+      white-space: nowrap;
+      min-height: 42px;
+      touch-action: manipulation;
     }
 
     .tw-secondary:hover {
@@ -1192,13 +1572,8 @@
     }
 
     /* ════════════════════════════════════════════
-   TOUR — SPOTLIGHT
-   Uses box-shadow technique: a fixed div sits
-   over the target; its box-shadow creates the
-   dark overlay. Simple, reliable, no SVG mask.
-════════════════════════════════════════════ */
-
-    /* Full-screen click blocker (behind card, above page) */
+       TOUR — SPOTLIGHT
+    ════════════════════════════════════════════ */
     #tour-blocker {
       position: fixed;
       inset: 0;
@@ -1211,12 +1586,10 @@
       display: block
     }
 
-    /* The spotlight ring — positioned over target */
     #tour-spot {
       position: fixed;
       z-index: 9010;
       border-radius: 8px;
-      /* Giant box-shadow creates the dark overlay */
       box-shadow: 0 0 0 9999px rgba(8, 10, 20, .78), 0 0 0 3px var(--a1), 0 0 18px rgba(var(--a1r), .35);
       pointer-events: none;
       transition:
@@ -1234,7 +1607,6 @@
       display: block
     }
 
-    /* The tooltip card */
     #tour-card {
       position: fixed;
       z-index: 9020;
@@ -1250,11 +1622,23 @@
         left .38s cubic-bezier(.4, 0, .2, 1),
         opacity .2s ease;
       opacity: 0;
+      max-height: calc(100dvh - 24px);
+      overflow-y: auto;
     }
 
     #tour-card.vis {
       display: block;
       opacity: 1
+    }
+
+    @media (max-width: 700px) {
+      #tour-card {
+        width: calc(100vw - 24px) !important;
+        left: 12px !important;
+        max-height: 55vh;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+      }
     }
 
     /* card internals */
@@ -1267,7 +1651,7 @@
 
     .tc-phase {
       font-family: var(--fm);
-      font-size: 9px;
+      font-size: var(--fs-2xs);
       font-weight: 500;
       letter-spacing: .1em;
       text-transform: uppercase;
@@ -1275,12 +1659,12 @@
       background: rgba(var(--a1r), .12);
       border: 1px solid rgba(var(--a1r), .24);
       border-radius: 99px;
-      padding: 3px 9px
+      padding: 3px 9px;
     }
 
     .tc-count {
       font-family: var(--fm);
-      font-size: 10px;
+      font-size: var(--fs-mono-xs);
       color: var(--tx3);
       letter-spacing: .04em
     }
@@ -1297,7 +1681,7 @@
       height: 100%;
       background: var(--a1);
       border-radius: 2px;
-      transition: width .4s cubic-bezier(.4, 0, .2, 1)
+      transition: width .4s cubic-bezier(.4, 0, .2, 1);
     }
 
     .tc-body {
@@ -1305,28 +1689,28 @@
     }
 
     .tc-title {
-      font-size: 14px;
+      font-size: clamp(12.5px, 3vw, 14px);
       font-weight: 700;
       color: var(--txh);
       margin-bottom: 6px;
       letter-spacing: -.01em;
-      line-height: 1.3
+      line-height: 1.3;
     }
 
     .tc-desc {
-      font-size: 12.5px;
+      font-size: clamp(11px, 2.6vw, 12.5px);
       color: var(--tx2);
       line-height: 1.7
     }
 
     .tc-desc code {
       font-family: var(--fm);
-      font-size: 11.5px;
+      font-size: clamp(10px, 2.2vw, 11.5px);
       background: var(--s3);
       border: 1px solid var(--bd);
       padding: 1px 5px;
       border-radius: 3px;
-      color: var(--a2)
+      color: var(--a2);
     }
 
     .tc-desc strong {
@@ -1334,7 +1718,6 @@
       color: var(--txh)
     }
 
-    /* code example block */
     .tc-example {
       margin: 10px 14px 0;
       border: 1px solid var(--bd);
@@ -1348,21 +1731,21 @@
       justify-content: space-between;
       padding: 5px 10px;
       background: var(--s3);
-      border-bottom: 1px solid var(--bd)
+      border-bottom: 1px solid var(--bd);
     }
 
     .tc-ex-label {
       font-family: var(--fm);
-      font-size: 9px;
+      font-size: var(--fs-2xs);
       font-weight: 500;
       color: var(--tx3);
       letter-spacing: .08em;
-      text-transform: uppercase
+      text-transform: uppercase;
     }
 
     .tc-try {
       font-family: var(--fm);
-      font-size: 9px;
+      font-size: var(--fs-2xs);
       font-weight: 500;
       color: var(--a1);
       background: rgba(var(--a1r), .12);
@@ -1371,7 +1754,8 @@
       padding: 2px 8px;
       cursor: pointer;
       letter-spacing: .04em;
-      transition: background .12s
+      transition: background .12s;
+      touch-action: manipulation;
     }
 
     .tc-try:hover {
@@ -1382,15 +1766,14 @@
       margin: 0;
       padding: 10px 12px;
       font-family: var(--fm);
-      font-size: 11.5px;
+      font-size: clamp(10px, 2.3vw, 11.5px);
       line-height: 1.7;
       color: var(--tx);
       white-space: pre;
       overflow-x: auto;
-      background: var(--bg2)
+      background: var(--bg2);
     }
 
-    /* side-by-side preview */
     .tc-split {
       display: grid;
       grid-template-columns: 1fr 1fr;
@@ -1407,23 +1790,22 @@
 
     .tc-sp-tag {
       font-family: var(--fm);
-      font-size: 9px;
+      font-size: var(--fs-2xs);
       font-weight: 500;
       color: var(--tx3);
       letter-spacing: .08em;
       text-transform: uppercase;
-      margin-bottom: 5px
+      margin-bottom: 5px;
     }
 
     .tc-sp-md {
       font-family: var(--fm);
-      font-size: 10.5px;
+      font-size: clamp(9px, 2vw, 10.5px);
       color: var(--tx2);
       line-height: 1.65;
       white-space: pre
     }
 
-    /* rendered preview */
     .r-h1 {
       font-size: 12.5px;
       font-weight: 700;
@@ -1518,26 +1900,28 @@
       font-weight: 700
     }
 
-    /* foot */
+    /* tour footer */
     .tc-foot {
       display: flex;
       align-items: center;
       gap: 7px;
       padding: 10px 14px 12px;
-      border-top: 1px solid var(--bd)
+      border-top: 1px solid var(--bd);
     }
 
     .tc-prev {
-      padding: 6px 12px;
+      padding: 7px 12px;
       background: transparent;
       color: var(--tx2);
       border: 1px solid var(--bd);
       border-radius: var(--rr);
       font-family: var(--ff);
-      font-size: 11.5px;
+      font-size: var(--fs-sm);
       font-weight: 500;
       cursor: pointer;
-      transition: all var(--tw)
+      transition: all var(--tw);
+      min-height: 34px;
+      touch-action: manipulation;
     }
 
     .tc-prev:hover {
@@ -1553,20 +1937,22 @@
 
     .tc-next {
       flex: 1;
-      padding: 6px 12px;
+      padding: 7px 12px;
       background: var(--a1);
       color: var(--inv);
       border: none;
       border-radius: var(--rr);
       font-family: var(--ff);
-      font-size: 11.5px;
+      font-size: var(--fs-sm);
       font-weight: 600;
       cursor: pointer;
       transition: opacity .15s;
       display: flex;
       align-items: center;
       justify-content: center;
-      gap: 5px
+      gap: 5px;
+      min-height: 34px;
+      touch-action: manipulation;
     }
 
     .tc-next:hover {
@@ -1574,20 +1960,39 @@
     }
 
     .tc-close {
-      padding: 6px 10px;
+      padding: 7px 10px;
       background: transparent;
       color: var(--tx3);
       border: none;
       border-radius: var(--rr);
       font-family: var(--ff);
-      font-size: 11px;
+      font-size: var(--fs-xs);
       cursor: pointer;
       transition: color var(--tw);
-      white-space: nowrap
+      white-space: nowrap;
+      min-height: 34px;
+      touch-action: manipulation;
     }
 
     .tc-close:hover {
       color: var(--tx2)
+    }
+
+    /* ════════ SAFE AREA (iPhone notch/home bar) ════════ */
+    @supports (padding-bottom: env(safe-area-inset-bottom)) {
+      .toast {
+        bottom: calc(24px + env(safe-area-inset-bottom))
+      }
+
+      #workspace {
+        height: calc(100dvh - var(--hh) - env(safe-area-inset-bottom))
+      }
+
+      @media (max-width: 700px) {
+        #workspace {
+          height: calc(100dvh - var(--hh-mob) - env(safe-area-inset-bottom))
+        }
+      }
     }
   </style>
 </head>
@@ -1602,49 +2007,78 @@
         </svg></div>
       <div>
         <div class="brand-name">Markdowner</div>
-        <div class="brand-sub">MD Editor/Viewer</div>
+        <div class="brand-sub">MD Editor &amp; Viewer</div>
       </div>
     </div>
 
     <div class="toolbar-group" id="t-views">
-      <button class="vbtn on" id="b-both" onclick="setView('both')"><svg width="13" height="13" viewBox="0 0 14 14"
-          fill="currentColor">
+      <button class="vbtn on" id="b-both" onclick="setView('both')">
+        <svg width="13" height="13" viewBox="0 0 14 14" fill="currentColor">
           <rect x="1" y="1" width="5" height="12" rx="1" />
           <rect x="8" y="1" width="5" height="12" rx="1" />
-        </svg><span class="lbl">Dividido</span></button>
-      <button class="vbtn" id="b-edit" onclick="setView('edit')"><svg width="12" height="12" viewBox="0 0 14 14"
-          fill="currentColor">
+        </svg>
+        <span class="lbl">Dividido</span>
+      </button>
+      <button class="vbtn" id="b-edit" onclick="setView('edit')">
+        <svg width="12" height="12" viewBox="0 0 14 14" fill="currentColor">
           <path d="M1 1h12v2H1zm0 4h9v2H1zm0 4h11v2H1z" />
-        </svg><span class="lbl">Editor</span></button>
-      <button class="vbtn" id="b-preview" onclick="setView('preview')"><svg width="12" height="12" viewBox="0 0 14 14"
-          fill="currentColor">
+        </svg>
+        <span class="lbl">Editor</span>
+      </button>
+      <button class="vbtn" id="b-preview" onclick="setView('preview')">
+        <svg width="12" height="12" viewBox="0 0 14 14" fill="currentColor">
           <path d="M7 3C3.5 3 1 7 1 7s2.5 4 6 4 6-4 6-4-2.5-4-6-4zm0 6a2 2 0 110-4 2 2 0 010 4z" />
-        </svg><span class="lbl">Preview</span></button>
+        </svg>
+        <span class="lbl">Preview</span>
+      </button>
     </div>
 
+    <!-- Direct child .vd — hidden on mobile via #header > .vd -->
     <div class="vd"></div>
     <span id="save-status">Salvo</span>
 
+    <!-- Action row (becomes scrollable strip on mobile) -->
     <div class="hr">
-      <button class="abtn" id="t-copy" onclick="copyMd()"><svg viewBox="0 0 14 14" fill="currentColor">
+      <button class="abtn" id="t-copy" onclick="copyMd()">
+        <svg viewBox="0 0 14 14" fill="currentColor">
           <rect x="4" y="1" width="9" height="11" rx="1.5" opacity=".5" />
           <rect x="1" y="4" width="9" height="9" rx="1.5" />
-        </svg><span class="lbl">Copiar</span></button>
+        </svg>
+        <span class="lbl">Copiar</span>
+      </button>
 
+      <!-- Import -->
+      <input type="file" id="file-input" accept=".md,.txt,text/plain,text/markdown" style="display:none">
+      <button class="abtn" id="t-import" onclick="triggerImport()">
+        <svg viewBox="0 0 14 14" fill="currentColor">
+          <path d="M7 9V1M4 6l3 3 3-3M2 11h10v2H2z" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"
+            fill="none" />
+        </svg>
+        <span class="lbl">Importar</span>
+      </button>
+
+      <!-- Export -->
       <div class="exp-wrap" id="expWrap">
-        <button class="abtn" id="t-export" onclick="toggleExp()"><svg viewBox="0 0 14 14" fill="currentColor">
+        <button class="abtn" id="t-export" onclick="toggleExp()">
+          <svg viewBox="0 0 14 14" fill="currentColor">
             <path d="M7 1v8M4 6l3 3 3-3M2 11h10v2H2z" />
-          </svg><span class="lbl">Exportar</span><svg width="9" height="9" viewBox="0 0 10 6" fill="currentColor"
-            style="opacity:.4">
+          </svg>
+          <span class="lbl">Exportar</span>
+          <svg width="9" height="9" viewBox="0 0 10 6" fill="currentColor" style="opacity:.4">
             <path d="M0 0l5 6 5-6z" />
-          </svg></button>
+          </svg>
+        </button>
         <div class="exp-drop" id="expDrop">
-          <button class="exp-item" onclick="exportFile('md')"><svg viewBox="0 0 14 14" fill="currentColor">
+          <button class="exp-item" onclick="exportFile('md')">
+            <svg viewBox="0 0 14 14" fill="currentColor">
               <path d="M2 1h7l3 3v9H2V1zm7 0v3h3" />
-            </svg>Exportar .md</button>
-          <button class="exp-item" onclick="exportFile('txt')"><svg viewBox="0 0 14 14" fill="currentColor">
+            </svg>Exportar .md
+          </button>
+          <button class="exp-item" onclick="exportFile('txt')">
+            <svg viewBox="0 0 14 14" fill="currentColor">
               <path d="M2 1h7l3 3v9H2V1zm7 0v3h3M4 7h6M4 9.5h4" />
-            </svg>Exportar .txt</button>
+            </svg>Exportar .txt
+          </button>
         </div>
       </div>
 
@@ -1667,15 +2101,19 @@
             <div class="color-row">
               <div class="color-row-label">Cor principal</div>
               <div class="presets-grid" id="presets1"></div>
-              <div class="color-inputs"><input type="color" id="cp1"><input type="text" class="hex-field" id="hx1"
-                  maxlength="7" placeholder="#e8a020"></div>
+              <div class="color-inputs">
+                <input type="color" id="cp1">
+                <input type="text" class="hex-field" id="hx1" maxlength="7" placeholder="#e8a020">
+              </div>
             </div>
             <div class="color-sep"></div>
             <div class="color-row">
               <div class="color-row-label">Cor secundária</div>
               <div class="presets-grid" id="presets2"></div>
-              <div class="color-inputs"><input type="color" id="cp2"><input type="text" class="hex-field" id="hx2"
-                  maxlength="7" placeholder="#2fa88a"></div>
+              <div class="color-inputs">
+                <input type="color" id="cp2">
+                <input type="text" class="hex-field" id="hx2" maxlength="7" placeholder="#2fa88a">
+              </div>
             </div>
           </div>
         </div>
@@ -1699,14 +2137,14 @@
 
       <div class="vd"></div>
 
-      <button id="tour-btn" id="t-tour" onclick="tourStart()">
+      <button id="tour-btn" onclick="tourStart()">
         <svg viewBox="0 0 14 14" fill="currentColor">
           <circle cx="7" cy="7" r="5.5" fill="none" stroke="currentColor" stroke-width="1.5" />
           <path d="M5.5 5.2a1.5 1.5 0 112.6 1.5L7 8v.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"
             fill="none" />
           <circle cx="7" cy="10.5" r=".7" />
         </svg>
-        Tour
+        <span class="lbl">Tour</span>
       </button>
     </div>
   </div>
@@ -1715,8 +2153,9 @@
   <div id="workspace">
     <div class="panel" id="ep">
       <div class="pbar" id="t-epbar">
-        <div class="pbar-dot pbar-dot-a1"></div><span class="pbar-tag">Markdown</span><span class="pbar-meta" id="cc">—
-          chars</span>
+        <div class="pbar-dot pbar-dot-a1"></div>
+        <span class="pbar-tag">Markdown</span>
+        <span class="pbar-meta" id="cc">— chars</span>
       </div>
       <textarea id="editor" spellcheck="false"></textarea>
     </div>
@@ -1725,22 +2164,41 @@
     </div>
     <div class="panel" id="pp">
       <div class="pbar" id="t-ppbar">
-        <div class="pbar-dot pbar-dot-a2"></div><span class="pbar-tag">Preview</span>
+        <div class="pbar-dot pbar-dot-a2"></div>
+        <span class="pbar-tag">Preview</span>
       </div>
       <div id="preview"></div>
     </div>
   </div>
 
+  <!-- Toast -->
   <div class="toast" id="toast"></div>
 
-  <!-- ════════════════════ WELCOME MODAL ════════════════════ -->
+  <!-- Bottom-sheet overlay (mobile dropdowns) -->
+  <div class="sheet-overlay" id="sheetOverlay" onclick="closeAllDropdowns()"></div>
+
+  <!-- IMPORT CONFIRM -->
+  <div id="imp-backdrop">
+    <div class="imp-card">
+      <div class="imp-icon">⬆</div>
+      <div class="imp-title" id="imp-title">Importar arquivo</div>
+      <div class="imp-desc" id="imp-desc">O conteúdo atual do editor será substituído pelo arquivo importado. Esta ação
+        não pode ser desfeita.</div>
+      <div class="imp-actions">
+        <button class="imp-cancel" id="imp-cancel">Cancelar</button>
+        <button class="imp-confirm" id="imp-confirm">Substituir conteúdo</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- WELCOME MODAL -->
   <div id="tw-backdrop">
     <div class="tw-card">
       <div class="tw-hero">
         <div class="tw-badge">
           <div class="tw-badge-dot"></div><span class="tw-badge-label">Bem-vindo</span>
         </div>
-        <div class="tw-title">Markdowner <em>MD Editor/Viewer</em></div>
+        <div class="tw-title">Markdowner <em>MD Editor &amp; Viewer</em></div>
         <div class="tw-desc">Seu editor de referências para atendimento N1. Escreva em Markdown, visualize ao vivo e
           exporte quando precisar.</div>
       </div>
@@ -1768,30 +2226,33 @@
             </div>
           </div>
           <div class="tw-feat">
-            <div class="tw-feat-icon fi-a2">⬇</div>
+            <div class="tw-feat-icon fi-a2">↕</div>
             <div>
-              <div class="tw-feat-name">Exportar</div>
-              <div class="tw-feat-sub">Baixar como .md ou .txt</div>
+              <div class="tw-feat-name">Import / Export</div>
+              <div class="tw-feat-sub">Abrir .md/.txt ou baixar o doc</div>
             </div>
           </div>
         </div>
         <div class="tw-actions">
-          <button class="tw-primary" id="tw-start"><svg width="12" height="12" viewBox="0 0 14 14" fill="currentColor">
+          <button class="tw-primary" id="tw-start">
+            <svg width="12" height="12" viewBox="0 0 14 14" fill="currentColor">
               <path d="M4 2l8 5-8 5V2z" />
-            </svg>Fazer o tour interativo</button>
+            </svg>
+            Fazer o tour interativo
+          </button>
           <button class="tw-secondary" id="tw-skip">Pular, já sei usar</button>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- ════════════════════ SPOTLIGHT + CARD ════════════════════ -->
+  <!-- SPOTLIGHT + CARD -->
   <div id="tour-blocker"></div>
   <div id="tour-spot"></div>
   <div id="tour-card">
     <div class="tc-head">
       <span class="tc-phase" id="tc-phase">Interface</span>
-      <span class="tc-count" id="tc-count">1 / 17</span>
+      <span class="tc-count" id="tc-count">1 / 18</span>
     </div>
     <div class="tc-bar">
       <div class="tc-fill" id="tc-fill"></div>
@@ -1809,9 +2270,7 @@
   </div>
 
   <script>
-    /* ════════════════════════════════════
-       CONTENT
-    ════════════════════════════════════ */
+    /* ════ CONTENT ════ */
     const DEFAULT_MD = `# Le Pimpe - N1
 
 * **O que é esse doc?**
@@ -1883,16 +2342,12 @@
 > Problemas no gestor ( ) · Problemas no portal ( ) · Associação ( ) · Notificação Sonora ( ) · Impressão ( ) · Loja Não aparece/Loja fechada ( ) · Integração ( )
 `;
 
-    /* ════════════════════════════════════
-       STORAGE
-    ════════════════════════════════════ */
+    /* ════ STORAGE ════ */
     const SK = { theme: 'lp_theme', acc1: 'lp_acc1', acc2: 'lp_acc2', content: 'lp_content', toured: 'lp_toured' };
     function lsGet(k, d) { try { return localStorage.getItem(k) || d; } catch (e) { return d; } }
     function lsSet(k, v) { try { localStorage.setItem(k, v); } catch (e) { } }
 
-    /* ════════════════════════════════════
-       MARKED + HLJS
-    ════════════════════════════════════ */
+    /* ════ MARKED + HLJS ════ */
     marked.use({
       renderer: (() => {
         const r = new marked.Renderer();
@@ -1915,9 +2370,7 @@
       ccEl.textContent = `${n.toLocaleString('pt-BR')} chars · ${l} linhas`;
     }
 
-    /* ════════════════════════════════════
-       AUTOSAVE
-    ════════════════════════════════════ */
+    /* ════ AUTOSAVE ════ */
     let saveTimer = null;
     function scheduleSave() {
       saveEl.textContent = 'Salvando...'; saveEl.className = 'saving';
@@ -1938,9 +2391,7 @@
       render();
     });
 
-    /* ════════════════════════════════════
-       THEME
-    ════════════════════════════════════ */
+    /* ════ THEME ════ */
     let isDark = true;
     function applyTheme(dark) {
       isDark = dark;
@@ -1951,9 +2402,7 @@
     }
     function toggleTheme() { applyTheme(!isDark); }
 
-    /* ════════════════════════════════════
-       COLORS
-    ════════════════════════════════════ */
+    /* ════ COLORS ════ */
     const P1 = ['#e8a020', '#e85d20', '#e82060', '#a020e8', '#2060e8', '#20a8e8', '#208860', '#8da020', '#c87060'];
     const P2 = ['#2fa88a', '#2f88a8', '#2f4da8', '#882fa8', '#a82f60', '#a86020', '#a8882f', '#60a82f', '#2fa860'];
     let acc1 = '#e8a020', acc2 = '#2fa88a';
@@ -1998,16 +2447,42 @@
         if (/^#[0-9a-fA-F]{6}$/.test(v)) fn(v); else hx.value = n === '1' ? acc1 : acc2;
       });
     });
-    function toggleColor() { $('cpanel').classList.toggle('open'); $('expDrop').classList.remove('open'); }
-    function toggleExp() { $('expDrop').classList.toggle('open'); $('cpanel').classList.remove('open'); }
+
+    function isMobile() { return window.innerWidth <= 700; }
+
+    function closeAllDropdowns() {
+      $('cpanel').classList.remove('open');
+      $('expDrop').classList.remove('open');
+      $('sheetOverlay').classList.remove('vis');
+    }
+
+    function toggleColor() {
+      const open = !$('cpanel').classList.contains('open');
+      closeAllDropdowns();
+      if (open) {
+        $('cpanel').classList.add('open');
+        if (isMobile()) $('sheetOverlay').classList.add('vis');
+      }
+    }
+    function toggleExp() {
+      const open = !$('expDrop').classList.contains('open');
+      closeAllDropdowns();
+      if (open) {
+        $('expDrop').classList.add('open');
+        if (isMobile()) $('sheetOverlay').classList.add('vis');
+      }
+    }
+
     document.addEventListener('click', e => {
-      if (!$('colorWrap').contains(e.target)) $('cpanel').classList.remove('open');
-      if (!$('expWrap').contains(e.target)) $('expDrop').classList.remove('open');
+      if (!$('colorWrap').contains(e.target) && !$('sheetOverlay').contains(e.target))
+        $('cpanel').classList.remove('open');
+      if (!$('expWrap').contains(e.target) && !$('sheetOverlay').contains(e.target))
+        $('expDrop').classList.remove('open');
+      if (!$('cpanel').classList.contains('open') && !$('expDrop').classList.contains('open'))
+        $('sheetOverlay').classList.remove('vis');
     });
 
-    /* ════════════════════════════════════
-       VIEW
-    ════════════════════════════════════ */
+    /* ════ VIEW ════ */
     const ep = $('ep'), pp = $('pp'), dv = $('dv');
     function setView(m) {
       ['both', 'edit', 'preview'].forEach(v => $('b-' + v).classList.toggle('on', v === m));
@@ -2017,9 +2492,7 @@
       if (m === 'preview') { ep.classList.add('gone'); dv.classList.add('gone'); }
     }
 
-    /* ════════════════════════════════════
-       DRAG DIVIDER
-    ════════════════════════════════════ */
+    /* ════ DRAG DIVIDER ════ */
     const mob = () => window.innerWidth <= 700;
     let drag = false, sp = 0, ss = 0;
     dv.addEventListener('mousedown', startD);
@@ -2049,92 +2522,108 @@
       document.removeEventListener('mouseup', endD); document.removeEventListener('touchend', endD);
     }
 
-    /* ════════════════════════════════════
-       COPY / EXPORT
-    ════════════════════════════════════ */
+    /* ════ COPY / EXPORT / IMPORT ════ */
     function copyMd() { navigator.clipboard.writeText(editor.value).then(() => toast('Copiado para a área de transferência')); }
     function exportFile(ext) {
       const a = document.createElement('a');
       a.href = URL.createObjectURL(new Blob([editor.value], { type: 'text/plain;charset=utf-8' }));
       a.download = `le-pimpe-n1.${ext}`; a.click();
       $('expDrop').classList.remove('open');
+      $('sheetOverlay').classList.remove('vis');
       toast(`Exportado como .${ext}`);
     }
+
+    let _pendingContent = null, _pendingName = '';
+    function triggerImport() { $('file-input').value = ''; $('file-input').click(); }
+
+    $('file-input').addEventListener('change', e => {
+      const file = e.target.files[0]; if (!file) return;
+      const ext = file.name.split('.').pop().toLowerCase();
+      if (!['md', 'txt'].includes(ext)) { toast('Formato inválido — use .md ou .txt'); return; }
+      const reader = new FileReader();
+      reader.onload = ev => {
+        _pendingContent = ev.target.result; _pendingName = file.name;
+        $('imp-title').textContent = 'Importar arquivo';
+        $('imp-desc').innerHTML = `O conteúdo atual será substituído pelo arquivo:<br><span class="imp-fname">${_pendingName}</span><br><br>Esta ação não pode ser desfeita.`;
+        $('imp-backdrop').classList.add('vis');
+      };
+      reader.readAsText(file, 'utf-8');
+    });
+
+    $('imp-cancel').onclick = () => { $('imp-backdrop').classList.remove('vis'); _pendingContent = null; _pendingName = ''; };
+    $('imp-confirm').onclick = () => {
+      if (_pendingContent === null) return;
+      editor.value = _pendingContent; render(); updateCC(); scheduleSave();
+      $('imp-backdrop').classList.remove('vis');
+      toast(`"${_pendingName}" importado com sucesso ✓`);
+      _pendingContent = null; _pendingName = '';
+    };
+
     let toastTimer;
     function toast(msg) {
       const t = $('toast'); t.textContent = msg; t.classList.add('show');
       clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove('show'), 2400);
     }
 
-    /* ══════════════════════════════════════════════════════
+    /* ══════════════════════════════════════════════
        TOUR SYSTEM
-       Spotlight = box-shadow on a fixed div over the target
-    ══════════════════════════════════════════════════════ */
-
-    /* ── STEPS DEFINITION ── */
+    ══════════════════════════════════════════════ */
     const STEPS = [
-      // ── INTERFACE ──
       {
         phase: 'Interface', sel: '#t-brand',
-        title: 'Markdowner MD Editor/Viewer',
+        title: 'Markdowner MD Editor & Viewer',
         desc: 'Seu editor de referências para atendimento. Tudo que você escreve é <strong>salvo automaticamente</strong> no navegador — você nunca perde nada ao fechar e reabrir.'
       },
-
       {
         phase: 'Interface', sel: '#t-views',
         title: 'Modos de visualização',
         desc: '<strong>Dividido</strong> — editor e preview lado a lado.<br><strong>Editor</strong> — expande o textarea para escrita focada.<br><strong>Preview</strong> — visualização limpa do documento renderizado.'
       },
-
       {
         phase: 'Interface', sel: '#t-epbar',
         title: 'Painel do editor',
         desc: 'Aqui você digita seu Markdown. O contador no canto direito mostra caracteres e linhas em tempo real. Use <code>Tab</code> para inserir dois espaços de indentação.'
       },
-
       {
         phase: 'Interface', sel: '#t-ppbar',
         title: 'Painel de preview',
         desc: 'O Markdown renderizado ao vivo. Títulos, listas, citações, tabelas — tudo aparece aqui enquanto você digita, sem precisar salvar ou recarregar.'
       },
-
       {
         phase: 'Interface', sel: '#dv',
         title: 'Divisor arrastável',
         desc: 'Clique e arraste esta barra para ajustar a proporção entre editor e preview. Em telas menores o divisor fica horizontal.'
       },
-
       {
         phase: 'Interface', sel: '#t-copy',
         title: 'Copiar Markdown',
         desc: 'Copia todo o conteúdo do editor para a área de transferência. Útil para colar o texto em outros sistemas ou ferramentas.'
       },
-
       {
         phase: 'Interface', sel: '#t-export',
         title: 'Exportar arquivo',
         desc: 'Baixa o conteúdo como arquivo. <strong>.md</strong> mantém a sintaxe Markdown. <strong>.txt</strong> é texto puro. Ambos abrem normalmente em qualquer editor de texto.'
       },
-
+      {
+        phase: 'Interface', sel: '#t-import',
+        title: 'Importar arquivo .md ou .txt',
+        desc: 'Abre um arquivo do seu computador e carrega o conteúdo no editor. Funciona com qualquer arquivo <strong>.md</strong> ou <strong>.txt</strong>. Um diálogo de confirmação aparece antes de substituir o conteúdo atual.'
+      },
       {
         phase: 'Interface', sel: '#t-colors',
         title: 'Personalizar cores',
         desc: 'Defina a <strong>cor principal</strong> (títulos, bordas, marcadores) e a <strong>cor secundária</strong> (subtítulos, itálico, destaques). Use os presets ou insira um hex personalizado.'
       },
-
       {
         phase: 'Interface', sel: '#t-theme',
         title: 'Tema escuro / claro',
         desc: 'Alterna entre o tema escuro profissional e o tema claro. A preferência fica salva — da próxima vez o editor já abre no tema certo.'
       },
-
       {
         phase: 'Interface', sel: '#tour-btn',
         title: 'Botão de tour',
         desc: 'Este botão fica sempre disponível para rever o tutorial quando precisar. Agora vamos aprender a escrever em Markdown!'
       },
-
-      // ── MARKDOWN ──
       {
         phase: 'Markdown', sel: '#t-epbar',
         title: 'Títulos com #',
@@ -2143,7 +2632,6 @@
         sample: `# Título principal\n## Seção\n### Subseção\n`,
         preview: `<div class="r-h1"># Título principal</div><div class="r-h2">## Seção (H2)</div><div class="r-h3">### Subseção (H3)</div>`
       },
-
       {
         phase: 'Markdown', sel: '#t-epbar',
         title: 'Negrito, itálico e código',
@@ -2152,7 +2640,6 @@
         sample: `**Informação crítica** e *detalhe*\n\`ChatN1Avaliação\`\n`,
         preview: `<span class="r-bold">negrito</span> e <span class="r-em">itálico</span><br><span style="text-decoration:line-through;color:var(--tx3);font-size:11px">tachado</span><br><span class="r-code">ChatN1Avaliação</span>`
       },
-
       {
         phase: 'Markdown', sel: '#t-epbar',
         title: 'Listas',
@@ -2161,16 +2648,14 @@
         sample: `- Saudar o parceiro\n- Abrir oráculo\n  - Verificar Karen\n1. Analisar\n2. Resolver\n`,
         preview: `<div class="r-li">Item um</div><div class="r-li">Item dois</div><div style="padding-left:14px"><div class="r-li" style="font-size:10px">Subitem</div></div><div style="font-size:10.5px;color:var(--tx);margin-top:3px">1. Primeiro<br>2. Segundo</div>`
       },
-
       {
         phase: 'Markdown', sel: '#t-epbar',
         title: 'Citações com >',
         desc: 'Use <code>&gt;</code> no início da linha. Ideal para mensagens prontas de atendimento — destaca o texto com bordas coloridas.',
         md: `> Como a praça está saturada,\n> podemos cancelar sem impactar\n> sua taxa de cancelamento.`,
-        sample: `> Como a praça está saturada, podemos cancelar sem impactar sua taxa de cancelamento. Aguarda confirmação?\n`,
+        sample: `> Como a praça está saturada, podemos cancelar sem impactar sua taxa de cancelamento.\n`,
         preview: `<div class="r-bq">Como a praça está saturada, podemos cancelar sem impactar sua taxa de cancelamento.</div>`
       },
-
       {
         phase: 'Markdown', sel: '#t-epbar',
         title: 'Links e separadores',
@@ -2179,7 +2664,6 @@
         sample: `[Portal do Parceiro](https://parceiro.ifood.com.br)\n\n---\n\n`,
         preview: `<a class="r-a">Portal do Parceiro</a><hr class="r-hr"><a class="r-a">Salesforce</a>`
       },
-
       {
         phase: 'Markdown', sel: '#t-epbar',
         title: 'Blocos de código',
@@ -2188,7 +2672,6 @@
         sample: '```\nChatN1Avaliação\nChatN1Transferência\n```\n',
         preview: `<div style="background:var(--bg2);border:1px solid var(--bd);border-radius:4px;padding:6px 8px;font-family:var(--fm);font-size:10px;color:var(--tx)">{ <span style="color:var(--a2)">"processo"</span>: <span style="color:var(--a1)">"000001379"</span> }</div>`
       },
-
       {
         phase: 'Markdown', sel: '#t-epbar',
         title: 'Tabelas',
@@ -2197,7 +2680,6 @@
         sample: `| Processo | Código |\n|---|---|\n| Sem entregador | 000001379 |\n| Prod. incorreta | 000001393 |\n`,
         preview: `<table class="r-tbl"><thead><tr><th>Processo</th><th>Código</th><th>Ação</th></tr></thead><tbody><tr><td>Sem entregador</td><td>000001379</td><td>Cancelar</td></tr><tr><td>Prod. incorreta</td><td>000001393</td><td>Reembolsar</td></tr></tbody></table>`
       },
-
       {
         phase: 'Concluído', sel: '#tour-btn',
         title: 'Tudo pronto! 🎉',
@@ -2206,17 +2688,14 @@
       },
     ];
 
-    /* ── STATE ── */
     let curStep = 0;
     const spot = $('tour-spot'), card = $('tour-card'), blocker = $('tour-blocker');
 
-    /* ── WELCOME ── */
     function showWelcome() { $('tw-backdrop').classList.add('vis'); }
     function hideWelcome() { $('tw-backdrop').classList.remove('vis'); }
     $('tw-skip').onclick = () => { hideWelcome(); lsSet(SK.toured, '1'); };
     $('tw-start').onclick = () => { hideWelcome(); tourStart(); };
 
-    /* ── TOUR ── */
     function tourStart() {
       setView('both');
       curStep = 0;
@@ -2242,19 +2721,17 @@
       $('tc-title').textContent = s.title;
       $('tc-desc').innerHTML = s.desc;
 
-      // extra
       const extra = $('tc-extra');
       extra.innerHTML = '';
       if (s.md) {
-        // code block
         const codeDiv = document.createElement('div');
         codeDiv.className = 'tc-example';
         codeDiv.innerHTML = `
-      <div class="tc-ex-bar">
-        <span class="tc-ex-label">Sintaxe Markdown</span>
-        ${s.sample ? `<button class="tc-try" id="tc-try-btn">▶ Inserir no editor</button>` : ''}
-      </div>
-      <pre class="tc-code-pre">${esc(s.md)}</pre>`;
+          <div class="tc-ex-bar">
+            <span class="tc-ex-label">Sintaxe Markdown</span>
+            ${s.sample ? `<button class="tc-try" id="tc-try-btn">▶ Inserir no editor</button>` : ''}
+          </div>
+          <pre class="tc-code-pre">${esc(s.md)}</pre>`;
         extra.appendChild(codeDiv);
         if (s.sample) {
           $('tc-try-btn').onclick = () => {
@@ -2264,18 +2741,16 @@
             toast('Exemplo inserido! Veja o preview →');
           };
         }
-        // split preview
         if (s.preview) {
           const split = document.createElement('div');
           split.className = 'tc-split';
           split.innerHTML = `
-        <div class="tc-sp"><div class="tc-sp-tag">Markdown</div><div class="tc-sp-md">${esc(s.md)}</div></div>
-        <div class="tc-sp"><div class="tc-sp-tag">Resultado</div><div style="font-size:11px;line-height:1.65">${s.preview}</div></div>`;
+            <div class="tc-sp"><div class="tc-sp-tag">Markdown</div><div class="tc-sp-md">${esc(s.md)}</div></div>
+            <div class="tc-sp"><div class="tc-sp-tag">Resultado</div><div style="font-size:11px;line-height:1.65">${s.preview}</div></div>`;
           extra.appendChild(split);
         }
       }
 
-      // buttons
       $('tc-prev').disabled = (i === 0);
       const nextBtn = $('tc-next');
       if (s.isLast) {
@@ -2286,7 +2761,6 @@
         nextBtn.onclick = () => goStep(1);
       }
 
-      // spotlight — wait one frame so card re-renders first
       requestAnimationFrame(() => spotlight(s.sel));
     }
 
@@ -2299,52 +2773,55 @@
     $('tc-prev').onclick = () => goStep(-1);
     $('tc-close').onclick = tourEnd;
 
-    /* ── SPOTLIGHT ── */
     function spotlight(sel) {
       const el = document.querySelector(sel);
-      if (!el) { return; }
+      if (!el) return;
       const pad = 8;
       const r = el.getBoundingClientRect();
       const x = r.left - pad, y = r.top - pad, w = r.width + pad * 2, h = r.height + pad * 2;
-
-      // position the spot div
-      spot.style.left = x + 'px';
-      spot.style.top = y + 'px';
-      spot.style.width = w + 'px';
-      spot.style.height = h + 'px';
-
-      // position card
+      spot.style.left = x + 'px'; spot.style.top = y + 'px';
+      spot.style.width = w + 'px'; spot.style.height = h + 'px';
       placeCard(r, pad);
     }
 
     function placeCard(r, pad) {
       const c = card;
-      const cw = Math.min(370, window.innerWidth * 0.9);
+      const cw = Math.min(isMobile() ? window.innerWidth - 24 : 370, window.innerWidth * 0.9);
       const ch = c.offsetHeight || 280;
       const vw = window.innerWidth, vh = window.innerHeight, mg = 12;
-
       c.style.width = cw + 'px';
 
-      // prefer below, then above, then right
       let top, left;
       const below = vh - (r.bottom + pad + mg);
       const above = r.top - pad - mg;
 
-      if (below >= ch + 8) {
-        top = r.bottom + pad + mg;
-        left = Math.max(mg, Math.min(r.left, vw - cw - mg));
-      } else if (above >= ch + 8) {
-        top = r.top - pad - mg - ch;
-        left = Math.max(mg, Math.min(r.left, vw - cw - mg));
+      if (isMobile()) {
+        // On mobile: always anchor to bottom of screen
+        left = 12;
+        top = Math.min(vh - ch - mg, Math.max(mg, r.bottom + pad + mg));
+        // If not enough space below, put above the element
+        if (below < ch + 8 && above >= ch + 8) {
+          top = r.top - pad - mg - ch;
+        } else if (below < ch + 8 && above < ch + 8) {
+          // Center it vertically
+          top = Math.max(mg, (vh - ch) / 2);
+        }
       } else {
-        // center vertically, put to the right or left
-        const spaceRight = vw - (r.right + pad + mg);
-        if (spaceRight >= cw + 8) {
-          left = r.right + pad + mg;
-          top = Math.max(mg, Math.min(r.top, vh - ch - mg));
+        if (below >= ch + 8) {
+          top = r.bottom + pad + mg;
+          left = Math.max(mg, Math.min(r.left, vw - cw - mg));
+        } else if (above >= ch + 8) {
+          top = r.top - pad - mg - ch;
+          left = Math.max(mg, Math.min(r.left, vw - cw - mg));
         } else {
-          left = Math.max(mg, vw / 2 - cw / 2);
-          top = Math.max(mg, Math.min(r.bottom + pad + mg, vh - ch - mg));
+          const spaceRight = vw - (r.right + pad + mg);
+          if (spaceRight >= cw + 8) {
+            left = r.right + pad + mg;
+            top = Math.max(mg, Math.min(r.top, vh - ch - mg));
+          } else {
+            left = Math.max(mg, vw / 2 - cw / 2);
+            top = Math.max(mg, Math.min(r.bottom + pad + mg, vh - ch - mg));
+          }
         }
       }
 
@@ -2358,9 +2835,7 @@
 
     function esc(s) { return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
 
-    /* ════════════════════════════════════
-       INIT
-    ════════════════════════════════════ */
+    /* ════ INIT ════ */
     (function init() {
       applyTheme(lsGet(SK.theme, 'dark') === 'dark');
       applyAcc1(lsGet(SK.acc1, '#e8a020'));
@@ -2368,6 +2843,10 @@
       editor.value = lsGet(SK.content, DEFAULT_MD);
       render(); updateCC();
       saveEl.textContent = 'Salvo';
+
+      /* default to editor-only on small phones */
+      if (window.innerWidth <= 700) setView('edit');
+
       if (!lsGet(SK.toured, null)) setTimeout(showWelcome, 600);
     })();
   </script>
