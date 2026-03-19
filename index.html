@@ -1,0 +1,2376 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="dark">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Markdowner - A Markdown Editor by Janyel Lima</title>
+  <link
+    href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500&family=IBM+Plex+Sans:wght@300;400;500;600;700&display=swap"
+    rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/9.1.6/marked.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.1.6/purify.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+  <link id="hl-dark" rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark-dimmed.min.css">
+  <link id="hl-light" rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.min.css" disabled>
+  <style>
+    /* ═══════════════════════════════════ TOKENS */
+    :root {
+      --a1: #e8a020;
+      --a1r: 232, 160, 32;
+      --a2: #2fa88a;
+      --a2r: 47, 168, 138;
+      --hh: 48px;
+      --rr: 4px;
+      --ff: 'IBM Plex Sans', sans-serif;
+      --fm: 'IBM Plex Mono', monospace;
+      --tw: 0.16s ease;
+    }
+
+    [data-theme="dark"] {
+      --bg: #12141a;
+      --bg2: #0e1014;
+      --s1: #1a1d25;
+      --s2: #20232d;
+      --s3: #272b37;
+      --bd: #2c3040;
+      --bd2: #363c50;
+      --tx: #c8cfdf;
+      --tx2: #7a849e;
+      --tx3: #4a5368;
+      --txh: #e8ecf5;
+      --inv: #12141a;
+      --sh: 0 2px 16px rgba(0, 0, 0, .45);
+      --sh2: 0 8px 40px rgba(0, 0, 0, .6);
+      --ta1: rgba(232, 160, 32, .08);
+      --ta2: rgba(47, 168, 138, .08);
+    }
+
+    [data-theme="light"] {
+      --bg: #f5f6fa;
+      --bg2: #eceef5;
+      --s1: #ffffff;
+      --s2: #f0f2f8;
+      --s3: #e8eaf2;
+      --bd: #d4d8e8;
+      --bd2: #bec4d8;
+      --tx: #2a2e3e;
+      --tx2: #606680;
+      --tx3: #9099b0;
+      --txh: #12141a;
+      --inv: #ffffff;
+      --sh: 0 2px 12px rgba(0, 0, 0, .08);
+      --sh2: 0 8px 32px rgba(0, 0, 0, .12);
+      --ta1: rgba(232, 160, 32, .06);
+      --ta2: rgba(47, 168, 138, .06);
+    }
+
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0
+    }
+
+    html,
+    body {
+      height: 100%;
+      width: 100%;
+      font-family: var(--ff);
+      background: var(--bg);
+      color: var(--tx);
+      overflow: hidden;
+      transition: background var(--tw), color var(--tw);
+      -webkit-font-smoothing: antialiased
+    }
+
+    ::-webkit-scrollbar {
+      width: 5px;
+      height: 5px
+    }
+
+    ::-webkit-scrollbar-track {
+      background: transparent
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: var(--bd2);
+      border-radius: 3px
+    }
+
+    * {
+      scrollbar-width: thin;
+      scrollbar-color: var(--bd2) transparent
+    }
+
+    /* ═══════════════════════════════════ HEADER */
+    #header {
+      height: var(--hh);
+      background: var(--s1);
+      border-bottom: 1px solid var(--bd);
+      display: flex;
+      align-items: center;
+      padding: 0 16px;
+      gap: 0;
+      position: relative;
+      z-index: 100;
+      box-shadow: var(--sh);
+      transition: background var(--tw), border-color var(--tw);
+      user-select: none
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding-right: 16px;
+      border-right: 1px solid var(--bd);
+      margin-right: 14px;
+      flex-shrink: 0;
+      transition: border-color var(--tw)
+    }
+
+    .brand-mark {
+      width: 28px;
+      height: 28px;
+      background: var(--a1);
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background var(--tw)
+    }
+
+    .brand-mark svg {
+      width: 14px;
+      height: 14px;
+      fill: var(--inv)
+    }
+
+    .brand-name {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--txh);
+      letter-spacing: .02em;
+      line-height: 1;
+      transition: color var(--tw)
+    }
+
+    .brand-sub {
+      font-size: 10px;
+      font-weight: 400;
+      color: var(--tx3);
+      letter-spacing: .06em;
+      text-transform: uppercase;
+      font-family: var(--fm);
+      transition: color var(--tw)
+    }
+
+    .vd {
+      width: 1px;
+      height: 22px;
+      background: var(--bd);
+      flex-shrink: 0;
+      margin: 0 10px;
+      transition: background var(--tw)
+    }
+
+    .toolbar-group {
+      display: flex;
+      align-items: center;
+      gap: 2px;
+      flex-shrink: 0
+    }
+
+    .vbtn {
+      font-family: var(--ff);
+      font-size: 11.5px;
+      font-weight: 500;
+      padding: 5px 12px;
+      border-radius: var(--rr);
+      border: 1px solid transparent;
+      background: transparent;
+      color: var(--tx2);
+      cursor: pointer;
+      letter-spacing: .02em;
+      transition: all var(--tw);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      white-space: nowrap
+    }
+
+    .vbtn:hover {
+      background: var(--s2);
+      color: var(--tx);
+      border-color: var(--bd)
+    }
+
+    .vbtn.on {
+      background: var(--ta1);
+      color: var(--a1);
+      border-color: rgba(var(--a1r), .3)
+    }
+
+    .abtn {
+      font-family: var(--ff);
+      font-size: 11.5px;
+      font-weight: 500;
+      padding: 5px 13px;
+      border-radius: var(--rr);
+      border: 1px solid var(--bd);
+      background: var(--s2);
+      color: var(--tx);
+      cursor: pointer;
+      letter-spacing: .02em;
+      transition: all var(--tw);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      white-space: nowrap;
+      flex-shrink: 0
+    }
+
+    .abtn:hover {
+      border-color: var(--a1);
+      color: var(--a1);
+      background: var(--ta1)
+    }
+
+    .abtn svg {
+      width: 12px;
+      height: 12px;
+      flex-shrink: 0
+    }
+
+    .exp-wrap {
+      position: relative;
+      flex-shrink: 0
+    }
+
+    .exp-drop {
+      position: absolute;
+      top: calc(100% + 6px);
+      right: 0;
+      background: var(--s1);
+      border: 1px solid var(--bd);
+      border-radius: var(--rr);
+      box-shadow: var(--sh2);
+      min-width: 165px;
+      overflow: hidden;
+      display: none;
+      flex-direction: column;
+      z-index: 200
+    }
+
+    .exp-drop.open {
+      display: flex
+    }
+
+    .exp-item {
+      font-family: var(--ff);
+      font-size: 12px;
+      font-weight: 500;
+      padding: 10px 14px;
+      color: var(--tx);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      border: none;
+      background: transparent;
+      text-align: left;
+      transition: background var(--tw), color var(--tw)
+    }
+
+    .exp-item:hover {
+      background: var(--s2);
+      color: var(--a1)
+    }
+
+    .exp-item:not(:last-child) {
+      border-bottom: 1px solid var(--bd)
+    }
+
+    .exp-item svg {
+      width: 13px;
+      height: 13px;
+      flex-shrink: 0;
+      opacity: .7
+    }
+
+    .hr {
+      margin-left: auto;
+      display: flex;
+      align-items: center;
+      gap: 6px
+    }
+
+    .theme-pill {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--s2);
+      border: 1px solid var(--bd);
+      border-radius: 99px;
+      padding: 3px 3px 3px 10px;
+      cursor: pointer;
+      transition: all var(--tw);
+      flex-shrink: 0
+    }
+
+    .theme-pill:hover {
+      border-color: var(--bd2)
+    }
+
+    .theme-pill-label {
+      font-family: var(--fm);
+      font-size: 10px;
+      font-weight: 500;
+      color: var(--tx2);
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      line-height: 1
+    }
+
+    .theme-knob {
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      background: var(--s3);
+      border: 1px solid var(--bd);
+      display: flex;
+      align-items: center;
+      justify-content: center
+    }
+
+    .theme-knob svg {
+      width: 11px;
+      height: 11px
+    }
+
+    [data-theme="dark"] .ico-moon {
+      display: block;
+      fill: var(--tx2)
+    }
+
+    [data-theme="dark"] .ico-sun {
+      display: none
+    }
+
+    [data-theme="light"] .ico-sun {
+      display: block;
+      fill: var(--a1)
+    }
+
+    [data-theme="light"] .ico-moon {
+      display: none
+    }
+
+    .color-wrap {
+      position: relative;
+      flex-shrink: 0
+    }
+
+    .color-trigger {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      background: var(--s2);
+      border: 1px solid var(--bd);
+      border-radius: var(--rr);
+      padding: 4px 10px 4px 6px;
+      cursor: pointer;
+      transition: all var(--tw);
+      flex-shrink: 0
+    }
+
+    .color-trigger:hover {
+      border-color: var(--bd2)
+    }
+
+    .swatch-pair {
+      display: flex;
+      gap: 3px
+    }
+
+    .swatch {
+      width: 14px;
+      height: 14px;
+      border-radius: 3px;
+      border: 1px solid rgba(255, 255, 255, .12);
+      flex-shrink: 0
+    }
+
+    [data-theme="light"] .swatch {
+      border-color: rgba(0, 0, 0, .1)
+    }
+
+    .color-trigger-label {
+      font-size: 11px;
+      font-weight: 500;
+      color: var(--tx2);
+      letter-spacing: .02em;
+      line-height: 1
+    }
+
+    .cpanel {
+      position: absolute;
+      top: calc(100% + 8px);
+      right: 0;
+      width: 272px;
+      background: var(--s1);
+      border: 1px solid var(--bd);
+      border-radius: 8px;
+      box-shadow: var(--sh2);
+      display: none;
+      flex-direction: column;
+      overflow: hidden;
+      z-index: 200
+    }
+
+    .cpanel.open {
+      display: flex
+    }
+
+    .cpanel-header {
+      padding: 12px 14px 10px;
+      border-bottom: 1px solid var(--bd)
+    }
+
+    .cpanel-title {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      color: var(--tx2)
+    }
+
+    .cpanel-body {
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px
+    }
+
+    .color-row {
+      display: flex;
+      flex-direction: column;
+      gap: 7px
+    }
+
+    .color-row-label {
+      font-size: 10.5px;
+      font-weight: 600;
+      color: var(--tx3);
+      letter-spacing: .06em;
+      text-transform: uppercase
+    }
+
+    .presets-grid {
+      display: grid;
+      grid-template-columns: repeat(9, 1fr);
+      gap: 5px
+    }
+
+    .ps {
+      width: 100%;
+      aspect-ratio: 1;
+      border-radius: 3px;
+      border: 2px solid transparent;
+      cursor: pointer;
+      transition: transform .1s, border-color .1s;
+      outline: none
+    }
+
+    .ps:hover {
+      transform: scale(1.12)
+    }
+
+    .ps.sel {
+      border-color: var(--txh)
+    }
+
+    .color-inputs {
+      display: flex;
+      align-items: center;
+      gap: 7px
+    }
+
+    input[type="color"] {
+      -webkit-appearance: none;
+      width: 28px;
+      height: 28px;
+      border: 1px solid var(--bd);
+      border-radius: 4px;
+      background: var(--s2);
+      cursor: pointer;
+      padding: 2px;
+      flex-shrink: 0
+    }
+
+    input[type="color"]::-webkit-color-swatch-wrapper {
+      padding: 0;
+      border-radius: 2px
+    }
+
+    input[type="color"]::-webkit-color-swatch {
+      border: none;
+      border-radius: 2px
+    }
+
+    .hex-field {
+      font-family: var(--fm);
+      font-size: 12px;
+      background: var(--s2);
+      border: 1px solid var(--bd);
+      border-radius: var(--rr);
+      padding: 5px 9px;
+      color: var(--tx);
+      width: 88px;
+      outline: none;
+      transition: border-color var(--tw);
+      letter-spacing: .04em
+    }
+
+    .hex-field:focus {
+      border-color: var(--a1)
+    }
+
+    .color-sep {
+      height: 1px;
+      background: var(--bd)
+    }
+
+    #tour-btn {
+      font-family: var(--ff);
+      font-size: 11.5px;
+      font-weight: 500;
+      padding: 5px 11px;
+      border-radius: var(--rr);
+      border: 1px solid var(--bd);
+      background: var(--s2);
+      color: var(--tx2);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: all var(--tw);
+      white-space: nowrap;
+      flex-shrink: 0
+    }
+
+    #tour-btn:hover {
+      border-color: var(--a2);
+      color: var(--a2);
+      background: var(--ta2)
+    }
+
+    #tour-btn svg {
+      width: 12px;
+      height: 12px
+    }
+
+    /* ═══════════════════════════════════ WORKSPACE */
+    #workspace {
+      display: flex;
+      height: calc(100vh - var(--hh));
+      overflow: hidden
+    }
+
+    .panel {
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      min-width: 80px
+    }
+
+    #ep {
+      flex: 1 1 50%;
+      background: var(--bg2)
+    }
+
+    #pp {
+      flex: 1 1 50%;
+      background: var(--s1)
+    }
+
+    .pbar {
+      height: 32px;
+      background: var(--s1);
+      border-bottom: 1px solid var(--bd);
+      display: flex;
+      align-items: center;
+      padding: 0 14px;
+      gap: 8px;
+      flex-shrink: 0;
+      transition: background var(--tw), border-color var(--tw)
+    }
+
+    .pbar-tag {
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      color: var(--tx3);
+      font-family: var(--fm)
+    }
+
+    .pbar-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      flex-shrink: 0
+    }
+
+    .pbar-dot-a1 {
+      background: var(--a1);
+      transition: background var(--tw)
+    }
+
+    .pbar-dot-a2 {
+      background: var(--a2);
+      transition: background var(--tw)
+    }
+
+    .pbar-meta {
+      margin-left: auto;
+      font-family: var(--fm);
+      font-size: 10px;
+      color: var(--tx3);
+      letter-spacing: .03em
+    }
+
+    #editor {
+      flex: 1;
+      resize: none;
+      border: none;
+      outline: none;
+      background: var(--bg2);
+      color: var(--tx);
+      font-family: var(--fm);
+      font-size: 13px;
+      line-height: 1.85;
+      padding: 24px 28px;
+      overflow-y: auto;
+      caret-color: var(--a1);
+      tab-size: 2;
+      transition: background var(--tw), color var(--tw)
+    }
+
+    #editor::selection {
+      background: rgba(var(--a1r), .2)
+    }
+
+    #dv {
+      width: 5px;
+      flex-shrink: 0;
+      background: var(--bd);
+      cursor: col-resize;
+      position: relative;
+      z-index: 5;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background var(--tw)
+    }
+
+    #dv:hover,
+    #dv.drag {
+      background: var(--a1)
+    }
+
+    .grip-dots {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+      pointer-events: none
+    }
+
+    .grip-dots span {
+      width: 2px;
+      height: 2px;
+      border-radius: 50%;
+      background: var(--s1);
+      opacity: .7;
+      display: block
+    }
+
+    /* ═══════════════════════════════════ PREVIEW */
+    #preview {
+      flex: 1;
+      overflow-y: auto;
+      padding: 32px 40px;
+      background: var(--s1);
+      transition: background var(--tw)
+    }
+
+    #preview h1,
+    #preview h2,
+    #preview h3,
+    #preview h4 {
+      font-family: var(--ff);
+      line-height: 1.25;
+      font-weight: 600
+    }
+
+    #preview h1 {
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--a1);
+      padding-bottom: 10px;
+      margin: 0 0 18px;
+      border-bottom: 2px solid var(--a1)
+    }
+
+    #preview h1:not(:first-child) {
+      margin-top: 36px
+    }
+
+    #preview h2 {
+      font-size: 15px;
+      color: var(--a2);
+      margin: 28px 0 10px;
+      padding: 6px 12px 6px 14px;
+      background: var(--ta2);
+      border-left: 2px solid var(--a2);
+      border-radius: 0 var(--rr) var(--rr) 0
+    }
+
+    #preview h3 {
+      font-size: 13px;
+      color: var(--tx);
+      margin: 22px 0 8px;
+      display: flex;
+      align-items: center;
+      gap: 7px
+    }
+
+    #preview h3::before {
+      content: '';
+      display: inline-block;
+      width: 3px;
+      height: 13px;
+      border-radius: 2px;
+      background: var(--a1);
+      flex-shrink: 0
+    }
+
+    #preview h4 {
+      font-size: 12.5px;
+      font-weight: 600;
+      color: var(--tx2);
+      margin: 16px 0 6px
+    }
+
+    #preview p {
+      font-size: 13.5px;
+      line-height: 1.8;
+      color: var(--tx);
+      margin: 6px 0
+    }
+
+    #preview ul,
+    #preview ol {
+      padding-left: 20px;
+      margin: 6px 0
+    }
+
+    #preview li {
+      font-size: 13.5px;
+      line-height: 1.8;
+      color: var(--tx);
+      margin: 2px 0
+    }
+
+    #preview li::marker {
+      color: var(--a1);
+      font-weight: 600
+    }
+
+    #preview strong {
+      font-weight: 600;
+      color: var(--txh)
+    }
+
+    [data-theme="dark"] #preview strong {
+      color: #fff
+    }
+
+    [data-theme="light"] #preview strong {
+      color: #111
+    }
+
+    #preview em {
+      font-style: italic;
+      color: var(--a2)
+    }
+
+    #preview blockquote {
+      margin: 10px 0;
+      padding: 10px 16px;
+      background: var(--ta1);
+      border-left: 2px solid var(--a1);
+      border-radius: 0 var(--rr) var(--rr) 0
+    }
+
+    #preview blockquote p {
+      margin: 0;
+      font-size: 13px;
+      color: var(--tx2);
+      line-height: 1.75
+    }
+
+    #preview code {
+      font-family: var(--fm);
+      font-size: 12px;
+      background: var(--s3);
+      border: 1px solid var(--bd);
+      padding: 1px 5px;
+      border-radius: 3px;
+      color: var(--a2)
+    }
+
+    #preview pre {
+      margin: 12px 0;
+      border-radius: var(--rr);
+      border: 1px solid var(--bd);
+      overflow: hidden;
+      background: var(--s2) !important
+    }
+
+    #preview pre code {
+      display: block;
+      padding: 14px 16px !important;
+      background: transparent !important;
+      border: none;
+      color: var(--tx) !important;
+      font-size: 12.5px;
+      overflow-x: auto;
+      line-height: 1.7
+    }
+
+    #preview a {
+      color: var(--a1);
+      text-decoration: none;
+      border-bottom: 1px solid rgba(var(--a1r), .4)
+    }
+
+    #preview hr {
+      border: none;
+      height: 1px;
+      background: var(--bd);
+      margin: 24px 0
+    }
+
+    #preview table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12.5px;
+      margin: 12px 0;
+      border: 1px solid var(--bd);
+      border-radius: var(--rr);
+      overflow: hidden
+    }
+
+    #preview th {
+      background: var(--s2);
+      font-family: var(--ff);
+      font-weight: 600;
+      font-size: 11px;
+      letter-spacing: .07em;
+      text-transform: uppercase;
+      padding: 8px 12px;
+      text-align: left;
+      color: var(--tx2);
+      border-bottom: 1px solid var(--bd)
+    }
+
+    #preview td {
+      padding: 8px 12px;
+      border-bottom: 1px solid var(--bd);
+      color: var(--tx)
+    }
+
+    #preview tr:last-child td {
+      border-bottom: none
+    }
+
+    #preview tbody tr:hover td {
+      background: var(--ta1)
+    }
+
+    .panel.gone,
+    #dv.gone {
+      display: none !important
+    }
+
+    #save-status {
+      font-family: var(--fm);
+      font-size: 10px;
+      color: var(--tx3);
+      letter-spacing: .04em;
+      white-space: nowrap;
+      transition: color .3s
+    }
+
+    #save-status.saving {
+      color: var(--a1)
+    }
+
+    #save-status.saved {
+      color: var(--a2)
+    }
+
+    .toast {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%) translateY(72px);
+      background: var(--s1);
+      border: 1px solid var(--bd);
+      border-left: 3px solid var(--a1);
+      color: var(--tx);
+      font-size: 12px;
+      font-weight: 500;
+      padding: 9px 16px;
+      border-radius: var(--rr);
+      box-shadow: var(--sh2);
+      transition: transform .28s cubic-bezier(.34, 1.56, .64, 1);
+      z-index: 99999;
+      pointer-events: none;
+      white-space: nowrap
+    }
+
+    .toast.show {
+      transform: translateX(-50%) translateY(0)
+    }
+
+    @media(max-width:700px) {
+      #workspace {
+        flex-direction: column
+      }
+
+      #dv {
+        width: 100%;
+        height: 5px;
+        cursor: row-resize
+      }
+
+      .grip-dots {
+        flex-direction: row
+      }
+
+      .panel {
+        min-width: unset;
+        min-height: 80px
+      }
+
+      .brand-sub,
+      .vbtn .lbl,
+      .abtn .lbl,
+      .color-trigger-label {
+        display: none
+      }
+    }
+
+    @media(max-width:520px) {
+      .theme-pill-label {
+        display: none
+      }
+
+      .theme-pill {
+        padding: 3px
+      }
+    }
+
+    /* ════════════════════════════════════════════
+   TOUR — WELCOME MODAL
+════════════════════════════════════════════ */
+    #tw-backdrop {
+      position: fixed;
+      inset: 0;
+      z-index: 10000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(8, 10, 18, .84);
+      backdrop-filter: blur(6px);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity .3s ease;
+    }
+
+    #tw-backdrop.vis {
+      opacity: 1;
+      pointer-events: all
+    }
+
+    .tw-card {
+      background: var(--s1);
+      border: 1px solid var(--bd);
+      border-radius: 12px;
+      box-shadow: 0 24px 80px rgba(0, 0, 0, .55);
+      width: min(500px, 92vw);
+      overflow: hidden;
+      transform: translateY(24px) scale(.96);
+      transition: transform .38s cubic-bezier(.34, 1.3, .64, 1);
+    }
+
+    #tw-backdrop.vis .tw-card {
+      transform: translateY(0) scale(1)
+    }
+
+    .tw-hero {
+      background: linear-gradient(135deg, rgba(var(--a1r), .12) 0%, rgba(var(--a2r), .1) 100%);
+      border-bottom: 1px solid var(--bd);
+      padding: 28px 32px 24px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .tw-hero::before {
+      content: '';
+      position: absolute;
+      top: -40px;
+      right: -40px;
+      width: 160px;
+      height: 160px;
+      border-radius: 50%;
+      background: rgba(var(--a1r), .07)
+    }
+
+    .tw-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      background: rgba(var(--a1r), .14);
+      border: 1px solid rgba(var(--a1r), .28);
+      border-radius: 99px;
+      padding: 4px 12px;
+      margin-bottom: 14px
+    }
+
+    .tw-badge-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--a1)
+    }
+
+    .tw-badge-label {
+      font-family: var(--fm);
+      font-size: 10px;
+      font-weight: 500;
+      color: var(--a1);
+      letter-spacing: .08em;
+      text-transform: uppercase
+    }
+
+    .tw-title {
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--txh);
+      letter-spacing: -.02em;
+      margin-bottom: 8px;
+      line-height: 1.2
+    }
+
+    .tw-title em {
+      color: var(--a1);
+      font-style: normal
+    }
+
+    .tw-desc {
+      font-size: 13px;
+      color: var(--tx2);
+      line-height: 1.7
+    }
+
+    .tw-body {
+      padding: 22px 32px 26px;
+      display: flex;
+      flex-direction: column;
+      gap: 18px
+    }
+
+    .tw-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 9px
+    }
+
+    .tw-feat {
+      display: flex;
+      align-items: flex-start;
+      gap: 9px;
+      padding: 9px 11px;
+      background: var(--s2);
+      border: 1px solid var(--bd);
+      border-radius: 6px
+    }
+
+    .tw-feat-icon {
+      width: 26px;
+      height: 26px;
+      border-radius: 5px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      font-size: 12px
+    }
+
+    .fi-a1 {
+      background: rgba(var(--a1r), .14)
+    }
+
+    .fi-a2 {
+      background: rgba(var(--a2r), .14)
+    }
+
+    .tw-feat-name {
+      font-size: 11.5px;
+      font-weight: 600;
+      color: var(--txh);
+      margin-bottom: 2px
+    }
+
+    .tw-feat-sub {
+      font-size: 10.5px;
+      color: var(--tx3);
+      line-height: 1.4
+    }
+
+    .tw-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px
+    }
+
+    .tw-primary {
+      flex: 1;
+      padding: 10px 18px;
+      background: var(--a1);
+      color: var(--inv);
+      border: none;
+      border-radius: var(--rr);
+      font-family: var(--ff);
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 7px;
+      transition: opacity .15s
+    }
+
+    .tw-primary:hover {
+      opacity: .88
+    }
+
+    .tw-secondary {
+      padding: 10px 14px;
+      background: transparent;
+      color: var(--tx2);
+      border: 1px solid var(--bd);
+      border-radius: var(--rr);
+      font-family: var(--ff);
+      font-size: 12px;
+      cursor: pointer;
+      transition: all var(--tw);
+      white-space: nowrap
+    }
+
+    .tw-secondary:hover {
+      background: var(--s2);
+      color: var(--tx)
+    }
+
+    /* ════════════════════════════════════════════
+   TOUR — SPOTLIGHT
+   Uses box-shadow technique: a fixed div sits
+   over the target; its box-shadow creates the
+   dark overlay. Simple, reliable, no SVG mask.
+════════════════════════════════════════════ */
+
+    /* Full-screen click blocker (behind card, above page) */
+    #tour-blocker {
+      position: fixed;
+      inset: 0;
+      z-index: 9000;
+      display: none;
+      background: transparent;
+    }
+
+    #tour-blocker.vis {
+      display: block
+    }
+
+    /* The spotlight ring — positioned over target */
+    #tour-spot {
+      position: fixed;
+      z-index: 9010;
+      border-radius: 8px;
+      /* Giant box-shadow creates the dark overlay */
+      box-shadow: 0 0 0 9999px rgba(8, 10, 20, .78), 0 0 0 3px var(--a1), 0 0 18px rgba(var(--a1r), .35);
+      pointer-events: none;
+      transition:
+        top .38s cubic-bezier(.4, 0, .2, 1),
+        left .38s cubic-bezier(.4, 0, .2, 1),
+        width .38s cubic-bezier(.4, 0, .2, 1),
+        height .38s cubic-bezier(.4, 0, .2, 1),
+        opacity .25s ease;
+      opacity: 0;
+      display: none;
+    }
+
+    #tour-spot.vis {
+      opacity: 1;
+      display: block
+    }
+
+    /* The tooltip card */
+    #tour-card {
+      position: fixed;
+      z-index: 9020;
+      width: min(370px, 90vw);
+      background: var(--s1);
+      border: 1px solid var(--bd);
+      border-radius: 10px;
+      box-shadow: 0 16px 56px rgba(0, 0, 0, .5);
+      overflow: hidden;
+      display: none;
+      transition:
+        top .38s cubic-bezier(.4, 0, .2, 1),
+        left .38s cubic-bezier(.4, 0, .2, 1),
+        opacity .2s ease;
+      opacity: 0;
+    }
+
+    #tour-card.vis {
+      display: block;
+      opacity: 1
+    }
+
+    /* card internals */
+    .tc-head {
+      padding: 12px 14px 0;
+      display: flex;
+      align-items: center;
+      justify-content: space-between
+    }
+
+    .tc-phase {
+      font-family: var(--fm);
+      font-size: 9px;
+      font-weight: 500;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      color: var(--a1);
+      background: rgba(var(--a1r), .12);
+      border: 1px solid rgba(var(--a1r), .24);
+      border-radius: 99px;
+      padding: 3px 9px
+    }
+
+    .tc-count {
+      font-family: var(--fm);
+      font-size: 10px;
+      color: var(--tx3);
+      letter-spacing: .04em
+    }
+
+    .tc-bar {
+      height: 3px;
+      background: var(--bd);
+      margin: 10px 14px 0;
+      border-radius: 2px;
+      overflow: hidden
+    }
+
+    .tc-fill {
+      height: 100%;
+      background: var(--a1);
+      border-radius: 2px;
+      transition: width .4s cubic-bezier(.4, 0, .2, 1)
+    }
+
+    .tc-body {
+      padding: 13px 14px 10px
+    }
+
+    .tc-title {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--txh);
+      margin-bottom: 6px;
+      letter-spacing: -.01em;
+      line-height: 1.3
+    }
+
+    .tc-desc {
+      font-size: 12.5px;
+      color: var(--tx2);
+      line-height: 1.7
+    }
+
+    .tc-desc code {
+      font-family: var(--fm);
+      font-size: 11.5px;
+      background: var(--s3);
+      border: 1px solid var(--bd);
+      padding: 1px 5px;
+      border-radius: 3px;
+      color: var(--a2)
+    }
+
+    .tc-desc strong {
+      font-weight: 600;
+      color: var(--txh)
+    }
+
+    /* code example block */
+    .tc-example {
+      margin: 10px 14px 0;
+      border: 1px solid var(--bd);
+      border-radius: 6px;
+      overflow: hidden
+    }
+
+    .tc-ex-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 5px 10px;
+      background: var(--s3);
+      border-bottom: 1px solid var(--bd)
+    }
+
+    .tc-ex-label {
+      font-family: var(--fm);
+      font-size: 9px;
+      font-weight: 500;
+      color: var(--tx3);
+      letter-spacing: .08em;
+      text-transform: uppercase
+    }
+
+    .tc-try {
+      font-family: var(--fm);
+      font-size: 9px;
+      font-weight: 500;
+      color: var(--a1);
+      background: rgba(var(--a1r), .12);
+      border: 1px solid rgba(var(--a1r), .24);
+      border-radius: 3px;
+      padding: 2px 8px;
+      cursor: pointer;
+      letter-spacing: .04em;
+      transition: background .12s
+    }
+
+    .tc-try:hover {
+      background: rgba(var(--a1r), .22)
+    }
+
+    .tc-code-pre {
+      margin: 0;
+      padding: 10px 12px;
+      font-family: var(--fm);
+      font-size: 11.5px;
+      line-height: 1.7;
+      color: var(--tx);
+      white-space: pre;
+      overflow-x: auto;
+      background: var(--bg2)
+    }
+
+    /* side-by-side preview */
+    .tc-split {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      border-top: 1px solid var(--bd)
+    }
+
+    .tc-sp {
+      padding: 9px 11px
+    }
+
+    .tc-sp:first-child {
+      border-right: 1px solid var(--bd)
+    }
+
+    .tc-sp-tag {
+      font-family: var(--fm);
+      font-size: 9px;
+      font-weight: 500;
+      color: var(--tx3);
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      margin-bottom: 5px
+    }
+
+    .tc-sp-md {
+      font-family: var(--fm);
+      font-size: 10.5px;
+      color: var(--tx2);
+      line-height: 1.65;
+      white-space: pre
+    }
+
+    /* rendered preview */
+    .r-h1 {
+      font-size: 12.5px;
+      font-weight: 700;
+      color: var(--a1)
+    }
+
+    .r-h2 {
+      font-size: 11.5px;
+      font-weight: 600;
+      color: var(--a2)
+    }
+
+    .r-h3 {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--tx)
+    }
+
+    .r-bold {
+      font-weight: 700;
+      color: var(--txh)
+    }
+
+    .r-em {
+      color: var(--a2);
+      font-style: italic
+    }
+
+    .r-code {
+      font-family: var(--fm);
+      font-size: 10.5px;
+      background: var(--s3);
+      padding: 1px 4px;
+      border-radius: 3px;
+      color: var(--a2)
+    }
+
+    .r-bq {
+      background: var(--ta1);
+      border-left: 2px solid var(--a1);
+      padding: 4px 8px;
+      border-radius: 0 3px 3px 0;
+      font-size: 10.5px;
+      color: var(--tx2);
+      margin: 2px 0
+    }
+
+    .r-tbl {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 10px
+    }
+
+    .r-tbl th {
+      background: var(--s3);
+      padding: 3px 5px;
+      text-align: left;
+      color: var(--tx3);
+      border-bottom: 1px solid var(--bd);
+      font-size: 9px;
+      font-weight: 600
+    }
+
+    .r-tbl td {
+      padding: 3px 5px;
+      border-bottom: 1px solid var(--bd);
+      color: var(--tx)
+    }
+
+    .r-hr {
+      border: none;
+      border-top: 1px solid var(--bd);
+      margin: 5px 0
+    }
+
+    .r-a {
+      color: var(--a1);
+      border-bottom: 1px solid rgba(var(--a1r), .3);
+      font-size: 10.5px;
+      text-decoration: none
+    }
+
+    .r-li {
+      font-size: 10.5px;
+      color: var(--tx);
+      margin: 1px 0
+    }
+
+    .r-li::before {
+      content: '• ';
+      color: var(--a1);
+      font-weight: 700
+    }
+
+    /* foot */
+    .tc-foot {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      padding: 10px 14px 12px;
+      border-top: 1px solid var(--bd)
+    }
+
+    .tc-prev {
+      padding: 6px 12px;
+      background: transparent;
+      color: var(--tx2);
+      border: 1px solid var(--bd);
+      border-radius: var(--rr);
+      font-family: var(--ff);
+      font-size: 11.5px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all var(--tw)
+    }
+
+    .tc-prev:hover {
+      background: var(--s2);
+      color: var(--tx)
+    }
+
+    .tc-prev:disabled {
+      opacity: .3;
+      cursor: default;
+      pointer-events: none
+    }
+
+    .tc-next {
+      flex: 1;
+      padding: 6px 12px;
+      background: var(--a1);
+      color: var(--inv);
+      border: none;
+      border-radius: var(--rr);
+      font-family: var(--ff);
+      font-size: 11.5px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: opacity .15s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 5px
+    }
+
+    .tc-next:hover {
+      opacity: .88
+    }
+
+    .tc-close {
+      padding: 6px 10px;
+      background: transparent;
+      color: var(--tx3);
+      border: none;
+      border-radius: var(--rr);
+      font-family: var(--ff);
+      font-size: 11px;
+      cursor: pointer;
+      transition: color var(--tw);
+      white-space: nowrap
+    }
+
+    .tc-close:hover {
+      color: var(--tx2)
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- HEADER -->
+  <div id="header">
+    <div class="brand" id="t-brand">
+      <div class="brand-mark"><svg viewBox="0 0 16 16">
+          <path d="M2 2h12v2H2zm0 4h8v2H2zm0 4h10v2H2z" />
+        </svg></div>
+      <div>
+        <div class="brand-name">Markdowner</div>
+        <div class="brand-sub">MD Editor/Viewer</div>
+      </div>
+    </div>
+
+    <div class="toolbar-group" id="t-views">
+      <button class="vbtn on" id="b-both" onclick="setView('both')"><svg width="13" height="13" viewBox="0 0 14 14"
+          fill="currentColor">
+          <rect x="1" y="1" width="5" height="12" rx="1" />
+          <rect x="8" y="1" width="5" height="12" rx="1" />
+        </svg><span class="lbl">Dividido</span></button>
+      <button class="vbtn" id="b-edit" onclick="setView('edit')"><svg width="12" height="12" viewBox="0 0 14 14"
+          fill="currentColor">
+          <path d="M1 1h12v2H1zm0 4h9v2H1zm0 4h11v2H1z" />
+        </svg><span class="lbl">Editor</span></button>
+      <button class="vbtn" id="b-preview" onclick="setView('preview')"><svg width="12" height="12" viewBox="0 0 14 14"
+          fill="currentColor">
+          <path d="M7 3C3.5 3 1 7 1 7s2.5 4 6 4 6-4 6-4-2.5-4-6-4zm0 6a2 2 0 110-4 2 2 0 010 4z" />
+        </svg><span class="lbl">Preview</span></button>
+    </div>
+
+    <div class="vd"></div>
+    <span id="save-status">Salvo</span>
+
+    <div class="hr">
+      <button class="abtn" id="t-copy" onclick="copyMd()"><svg viewBox="0 0 14 14" fill="currentColor">
+          <rect x="4" y="1" width="9" height="11" rx="1.5" opacity=".5" />
+          <rect x="1" y="4" width="9" height="9" rx="1.5" />
+        </svg><span class="lbl">Copiar</span></button>
+
+      <div class="exp-wrap" id="expWrap">
+        <button class="abtn" id="t-export" onclick="toggleExp()"><svg viewBox="0 0 14 14" fill="currentColor">
+            <path d="M7 1v8M4 6l3 3 3-3M2 11h10v2H2z" />
+          </svg><span class="lbl">Exportar</span><svg width="9" height="9" viewBox="0 0 10 6" fill="currentColor"
+            style="opacity:.4">
+            <path d="M0 0l5 6 5-6z" />
+          </svg></button>
+        <div class="exp-drop" id="expDrop">
+          <button class="exp-item" onclick="exportFile('md')"><svg viewBox="0 0 14 14" fill="currentColor">
+              <path d="M2 1h7l3 3v9H2V1zm7 0v3h3" />
+            </svg>Exportar .md</button>
+          <button class="exp-item" onclick="exportFile('txt')"><svg viewBox="0 0 14 14" fill="currentColor">
+              <path d="M2 1h7l3 3v9H2V1zm7 0v3h3M4 7h6M4 9.5h4" />
+            </svg>Exportar .txt</button>
+        </div>
+      </div>
+
+      <div class="vd"></div>
+
+      <div class="color-wrap" id="colorWrap">
+        <button class="color-trigger" id="t-colors" onclick="toggleColor()">
+          <div class="swatch-pair">
+            <div class="swatch" id="sw1"></div>
+            <div class="swatch" id="sw2"></div>
+          </div>
+          <span class="color-trigger-label">Cores</span>
+          <svg width="9" height="9" viewBox="0 0 10 6" fill="currentColor" style="opacity:.4">
+            <path d="M0 0l5 6 5-6z" />
+          </svg>
+        </button>
+        <div class="cpanel" id="cpanel">
+          <div class="cpanel-header"><span class="cpanel-title">Personalizar cores</span></div>
+          <div class="cpanel-body">
+            <div class="color-row">
+              <div class="color-row-label">Cor principal</div>
+              <div class="presets-grid" id="presets1"></div>
+              <div class="color-inputs"><input type="color" id="cp1"><input type="text" class="hex-field" id="hx1"
+                  maxlength="7" placeholder="#e8a020"></div>
+            </div>
+            <div class="color-sep"></div>
+            <div class="color-row">
+              <div class="color-row-label">Cor secundária</div>
+              <div class="presets-grid" id="presets2"></div>
+              <div class="color-inputs"><input type="color" id="cp2"><input type="text" class="hex-field" id="hx2"
+                  maxlength="7" placeholder="#2fa88a"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="vd"></div>
+
+      <button class="theme-pill" id="t-theme" onclick="toggleTheme()">
+        <span class="theme-pill-label" id="th-lbl">Escuro</span>
+        <div class="theme-knob">
+          <svg class="ico-moon" viewBox="0 0 14 14">
+            <path d="M7 1a6 6 0 100 12A5 5 0 017 1z" />
+          </svg>
+          <svg class="ico-sun" viewBox="0 0 14 14">
+            <circle cx="7" cy="7" r="2.5" />
+            <path d="M7 1v1.5M7 11.5V13M1 7h1.5M11.5 7H13M2.9 2.9l1 1M10.1 10.1l1 1M2.9 11.1l1-1M10.1 3.9l1-1"
+              stroke="currentColor" stroke-width="1.4" stroke-linecap="round" fill="none" />
+          </svg>
+        </div>
+      </button>
+
+      <div class="vd"></div>
+
+      <button id="tour-btn" id="t-tour" onclick="tourStart()">
+        <svg viewBox="0 0 14 14" fill="currentColor">
+          <circle cx="7" cy="7" r="5.5" fill="none" stroke="currentColor" stroke-width="1.5" />
+          <path d="M5.5 5.2a1.5 1.5 0 112.6 1.5L7 8v.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"
+            fill="none" />
+          <circle cx="7" cy="10.5" r=".7" />
+        </svg>
+        Tour
+      </button>
+    </div>
+  </div>
+
+  <!-- WORKSPACE -->
+  <div id="workspace">
+    <div class="panel" id="ep">
+      <div class="pbar" id="t-epbar">
+        <div class="pbar-dot pbar-dot-a1"></div><span class="pbar-tag">Markdown</span><span class="pbar-meta" id="cc">—
+          chars</span>
+      </div>
+      <textarea id="editor" spellcheck="false"></textarea>
+    </div>
+    <div id="dv" id="t-dv">
+      <div class="grip-dots"><span></span><span></span><span></span><span></span><span></span><span></span></div>
+    </div>
+    <div class="panel" id="pp">
+      <div class="pbar" id="t-ppbar">
+        <div class="pbar-dot pbar-dot-a2"></div><span class="pbar-tag">Preview</span>
+      </div>
+      <div id="preview"></div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <!-- ════════════════════ WELCOME MODAL ════════════════════ -->
+  <div id="tw-backdrop">
+    <div class="tw-card">
+      <div class="tw-hero">
+        <div class="tw-badge">
+          <div class="tw-badge-dot"></div><span class="tw-badge-label">Bem-vindo</span>
+        </div>
+        <div class="tw-title">Markdowner <em>MD Editor/Viewer</em></div>
+        <div class="tw-desc">Seu editor de referências para atendimento N1. Escreva em Markdown, visualize ao vivo e
+          exporte quando precisar.</div>
+      </div>
+      <div class="tw-body">
+        <div class="tw-grid">
+          <div class="tw-feat">
+            <div class="tw-feat-icon fi-a1">✎</div>
+            <div>
+              <div class="tw-feat-name">Editor ao vivo</div>
+              <div class="tw-feat-sub">Preview instantâneo em Markdown</div>
+            </div>
+          </div>
+          <div class="tw-feat">
+            <div class="tw-feat-icon fi-a2">💾</div>
+            <div>
+              <div class="tw-feat-name">Salva sozinho</div>
+              <div class="tw-feat-sub">Autosave no navegador</div>
+            </div>
+          </div>
+          <div class="tw-feat">
+            <div class="tw-feat-icon fi-a1">🎨</div>
+            <div>
+              <div class="tw-feat-name">Temas e cores</div>
+              <div class="tw-feat-sub">Escuro, claro e cores livres</div>
+            </div>
+          </div>
+          <div class="tw-feat">
+            <div class="tw-feat-icon fi-a2">⬇</div>
+            <div>
+              <div class="tw-feat-name">Exportar</div>
+              <div class="tw-feat-sub">Baixar como .md ou .txt</div>
+            </div>
+          </div>
+        </div>
+        <div class="tw-actions">
+          <button class="tw-primary" id="tw-start"><svg width="12" height="12" viewBox="0 0 14 14" fill="currentColor">
+              <path d="M4 2l8 5-8 5V2z" />
+            </svg>Fazer o tour interativo</button>
+          <button class="tw-secondary" id="tw-skip">Pular, já sei usar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════════════════ SPOTLIGHT + CARD ════════════════════ -->
+  <div id="tour-blocker"></div>
+  <div id="tour-spot"></div>
+  <div id="tour-card">
+    <div class="tc-head">
+      <span class="tc-phase" id="tc-phase">Interface</span>
+      <span class="tc-count" id="tc-count">1 / 17</span>
+    </div>
+    <div class="tc-bar">
+      <div class="tc-fill" id="tc-fill"></div>
+    </div>
+    <div class="tc-body">
+      <div class="tc-title" id="tc-title"></div>
+      <div class="tc-desc" id="tc-desc"></div>
+      <div id="tc-extra"></div>
+    </div>
+    <div class="tc-foot">
+      <button class="tc-prev" id="tc-prev">← Anterior</button>
+      <button class="tc-next" id="tc-next">Próximo →</button>
+      <button class="tc-close" id="tc-close">Encerrar</button>
+    </div>
+  </div>
+
+  <script>
+    /* ════════════════════════════════════
+       CONTENT
+    ════════════════════════════════════ */
+    const DEFAULT_MD = `# Le Pimpe - N1
+
+* **O que é esse doc?**
+
+>  Uma forma rápida de acessar mensagens personalizdas pré-escritas para enviar após envio macros.
+
+### Atenção!
+
+* **Validar o execução do processo pelo número!**
+
+> Não confuda o documento atual como guia do processo. Este é apenas um guia de busca rápido para o projeto via o número dele, assim como tem a utilidade extra de prover economia de tempo com mensagens úteis a se enviar após o envio das macros e dependendo a situação com o Parceiro.
+
+### Forma simples de atender
+
+1. Saudar o parceiro
+2. Abrir oráculo
+3. Analisar Karen, Chat de Cliente e demais se necessário;
+    * Indentificado o caso - verificar processo correspondente usar número para abri-lo na sales;
+4. TMI - Manda algo para o parceiro para se manter dentro do tempo de interação;
+5. Macros - Enviar as macros do processo;
+    * Macro é muito grande?
+        - Dividir ela em fragmentos, ou...
+        - Avise que está ciente da situação, mas precisa enviar textos automáticos;
+6. Verificar/Utilizar ferramentas pertinentes ao caso
+    * Salesforce azul, Backoffice, Portal do Parceiro;
+7. Validar resolução e tabulação
+    * Resolveu? Macro **ChatN1Avaliação**;
+8. Demais dúvidas? Supervisores primeiro, veteranos depois;
+
+# Processos e mensagens pré-escritas.
+
+## Processos Logísticos de Restaurantes - 000001377
+
+### Pedido sem entregador alocado - 000001379
+
+* **Praça Saturada - Prazo OK**:
+
+> Como a praça em sua região está saturada, caso não queira mais aguardar, podemos cancelar e reembolsar você e seu cliente, sem impactar a taxa de cancelamento da sua loja.
+
+* **Prazo Estourado**
+
+> Como a promessa de entrega está estourada, podemos cancelar e reembolsar, sem impactar sua taxa de cancelamento.
+
+### Dificuldades com a entrega - 000001392
+### Dificuldades operacionais com o entregador - 000001387
+### Alterações solicitadas pelo Cliente - 000001378
+### Pedido incorreto, incompleto ou com qualidade comprometida - 000001393
+
+---
+
+## Processos Sob Demanda Off - 000003308
+## Conduta do entregador - 000004096
+## Contestação de Cancelamento Parcial e Total (N1) - 000001418
+## Problema Operacional do Parceiro - 000001419
+## Moderação de Avaliação - N1 - 000003966
+## Redução de Raio de Entrega N1 - 000004054
+## Política de abandono - Support - 000003286
+
+# Suporte técnico
+
+## Direcionar para ST N2 (Fila PX Food N2 - AeC)
+
+### Antes de transferir!
+
+> Notas obrigatórias — preencha conforme a solicitação:
+
+**Caso relacionado:**
+
+> Problemas no gestor ( ) · Problemas no portal ( ) · Associação ( ) · Notificação Sonora ( ) · Impressão ( ) · Loja Não aparece/Loja fechada ( ) · Integração ( )
+`;
+
+    /* ════════════════════════════════════
+       STORAGE
+    ════════════════════════════════════ */
+    const SK = { theme: 'lp_theme', acc1: 'lp_acc1', acc2: 'lp_acc2', content: 'lp_content', toured: 'lp_toured' };
+    function lsGet(k, d) { try { return localStorage.getItem(k) || d; } catch (e) { return d; } }
+    function lsSet(k, v) { try { localStorage.setItem(k, v); } catch (e) { } }
+
+    /* ════════════════════════════════════
+       MARKED + HLJS
+    ════════════════════════════════════ */
+    marked.use({
+      renderer: (() => {
+        const r = new marked.Renderer();
+        r.code = (code, lang) => {
+          const l = hljs.getLanguage(lang) ? lang : 'plaintext';
+          return `<pre><code class="hljs language-${l}">${hljs.highlight(code, { language: l }).value}</code></pre>`;
+        };
+        return r;
+      })(),
+      breaks: true, gfm: true,
+    });
+
+    const $ = id => document.getElementById(id);
+    const editor = $('editor'), preview = $('preview'), ccEl = $('cc'), saveEl = $('save-status');
+    const hlD = $('hl-dark'), hlL = $('hl-light');
+
+    function render() { preview.innerHTML = DOMPurify.sanitize(marked.parse(editor.value)); }
+    function updateCC() {
+      const n = editor.value.length, l = editor.value.split('\n').length;
+      ccEl.textContent = `${n.toLocaleString('pt-BR')} chars · ${l} linhas`;
+    }
+
+    /* ════════════════════════════════════
+       AUTOSAVE
+    ════════════════════════════════════ */
+    let saveTimer = null;
+    function scheduleSave() {
+      saveEl.textContent = 'Salvando...'; saveEl.className = 'saving';
+      clearTimeout(saveTimer);
+      saveTimer = setTimeout(() => {
+        lsSet(SK.content, editor.value);
+        saveEl.textContent = 'Salvo'; saveEl.className = 'saved';
+        setTimeout(() => { saveEl.textContent = 'Salvo'; saveEl.className = ''; }, 1800);
+      }, 800);
+    }
+    editor.addEventListener('input', () => { render(); updateCC(); scheduleSave(); });
+    editor.addEventListener('keydown', e => {
+      if (e.key !== 'Tab') return;
+      e.preventDefault();
+      const s = editor.selectionStart;
+      editor.value = editor.value.slice(0, s) + '  ' + editor.value.slice(editor.selectionEnd);
+      editor.selectionStart = editor.selectionEnd = s + 2;
+      render();
+    });
+
+    /* ════════════════════════════════════
+       THEME
+    ════════════════════════════════════ */
+    let isDark = true;
+    function applyTheme(dark) {
+      isDark = dark;
+      document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
+      $('th-lbl').textContent = dark ? 'Escuro' : 'Claro';
+      hlD.disabled = !dark; hlL.disabled = dark;
+      lsSet(SK.theme, dark ? 'dark' : 'light');
+    }
+    function toggleTheme() { applyTheme(!isDark); }
+
+    /* ════════════════════════════════════
+       COLORS
+    ════════════════════════════════════ */
+    const P1 = ['#e8a020', '#e85d20', '#e82060', '#a020e8', '#2060e8', '#20a8e8', '#208860', '#8da020', '#c87060'];
+    const P2 = ['#2fa88a', '#2f88a8', '#2f4da8', '#882fa8', '#a82f60', '#a86020', '#a8882f', '#60a82f', '#2fa860'];
+    let acc1 = '#e8a020', acc2 = '#2fa88a';
+    const DOC = document.documentElement;
+
+    function hexRgb(h) {
+      const m = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(h);
+      return m ? `${parseInt(m[1], 16)},${parseInt(m[2], 16)},${parseInt(m[3], 16)}` : null;
+    }
+    function applyAcc1(h) {
+      if (!/^#[0-9a-fA-F]{6}$/.test(h)) return;
+      acc1 = h; DOC.style.setProperty('--a1', h);
+      const rgb = hexRgb(h); if (rgb) DOC.style.setProperty('--a1r', rgb);
+      $('sw1').style.background = h; $('cp1').value = h; $('hx1').value = h;
+      document.querySelectorAll('.ps1').forEach(b => b.classList.toggle('sel', b.dataset.c === h));
+      lsSet(SK.acc1, h);
+    }
+    function applyAcc2(h) {
+      if (!/^#[0-9a-fA-F]{6}$/.test(h)) return;
+      acc2 = h; DOC.style.setProperty('--a2', h);
+      const rgb = hexRgb(h); if (rgb) DOC.style.setProperty('--a2r', rgb);
+      $('sw2').style.background = h; $('cp2').value = h; $('hx2').value = h;
+      document.querySelectorAll('.ps2').forEach(b => b.classList.toggle('sel', b.dataset.c === h));
+      lsSet(SK.acc2, h);
+    }
+    function buildPresets(id, colors, fn, cls) {
+      const c = $(id);
+      colors.forEach(col => {
+        const b = document.createElement('button');
+        b.className = `ps ${cls}`; b.dataset.c = col; b.style.background = col; b.title = col;
+        b.onclick = () => fn(col); c.appendChild(b);
+      });
+    }
+    buildPresets('presets1', P1, applyAcc1, 'ps1');
+    buildPresets('presets2', P2, applyAcc2, 'ps2');
+    ['1', '2'].forEach(n => {
+      const cp = $('cp' + n), hx = $('hx' + n), fn = n === '1' ? applyAcc1 : applyAcc2;
+      cp.addEventListener('input', e => { hx.value = e.target.value; fn(e.target.value); });
+      hx.addEventListener('input', e => { if (/^#[0-9a-fA-F]{6}$/.test(e.target.value)) fn(e.target.value); });
+      hx.addEventListener('blur', e => {
+        let v = e.target.value.trim(); if (!v.startsWith('#')) v = '#' + v;
+        if (/^#[0-9a-fA-F]{6}$/.test(v)) fn(v); else hx.value = n === '1' ? acc1 : acc2;
+      });
+    });
+    function toggleColor() { $('cpanel').classList.toggle('open'); $('expDrop').classList.remove('open'); }
+    function toggleExp() { $('expDrop').classList.toggle('open'); $('cpanel').classList.remove('open'); }
+    document.addEventListener('click', e => {
+      if (!$('colorWrap').contains(e.target)) $('cpanel').classList.remove('open');
+      if (!$('expWrap').contains(e.target)) $('expDrop').classList.remove('open');
+    });
+
+    /* ════════════════════════════════════
+       VIEW
+    ════════════════════════════════════ */
+    const ep = $('ep'), pp = $('pp'), dv = $('dv');
+    function setView(m) {
+      ['both', 'edit', 'preview'].forEach(v => $('b-' + v).classList.toggle('on', v === m));
+      ep.classList.remove('gone'); pp.classList.remove('gone'); dv.classList.remove('gone');
+      ep.style.width = ''; ep.style.height = ''; ep.style.flex = '';
+      if (m === 'edit') { pp.classList.add('gone'); dv.classList.add('gone'); }
+      if (m === 'preview') { ep.classList.add('gone'); dv.classList.add('gone'); }
+    }
+
+    /* ════════════════════════════════════
+       DRAG DIVIDER
+    ════════════════════════════════════ */
+    const mob = () => window.innerWidth <= 700;
+    let drag = false, sp = 0, ss = 0;
+    dv.addEventListener('mousedown', startD);
+    dv.addEventListener('touchstart', startD, { passive: false });
+    function startD(e) {
+      e.preventDefault(); drag = true; dv.classList.add('drag');
+      document.body.style.userSelect = 'none';
+      document.body.style.cursor = mob() ? 'row-resize' : 'col-resize';
+      const p = e.touches?.[0] || e;
+      if (mob()) { sp = p.clientY; ss = ep.getBoundingClientRect().height; }
+      else { sp = p.clientX; ss = ep.getBoundingClientRect().width; }
+      document.addEventListener('mousemove', onD);
+      document.addEventListener('touchmove', onD, { passive: false });
+      document.addEventListener('mouseup', endD);
+      document.addEventListener('touchend', endD);
+    }
+    function onD(e) {
+      if (!drag) return; e.preventDefault();
+      const p = e.touches?.[0] || e, ws = $('workspace').getBoundingClientRect();
+      if (mob()) { let h = ss + (p.clientY - sp); h = Math.max(80, Math.min(ws.height - 80, h)); ep.style.flex = 'none'; ep.style.height = h + 'px'; }
+      else { let w = ss + (p.clientX - sp); w = Math.max(80, Math.min(ws.width - 80, w)); ep.style.flex = 'none'; ep.style.width = w + 'px'; }
+    }
+    function endD() {
+      drag = false; dv.classList.remove('drag');
+      document.body.style.userSelect = ''; document.body.style.cursor = '';
+      document.removeEventListener('mousemove', onD); document.removeEventListener('touchmove', onD);
+      document.removeEventListener('mouseup', endD); document.removeEventListener('touchend', endD);
+    }
+
+    /* ════════════════════════════════════
+       COPY / EXPORT
+    ════════════════════════════════════ */
+    function copyMd() { navigator.clipboard.writeText(editor.value).then(() => toast('Copiado para a área de transferência')); }
+    function exportFile(ext) {
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(new Blob([editor.value], { type: 'text/plain;charset=utf-8' }));
+      a.download = `le-pimpe-n1.${ext}`; a.click();
+      $('expDrop').classList.remove('open');
+      toast(`Exportado como .${ext}`);
+    }
+    let toastTimer;
+    function toast(msg) {
+      const t = $('toast'); t.textContent = msg; t.classList.add('show');
+      clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove('show'), 2400);
+    }
+
+    /* ══════════════════════════════════════════════════════
+       TOUR SYSTEM
+       Spotlight = box-shadow on a fixed div over the target
+    ══════════════════════════════════════════════════════ */
+
+    /* ── STEPS DEFINITION ── */
+    const STEPS = [
+      // ── INTERFACE ──
+      {
+        phase: 'Interface', sel: '#t-brand',
+        title: 'Markdowner MD Editor/Viewer',
+        desc: 'Seu editor de referências para atendimento. Tudo que você escreve é <strong>salvo automaticamente</strong> no navegador — você nunca perde nada ao fechar e reabrir.'
+      },
+
+      {
+        phase: 'Interface', sel: '#t-views',
+        title: 'Modos de visualização',
+        desc: '<strong>Dividido</strong> — editor e preview lado a lado.<br><strong>Editor</strong> — expande o textarea para escrita focada.<br><strong>Preview</strong> — visualização limpa do documento renderizado.'
+      },
+
+      {
+        phase: 'Interface', sel: '#t-epbar',
+        title: 'Painel do editor',
+        desc: 'Aqui você digita seu Markdown. O contador no canto direito mostra caracteres e linhas em tempo real. Use <code>Tab</code> para inserir dois espaços de indentação.'
+      },
+
+      {
+        phase: 'Interface', sel: '#t-ppbar',
+        title: 'Painel de preview',
+        desc: 'O Markdown renderizado ao vivo. Títulos, listas, citações, tabelas — tudo aparece aqui enquanto você digita, sem precisar salvar ou recarregar.'
+      },
+
+      {
+        phase: 'Interface', sel: '#dv',
+        title: 'Divisor arrastável',
+        desc: 'Clique e arraste esta barra para ajustar a proporção entre editor e preview. Em telas menores o divisor fica horizontal.'
+      },
+
+      {
+        phase: 'Interface', sel: '#t-copy',
+        title: 'Copiar Markdown',
+        desc: 'Copia todo o conteúdo do editor para a área de transferência. Útil para colar o texto em outros sistemas ou ferramentas.'
+      },
+
+      {
+        phase: 'Interface', sel: '#t-export',
+        title: 'Exportar arquivo',
+        desc: 'Baixa o conteúdo como arquivo. <strong>.md</strong> mantém a sintaxe Markdown. <strong>.txt</strong> é texto puro. Ambos abrem normalmente em qualquer editor de texto.'
+      },
+
+      {
+        phase: 'Interface', sel: '#t-colors',
+        title: 'Personalizar cores',
+        desc: 'Defina a <strong>cor principal</strong> (títulos, bordas, marcadores) e a <strong>cor secundária</strong> (subtítulos, itálico, destaques). Use os presets ou insira um hex personalizado.'
+      },
+
+      {
+        phase: 'Interface', sel: '#t-theme',
+        title: 'Tema escuro / claro',
+        desc: 'Alterna entre o tema escuro profissional e o tema claro. A preferência fica salva — da próxima vez o editor já abre no tema certo.'
+      },
+
+      {
+        phase: 'Interface', sel: '#tour-btn',
+        title: 'Botão de tour',
+        desc: 'Este botão fica sempre disponível para rever o tutorial quando precisar. Agora vamos aprender a escrever em Markdown!'
+      },
+
+      // ── MARKDOWN ──
+      {
+        phase: 'Markdown', sel: '#t-epbar',
+        title: 'Títulos com #',
+        desc: 'Use <code>#</code> no início da linha. Quanto mais <code>#</code>, menor o título. O editor aceita até 6 níveis.',
+        md: `# Título principal\n## Seção (H2)\n### Subseção (H3)`,
+        sample: `# Título principal\n## Seção\n### Subseção\n`,
+        preview: `<div class="r-h1"># Título principal</div><div class="r-h2">## Seção (H2)</div><div class="r-h3">### Subseção (H3)</div>`
+      },
+
+      {
+        phase: 'Markdown', sel: '#t-epbar',
+        title: 'Negrito, itálico e código',
+        desc: '<code>**texto**</code> → negrito · <code>*texto*</code> → itálico · <code>~~texto~~</code> → tachado · <code>`código`</code> → inline code',
+        md: `**negrito** e *itálico*\n~~tachado~~\n\`ChatN1Avaliação\``,
+        sample: `**Informação crítica** e *detalhe*\n\`ChatN1Avaliação\`\n`,
+        preview: `<span class="r-bold">negrito</span> e <span class="r-em">itálico</span><br><span style="text-decoration:line-through;color:var(--tx3);font-size:11px">tachado</span><br><span class="r-code">ChatN1Avaliação</span>`
+      },
+
+      {
+        phase: 'Markdown', sel: '#t-epbar',
+        title: 'Listas',
+        desc: 'Use <code>-</code> ou <code>*</code> para listas com marcador. Use <code>1.</code> <code>2.</code> para listas numeradas. Adicione 2 espaços antes para criar subitens.',
+        md: `- Item um\n- Item dois\n  - Subitem\n\n1. Primeiro\n2. Segundo`,
+        sample: `- Saudar o parceiro\n- Abrir oráculo\n  - Verificar Karen\n1. Analisar\n2. Resolver\n`,
+        preview: `<div class="r-li">Item um</div><div class="r-li">Item dois</div><div style="padding-left:14px"><div class="r-li" style="font-size:10px">Subitem</div></div><div style="font-size:10.5px;color:var(--tx);margin-top:3px">1. Primeiro<br>2. Segundo</div>`
+      },
+
+      {
+        phase: 'Markdown', sel: '#t-epbar',
+        title: 'Citações com >',
+        desc: 'Use <code>&gt;</code> no início da linha. Ideal para mensagens prontas de atendimento — destaca o texto com bordas coloridas.',
+        md: `> Como a praça está saturada,\n> podemos cancelar sem impactar\n> sua taxa de cancelamento.`,
+        sample: `> Como a praça está saturada, podemos cancelar sem impactar sua taxa de cancelamento. Aguarda confirmação?\n`,
+        preview: `<div class="r-bq">Como a praça está saturada, podemos cancelar sem impactar sua taxa de cancelamento.</div>`
+      },
+
+      {
+        phase: 'Markdown', sel: '#t-epbar',
+        title: 'Links e separadores',
+        desc: '<code>[texto](url)</code> cria links clicáveis. <code>---</code> em linha sozinha cria um separador horizontal — ótimo para dividir seções.',
+        md: `[Portal do Parceiro](https://parceiro.ifood.com.br)\n\n---\n\n[Salesforce](https://ifood.lightning.force.com)`,
+        sample: `[Portal do Parceiro](https://parceiro.ifood.com.br)\n\n---\n\n`,
+        preview: `<a class="r-a">Portal do Parceiro</a><hr class="r-hr"><a class="r-a">Salesforce</a>`
+      },
+
+      {
+        phase: 'Markdown', sel: '#t-epbar',
+        title: 'Blocos de código',
+        desc: 'Use três crases ``` para blocos de código. Adicione o nome da linguagem logo após as crases para ter destaque de sintaxe automático.',
+        md: '```json\n{\n  "processo": "000001379",\n  "status": "saturado"\n}\n```',
+        sample: '```\nChatN1Avaliação\nChatN1Transferência\n```\n',
+        preview: `<div style="background:var(--bg2);border:1px solid var(--bd);border-radius:4px;padding:6px 8px;font-family:var(--fm);font-size:10px;color:var(--tx)">{ <span style="color:var(--a2)">"processo"</span>: <span style="color:var(--a1)">"000001379"</span> }</div>`
+      },
+
+      {
+        phase: 'Markdown', sel: '#t-epbar',
+        title: 'Tabelas',
+        desc: 'Use <code>|</code> para separar colunas e <code>---</code> na segunda linha para definir o separador de cabeçalho.',
+        md: `| Processo | Código | Ação |\n|---|---|---|\n| Sem entregador | 000001379 | Cancelar |\n| Prod. incorreta | 000001393 | Reembolsar |`,
+        sample: `| Processo | Código |\n|---|---|\n| Sem entregador | 000001379 |\n| Prod. incorreta | 000001393 |\n`,
+        preview: `<table class="r-tbl"><thead><tr><th>Processo</th><th>Código</th><th>Ação</th></tr></thead><tbody><tr><td>Sem entregador</td><td>000001379</td><td>Cancelar</td></tr><tr><td>Prod. incorreta</td><td>000001393</td><td>Reembolsar</td></tr></tbody></table>`
+      },
+
+      {
+        phase: 'Concluído', sel: '#tour-btn',
+        title: 'Tudo pronto! 🎉',
+        desc: 'Você conhece o editor e os elementos principais do Markdown. Seu documento é salvo automaticamente. Clique em <strong>Tour</strong> sempre que quiser rever. Bom atendimento!',
+        isLast: true
+      },
+    ];
+
+    /* ── STATE ── */
+    let curStep = 0;
+    const spot = $('tour-spot'), card = $('tour-card'), blocker = $('tour-blocker');
+
+    /* ── WELCOME ── */
+    function showWelcome() { $('tw-backdrop').classList.add('vis'); }
+    function hideWelcome() { $('tw-backdrop').classList.remove('vis'); }
+    $('tw-skip').onclick = () => { hideWelcome(); lsSet(SK.toured, '1'); };
+    $('tw-start').onclick = () => { hideWelcome(); tourStart(); };
+
+    /* ── TOUR ── */
+    function tourStart() {
+      setView('both');
+      curStep = 0;
+      blocker.classList.add('vis');
+      spot.classList.add('vis');
+      card.classList.add('vis');
+      renderStep(0);
+    }
+
+    function tourEnd() {
+      blocker.classList.remove('vis');
+      spot.classList.remove('vis');
+      card.classList.remove('vis');
+      lsSet(SK.toured, '1');
+      toast('Tour concluído! Bom atendimento 👍');
+    }
+
+    function renderStep(i) {
+      const s = STEPS[i], total = STEPS.length;
+      $('tc-phase').textContent = s.phase;
+      $('tc-count').textContent = `${i + 1} / ${total}`;
+      $('tc-fill').style.width = `${((i + 1) / total) * 100}%`;
+      $('tc-title').textContent = s.title;
+      $('tc-desc').innerHTML = s.desc;
+
+      // extra
+      const extra = $('tc-extra');
+      extra.innerHTML = '';
+      if (s.md) {
+        // code block
+        const codeDiv = document.createElement('div');
+        codeDiv.className = 'tc-example';
+        codeDiv.innerHTML = `
+      <div class="tc-ex-bar">
+        <span class="tc-ex-label">Sintaxe Markdown</span>
+        ${s.sample ? `<button class="tc-try" id="tc-try-btn">▶ Inserir no editor</button>` : ''}
+      </div>
+      <pre class="tc-code-pre">${esc(s.md)}</pre>`;
+        extra.appendChild(codeDiv);
+        if (s.sample) {
+          $('tc-try-btn').onclick = () => {
+            const pos = editor.selectionStart || editor.value.length;
+            editor.value = editor.value.slice(0, pos) + '\n' + s.sample + editor.value.slice(pos);
+            render(); updateCC(); scheduleSave();
+            toast('Exemplo inserido! Veja o preview →');
+          };
+        }
+        // split preview
+        if (s.preview) {
+          const split = document.createElement('div');
+          split.className = 'tc-split';
+          split.innerHTML = `
+        <div class="tc-sp"><div class="tc-sp-tag">Markdown</div><div class="tc-sp-md">${esc(s.md)}</div></div>
+        <div class="tc-sp"><div class="tc-sp-tag">Resultado</div><div style="font-size:11px;line-height:1.65">${s.preview}</div></div>`;
+          extra.appendChild(split);
+        }
+      }
+
+      // buttons
+      $('tc-prev').disabled = (i === 0);
+      const nextBtn = $('tc-next');
+      if (s.isLast) {
+        nextBtn.textContent = '✓ Fechar tour';
+        nextBtn.onclick = tourEnd;
+      } else {
+        nextBtn.textContent = 'Próximo →';
+        nextBtn.onclick = () => goStep(1);
+      }
+
+      // spotlight — wait one frame so card re-renders first
+      requestAnimationFrame(() => spotlight(s.sel));
+    }
+
+    function goStep(dir) {
+      const n = curStep + dir;
+      if (n < 0 || n >= STEPS.length) return;
+      curStep = n; renderStep(n);
+    }
+
+    $('tc-prev').onclick = () => goStep(-1);
+    $('tc-close').onclick = tourEnd;
+
+    /* ── SPOTLIGHT ── */
+    function spotlight(sel) {
+      const el = document.querySelector(sel);
+      if (!el) { return; }
+      const pad = 8;
+      const r = el.getBoundingClientRect();
+      const x = r.left - pad, y = r.top - pad, w = r.width + pad * 2, h = r.height + pad * 2;
+
+      // position the spot div
+      spot.style.left = x + 'px';
+      spot.style.top = y + 'px';
+      spot.style.width = w + 'px';
+      spot.style.height = h + 'px';
+
+      // position card
+      placeCard(r, pad);
+    }
+
+    function placeCard(r, pad) {
+      const c = card;
+      const cw = Math.min(370, window.innerWidth * 0.9);
+      const ch = c.offsetHeight || 280;
+      const vw = window.innerWidth, vh = window.innerHeight, mg = 12;
+
+      c.style.width = cw + 'px';
+
+      // prefer below, then above, then right
+      let top, left;
+      const below = vh - (r.bottom + pad + mg);
+      const above = r.top - pad - mg;
+
+      if (below >= ch + 8) {
+        top = r.bottom + pad + mg;
+        left = Math.max(mg, Math.min(r.left, vw - cw - mg));
+      } else if (above >= ch + 8) {
+        top = r.top - pad - mg - ch;
+        left = Math.max(mg, Math.min(r.left, vw - cw - mg));
+      } else {
+        // center vertically, put to the right or left
+        const spaceRight = vw - (r.right + pad + mg);
+        if (spaceRight >= cw + 8) {
+          left = r.right + pad + mg;
+          top = Math.max(mg, Math.min(r.top, vh - ch - mg));
+        } else {
+          left = Math.max(mg, vw / 2 - cw / 2);
+          top = Math.max(mg, Math.min(r.bottom + pad + mg, vh - ch - mg));
+        }
+      }
+
+      c.style.top = top + 'px';
+      c.style.left = left + 'px';
+    }
+
+    window.addEventListener('resize', () => {
+      if (card.classList.contains('vis')) spotlight(STEPS[curStep].sel);
+    });
+
+    function esc(s) { return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
+
+    /* ════════════════════════════════════
+       INIT
+    ════════════════════════════════════ */
+    (function init() {
+      applyTheme(lsGet(SK.theme, 'dark') === 'dark');
+      applyAcc1(lsGet(SK.acc1, '#e8a020'));
+      applyAcc2(lsGet(SK.acc2, '#2fa88a'));
+      editor.value = lsGet(SK.content, DEFAULT_MD);
+      render(); updateCC();
+      saveEl.textContent = 'Salvo';
+      if (!lsGet(SK.toured, null)) setTimeout(showWelcome, 600);
+    })();
+  </script>
+</body>
+
+</html>
