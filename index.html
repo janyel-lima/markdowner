@@ -11,6 +11,7 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/9.1.6/marked.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.1.6/purify.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+  <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
   <link id="hl-dark" rel="stylesheet"
     href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark-dimmed.min.css">
   <link id="hl-light" rel="stylesheet"
@@ -116,6 +117,10 @@
       -webkit-text-size-adjust: 100%;
       /* prevent iOS auto font bump */
       text-size-adjust: 100%;
+    }
+    body {
+      display: flex;
+      flex-direction: column;
     }
 
     ::-webkit-scrollbar {
@@ -634,6 +639,7 @@
       height: calc(100vh - var(--hh));
       height: calc(100dvh - var(--hh));
       overflow: hidden;
+      flex: 1;
     }
 
     .panel {
@@ -1978,6 +1984,412 @@
       color: var(--tx2)
     }
 
+    /* ═══════════════════════════════════ COLLAB BUTTON */
+    #collab-btn {
+      font-family: var(--ff);
+      font-size: var(--fs-sm);
+      font-weight: 500;
+      padding: 5px 11px;
+      border-radius: var(--rr);
+      border: 1px solid var(--bd);
+      background: var(--s2);
+      color: var(--tx2);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: all var(--tw);
+      white-space: nowrap;
+      flex-shrink: 0;
+      min-height: 30px;
+      touch-action: manipulation;
+      position: relative;
+    }
+    #collab-btn:hover { border-color: var(--a1); color: var(--a1); background: var(--ta1); }
+    #collab-btn.active { background: rgba(var(--a2r),.14); border-color: var(--a2); color: var(--a2); }
+    #collab-btn svg { width: 12px; height: 12px; }
+    #collab-pulse {
+      position: absolute; top: 4px; right: 4px;
+      width: 7px; height: 7px; border-radius: 50%;
+      background: var(--a2); display: none;
+      box-shadow: 0 0 0 0 rgba(var(--a2r),.6);
+      animation: pulse-ring 1.6s ease-out infinite;
+    }
+    #collab-btn.active #collab-pulse { display: block; }
+    @keyframes pulse-ring {
+      0%  { box-shadow: 0 0 0 0 rgba(var(--a2r),.55); }
+      70% { box-shadow: 0 0 0 6px rgba(var(--a2r),0); }
+      100%{ box-shadow: 0 0 0 0 rgba(var(--a2r),0); }
+    }
+
+    #chat-toggle-btn {
+      font-family: var(--ff);
+      font-size: var(--fs-sm);
+      font-weight: 500;
+      padding: 5px 11px;
+      border-radius: var(--rr);
+      border: 1px solid var(--bd);
+      background: var(--s2);
+      color: var(--tx2);
+      cursor: pointer;
+      display: none;
+      align-items: center;
+      gap: 6px;
+      transition: all var(--tw);
+      white-space: nowrap;
+      flex-shrink: 0;
+      min-height: 30px;
+      touch-action: manipulation;
+      position: relative;
+    }
+    #chat-toggle-btn.vis { display: flex; }
+    #chat-toggle-btn:hover { border-color: var(--a2); color: var(--a2); background: var(--ta2); }
+    #chat-toggle-btn.on { background: rgba(var(--a2r),.14); border-color: var(--a2); color: var(--a2); }
+    #chat-toggle-btn svg { width: 12px; height: 12px; }
+    .chat-badge {
+      position: absolute; top: -4px; right: -5px;
+      background: var(--a2); color: var(--inv);
+      font-size: 9px; font-weight: 700;
+      min-width: 16px; height: 16px;
+      border-radius: 99px; padding: 0 4px;
+      display: none; align-items: center; justify-content: center;
+      font-family: var(--fm);
+    }
+    .chat-badge.vis { display: flex; }
+
+    /* ═══════════════════════════════════ PRESENCE BAR */
+    #presence-bar {
+      height: 0; overflow: hidden;
+      background: var(--s1);
+      border-bottom: 1px solid transparent;
+      display: flex;
+      align-items: center;
+      padding: 0;
+      gap: 10px;
+      flex-shrink: 0;
+      transition: height .25s ease, padding .25s ease, border-color var(--tw), background var(--tw);
+      z-index: 50;
+    }
+    #presence-bar.active {
+      height: 38px;
+      padding: 0 16px;
+      border-color: var(--bd);
+    }
+    .pb-label {
+      font-family: var(--fm);
+      font-size: var(--fs-2xs);
+      font-weight: 500;
+      letter-spacing: .07em;
+      text-transform: uppercase;
+      color: var(--tx3);
+      flex-shrink: 0;
+    }
+    .pb-dot {
+      width: 6px; height: 6px; border-radius: 50%;
+      background: var(--a2); flex-shrink: 0;
+      animation: pulse-ring 1.6s ease-out infinite;
+    }
+    #presence-list {
+      display: flex; align-items: center; gap: 6px; flex: 1; overflow: hidden;
+    }
+    .presence-chip {
+      display: flex; align-items: center; gap: 6px;
+      background: var(--s2); border: 1px solid var(--bd);
+      border-radius: 99px; padding: 3px 10px 3px 5px;
+      font-size: var(--fs-xs); color: var(--tx);
+      white-space: nowrap; transition: all var(--tw);
+    }
+    .presence-avatar {
+      width: 18px; height: 18px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 9px; font-weight: 700; color: #fff; flex-shrink: 0;
+    }
+    .presence-me { border: 1.5px solid var(--a2); }
+    .pb-room-code {
+      font-family: var(--fm);
+      font-size: var(--fs-xs);
+      color: var(--tx2);
+      letter-spacing: .08em;
+      background: var(--s2);
+      border: 1px solid var(--bd);
+      border-radius: var(--rr);
+      padding: 2px 8px;
+      cursor: pointer;
+      transition: all var(--tw);
+      flex-shrink: 0;
+    }
+    .pb-room-code:hover { border-color: var(--a1); color: var(--a1); }
+    #pb-leave {
+      font-family: var(--ff);
+      font-size: var(--fs-xs);
+      padding: 3px 9px;
+      border-radius: var(--rr);
+      border: 1px solid rgba(232,80,80,.3);
+      background: transparent;
+      color: #e85050;
+      cursor: pointer;
+      transition: all var(--tw);
+      flex-shrink: 0;
+      white-space: nowrap;
+    }
+    #pb-leave:hover { background: rgba(232,80,80,.1); }
+
+    /* ═══════════════════════════════════ COLLAB MODAL */
+    #collab-backdrop {
+      position: fixed; inset: 0;
+      background: rgba(8,10,20,.75);
+      display: none; align-items: center; justify-content: center;
+      z-index: 8000; padding: 20px;
+    }
+    #collab-backdrop.vis { display: flex; }
+    .collab-modal {
+      background: var(--s1);
+      border: 1px solid var(--bd);
+      border-radius: 10px;
+      box-shadow: var(--sh2);
+      width: min(420px, 100%);
+      overflow: hidden;
+      animation: modal-in .2s ease;
+    }
+    @keyframes modal-in {
+      from { opacity:0; transform: scale(.95) translateY(8px); }
+      to   { opacity:1; transform: scale(1)  translateY(0); }
+    }
+    .cm-header {
+      padding: 16px 18px 12px;
+      border-bottom: 1px solid var(--bd);
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .cm-title {
+      font-size: var(--fs-lg);
+      font-weight: 700; color: var(--txh);
+      display: flex; align-items: center; gap: 8px;
+    }
+    .cm-title svg { width:14px;height:14px;color:var(--a2) }
+    .cm-close {
+      background: none; border: none; cursor: pointer;
+      color: var(--tx3); padding: 4px; border-radius: var(--rr);
+      transition: color var(--tw); font-size: 16px; line-height:1;
+    }
+    .cm-close:hover { color: var(--tx); }
+    .cm-tabs {
+      display: flex;
+      border-bottom: 1px solid var(--bd);
+    }
+    .cm-tab {
+      flex: 1; padding: 11px 14px;
+      font-family: var(--ff);
+      font-size: var(--fs-sm);
+      font-weight: 500;
+      color: var(--tx2);
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      transition: all var(--tw);
+    }
+    .cm-tab.on {
+      color: var(--a1); border-bottom-color: var(--a1);
+      background: var(--ta1);
+    }
+    .cm-body { padding: 18px; display: flex; flex-direction: column; gap: 14px; }
+    .cm-label {
+      font-size: var(--fs-xs); font-weight: 600;
+      letter-spacing: .06em; text-transform: uppercase;
+      color: var(--tx3); margin-bottom: 5px;
+    }
+    .cm-input {
+      font-family: var(--ff);
+      font-size: var(--fs-md);
+      background: var(--bg2);
+      border: 1px solid var(--bd);
+      border-radius: var(--rr);
+      padding: 9px 12px;
+      color: var(--tx);
+      outline: none;
+      width: 100%;
+      transition: border-color var(--tw), background var(--tw);
+    }
+    .cm-input:focus { border-color: var(--a1); }
+    .cm-code-display {
+      display: flex; align-items: center; gap: 8px;
+      background: var(--bg2);
+      border: 1px solid var(--bd); border-radius: var(--rr);
+      padding: 9px 12px;
+    }
+    .cm-code-val {
+      font-family: var(--fm); font-size: 22px;
+      font-weight: 700; letter-spacing: .18em;
+      color: var(--a1); flex: 1;
+    }
+    .cm-copy-code {
+      font-family: var(--ff); font-size: var(--fs-xs);
+      background: rgba(var(--a1r),.12);
+      border: 1px solid rgba(var(--a1r),.24);
+      color: var(--a1);
+      border-radius: 3px; padding: 4px 10px;
+      cursor: pointer; transition: background .12s;
+    }
+    .cm-copy-code:hover { background: rgba(var(--a1r),.22); }
+    .cm-note {
+      font-size: var(--fs-xs); color: var(--tx3); line-height: 1.65;
+    }
+    .cm-note strong { color: var(--tx2); }
+    .cm-btn {
+      font-family: var(--ff); font-size: var(--fs-md);
+      font-weight: 600;
+      background: var(--a1); color: var(--inv);
+      border: none; border-radius: var(--rr);
+      padding: 10px 18px; cursor: pointer;
+      width: 100%; min-height: 40px;
+      display: flex; align-items: center; justify-content: center; gap: 7px;
+      transition: opacity .15s;
+    }
+    .cm-btn:hover { opacity: .88; }
+    .cm-btn:disabled { opacity: .4; cursor: not-allowed; }
+    .cm-btn.a2 { background: var(--a2); }
+    .cm-status {
+      text-align: center;
+      font-size: var(--fs-xs); color: var(--tx2);
+      padding: 6px 0 2px;
+      display: none;
+    }
+    .cm-status.vis { display: block; }
+    .cm-err { color: #e85050; }
+    .cm-host-waiting {
+      display: none; text-align: center;
+      padding: 10px;
+    }
+    .cm-host-waiting.vis { display: block; }
+    .cm-spinner {
+      display: inline-block;
+      width: 16px; height: 16px;
+      border: 2px solid var(--bd);
+      border-top-color: var(--a2);
+      border-radius: 50%;
+      animation: spin .8s linear infinite;
+      vertical-align: middle; margin-right: 7px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ═══════════════════════════════════ CHAT PANEL */
+    #chat-panel {
+      position: fixed;
+      top: var(--hh);
+      right: -320px;
+      width: 300px;
+      bottom: 0;
+      background: var(--s1);
+      border-left: 1px solid var(--bd);
+      display: flex; flex-direction: column;
+      z-index: 200;
+      transition: right .25s cubic-bezier(.4,0,.2,1), top .25s ease, background var(--tw), border-color var(--tw);
+      box-shadow: -4px 0 24px rgba(0,0,0,.18);
+    }
+    #chat-panel.open { right: 0; }
+    #chat-panel.pb-active { top: calc(var(--hh) + 38px); }
+    @media (max-width: 700px) {
+      #chat-panel { width: 100%; right: -100%; }
+      #chat-panel.open { right: 0; }
+    }
+    .cp-head {
+      padding: 11px 14px;
+      border-bottom: 1px solid var(--bd);
+      display: flex; align-items: center; justify-content: space-between;
+      flex-shrink: 0;
+    }
+    .cp-head-title {
+      font-size: var(--fs-sm); font-weight: 600;
+      color: var(--txh);
+      display: flex; align-items: center; gap: 7px;
+    }
+    .cp-head-title svg { width:12px; height:12px; color: var(--a2); }
+    .cp-close {
+      background: none; border: none; cursor: pointer;
+      color: var(--tx3); padding: 4px; font-size: 14px; line-height: 1;
+      border-radius: var(--rr); transition: color var(--tw);
+    }
+    .cp-close:hover { color: var(--tx); }
+    #chat-messages {
+      flex: 1; overflow-y: auto;
+      padding: 12px 12px 6px;
+      display: flex; flex-direction: column; gap: 10px;
+    }
+    .chat-msg {
+      display: flex; flex-direction: column; gap: 2px;
+    }
+    .chat-msg-meta {
+      display: flex; align-items: center; gap: 6px;
+    }
+    .chat-msg-avatar {
+      width: 16px; height: 16px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 7.5px; font-weight: 700; color: #fff; flex-shrink: 0;
+    }
+    .chat-msg-name {
+      font-size: var(--fs-2xs); font-weight: 600; color: var(--tx2);
+    }
+    .chat-msg-time {
+      font-family: var(--fm);
+      font-size: var(--fs-2xs); color: var(--tx3); margin-left: auto;
+    }
+    .chat-msg-text {
+      font-size: var(--fs-sm); color: var(--tx);
+      line-height: 1.55;
+      background: var(--s2);
+      border: 1px solid var(--bd);
+      border-radius: 0 6px 6px 6px;
+      padding: 6px 10px;
+      word-break: break-word;
+    }
+    .chat-msg.mine .chat-msg-text {
+      background: rgba(var(--a2r),.1);
+      border-color: rgba(var(--a2r),.25);
+      border-radius: 6px 0 6px 6px;
+    }
+    .chat-msg.mine { align-items: flex-end; }
+    .chat-msg.mine .chat-msg-meta { flex-direction: row-reverse; }
+    .chat-msg.mine .chat-msg-time { margin-left: 0; margin-right: auto; }
+    .chat-sys-msg {
+      text-align: center;
+      font-size: var(--fs-xs); color: var(--tx3);
+      padding: 2px 0; font-style: italic;
+    }
+    .cp-input-row {
+      padding: 10px 10px;
+      border-top: 1px solid var(--bd);
+      display: flex; gap: 7px; align-items: center;
+      flex-shrink: 0;
+    }
+    #chat-input {
+      flex: 1;
+      font-family: var(--ff); font-size: var(--fs-sm);
+      background: var(--bg2);
+      border: 1px solid var(--bd);
+      border-radius: var(--rr);
+      padding: 7px 10px;
+      color: var(--tx); outline: none;
+      transition: border-color var(--tw);
+    }
+    #chat-input:focus { border-color: var(--a2); }
+    #chat-send {
+      width: 32px; height: 32px;
+      background: var(--a2); color: var(--inv);
+      border: none; border-radius: var(--rr);
+      cursor: pointer; display: flex;
+      align-items: center; justify-content: center;
+      transition: opacity .15s; flex-shrink: 0;
+      font-size: 14px;
+    }
+    #chat-send:hover { opacity: .85; }
+    #chat-send svg { width: 12px; height: 12px; }
+
+    /* workspace wraps both the workspace row and chat panel */
+    #workspace-outer {
+      display: flex; flex-direction: column;
+      flex: 1; overflow: hidden;
+    }
+
     /* ════════ SAFE AREA (iPhone notch/home bar) ════════ */
     @supports (padding-bottom: env(safe-area-inset-bottom)) {
       .toast {
@@ -1985,12 +2397,14 @@
       }
 
       #workspace {
-        height: calc(100dvh - var(--hh) - env(safe-area-inset-bottom))
+        height: auto;
+        padding-bottom: env(safe-area-inset-bottom);
       }
 
       @media (max-width: 700px) {
         #workspace {
-          height: calc(100dvh - var(--hh-mob) - env(safe-area-inset-bottom))
+          height: auto;
+          padding-bottom: env(safe-area-inset-bottom);
         }
       }
     }
@@ -2146,7 +2560,39 @@
         </svg>
         <span class="lbl">Tour</span>
       </button>
+
+      <div class="vd"></div>
+
+      <!-- Collab button -->
+      <button id="collab-btn" onclick="openCollabModal()">
+        <svg viewBox="0 0 14 14" fill="currentColor">
+          <circle cx="4.5" cy="4" r="2" />
+          <circle cx="9.5" cy="4" r="2" />
+          <path d="M1 11c0-2 1.5-3 3.5-3s3.5 1 3.5 3" fill="currentColor"/>
+          <path d="M8.5 9c.6-.6 1.4-1 2.5-1 1.5 0 2.5.9 2.5 2.5" stroke="currentColor" stroke-width="1.2" fill="none" stroke-linecap="round"/>
+        </svg>
+        <span class="lbl">Colaborar</span>
+        <span id="collab-pulse"></span>
+      </button>
+
+      <!-- Chat toggle (only visible in session) -->
+      <button id="chat-toggle-btn" onclick="toggleChat()" title="Abrir chat">
+        <svg viewBox="0 0 14 14" fill="currentColor">
+          <path d="M2 2h10a1 1 0 011 1v6a1 1 0 01-1 1H8l-2 2-2-2H2a1 1 0 01-1-1V3a1 1 0 011-1z"/>
+        </svg>
+        <span class="lbl">Chat</span>
+        <span class="chat-badge" id="chat-badge"></span>
+      </button>
     </div>
+  </div>
+
+  <!-- PRESENCE BAR -->
+  <div id="presence-bar">
+    <div class="pb-dot"></div>
+    <span class="pb-label">Sessão</span>
+    <div id="presence-list"></div>
+    <span class="pb-room-code" id="pb-room-code" onclick="copyRoomCode()" title="Clique para copiar o código">···</span>
+    <button id="pb-leave" onclick="leaveSession()">Sair</button>
   </div>
 
   <!-- WORKSPACE -->
@@ -2266,6 +2712,94 @@
       <button class="tc-prev" id="tc-prev">← Anterior</button>
       <button class="tc-next" id="tc-next">Próximo →</button>
       <button class="tc-close" id="tc-close">Encerrar</button>
+    </div>
+  </div>
+
+  <!-- COLLAB MODAL -->
+  <div id="collab-backdrop" onclick="closeCollabOnBg(event)">
+    <div class="collab-modal" id="collab-modal">
+      <div class="cm-header">
+        <div class="cm-title">
+          <svg viewBox="0 0 14 14" fill="currentColor">
+            <circle cx="4.5" cy="4" r="2"/><circle cx="9.5" cy="4" r="2"/>
+            <path d="M1 11c0-2 1.5-3 3.5-3s3.5 1 3.5 3"/>
+            <path d="M8.5 9c.6-.6 1.4-1 2.5-1 1.5 0 2.5.9 2.5 2.5" stroke="currentColor" stroke-width="1.2" fill="none" stroke-linecap="round"/>
+          </svg>
+          Colaboração em tempo real
+        </div>
+        <button class="cm-close" onclick="closeCollabModal()">✕</button>
+      </div>
+
+      <div class="cm-tabs">
+        <button class="cm-tab on" id="cm-tab-create" onclick="switchCollabTab('create')">✦ Criar sessão</button>
+        <button class="cm-tab" id="cm-tab-join" onclick="switchCollabTab('join')">→ Entrar em sessão</button>
+      </div>
+
+      <!-- CREATE TAB -->
+      <div id="cm-create-body" class="cm-body">
+        <div>
+          <div class="cm-label">Seu nome</div>
+          <input class="cm-input" id="cm-host-name" placeholder="Ex: Ana" maxlength="24" autocomplete="off">
+        </div>
+        <div id="cm-create-step1">
+          <button class="cm-btn a2" id="cm-create-btn" onclick="hostSession()">
+            <svg viewBox="0 0 14 14" fill="currentColor" width="13" height="13"><path d="M7 1v12M1 7h12"/></svg>
+            Criar sessão
+          </button>
+        </div>
+        <div id="cm-create-step2" style="display:none;flex-direction:column;gap:12px;">
+          <div>
+            <div class="cm-label">Código da sessão — compartilhe com seus colegas</div>
+            <div class="cm-code-display">
+              <span class="cm-code-val" id="cm-code-val">······</span>
+              <button class="cm-copy-code" onclick="copyRoomCode()">Copiar</button>
+            </div>
+          </div>
+          <div class="cm-host-waiting vis" id="cm-waiting">
+            <span class="cm-spinner"></span>
+            <span style="font-size:var(--fs-sm);color:var(--tx2)">Aguardando participantes...</span>
+          </div>
+          <div class="cm-note">Qualquer pessoa com o código pode <strong>ver e editar o documento em tempo real</strong> e participar do chat da sessão.</div>
+          <button class="cm-btn" style="background:var(--s3);color:var(--tx2);border:1px solid var(--bd);" onclick="closeCollabModal()">Fechar e continuar</button>
+        </div>
+      </div>
+
+      <!-- JOIN TAB -->
+      <div id="cm-join-body" class="cm-body" style="display:none">
+        <div>
+          <div class="cm-label">Seu nome</div>
+          <input class="cm-input" id="cm-join-name" placeholder="Ex: Bruno" maxlength="24" autocomplete="off">
+        </div>
+        <div>
+          <div class="cm-label">Código da sessão</div>
+          <input class="cm-input" id="cm-join-code" placeholder="Ex: AB3K9Z" maxlength="6"
+            style="font-family:var(--fm);letter-spacing:.18em;font-size:18px;text-transform:uppercase">
+        </div>
+        <button class="cm-btn a2" id="cm-join-btn" onclick="joinSession()">
+          Entrar na sessão →
+        </button>
+        <div class="cm-status" id="cm-join-status"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CHAT PANEL -->
+  <div id="chat-panel">
+    <div class="cp-head">
+      <div class="cp-head-title">
+        <svg viewBox="0 0 14 14" fill="currentColor">
+          <path d="M2 2h10a1 1 0 011 1v6a1 1 0 01-1 1H8l-2 2-2-2H2a1 1 0 01-1-1V3a1 1 0 011-1z"/>
+        </svg>
+        Chat da sessão
+      </div>
+      <button class="cp-close" onclick="toggleChat()">✕</button>
+    </div>
+    <div id="chat-messages"></div>
+    <div class="cp-input-row">
+      <input id="chat-input" placeholder="Mensagem..." maxlength="400" autocomplete="off">
+      <button id="chat-send" onclick="sendChat()">
+        <svg viewBox="0 0 14 14" fill="currentColor"><path d="M1 7L13 1 9 13 7 8z"/></svg>
+      </button>
     </div>
   </div>
 
@@ -2681,9 +3215,24 @@
         preview: `<table class="r-tbl"><thead><tr><th>Processo</th><th>Código</th><th>Ação</th></tr></thead><tbody><tr><td>Sem entregador</td><td>000001379</td><td>Cancelar</td></tr><tr><td>Prod. incorreta</td><td>000001393</td><td>Reembolsar</td></tr></tbody></table>`
       },
       {
+        phase: 'Colaboração', sel: '#collab-btn',
+        title: 'Colaborar em tempo real',
+        desc: 'Clique em <strong>Colaborar</strong> para criar ou entrar em uma sessão compartilhada. Edite o mesmo documento simultaneamente com sua equipe — todas as mudanças aparecem ao vivo para todos os participantes.'
+      },
+      {
+        phase: 'Colaboração', sel: '#collab-btn',
+        title: 'Como criar ou entrar numa sessão',
+        desc: '<strong>Criar sessão:</strong> escolha seu nome e clique em "Criar sessão". Um <strong>código de 6 letras</strong> será gerado — envie para seus colegas.<br><br><strong>Entrar:</strong> escolha "Entrar em sessão", coloque seu nome e o código que recebeu.'
+      },
+      {
+        phase: 'Colaboração', sel: '#chat-toggle-btn',
+        title: 'Chat da sessão',
+        desc: 'Quando em uma sessão ativa, o botão <strong>Chat</strong> aparece no cabeçalho. Clique para abrir o painel lateral de mensagens e trocar recados com todos os participantes em tempo real. Um badge mostra mensagens não lidas.'
+      },
+      {
         phase: 'Concluído', sel: '#tour-btn',
         title: 'Tudo pronto! 🎉',
-        desc: 'Você conhece o editor e os elementos principais do Markdown. Seu documento é salvo automaticamente. Clique em <strong>Tour</strong> sempre que quiser rever. Bom atendimento!',
+        desc: 'Você conhece o editor, o Markdown e a colaboração em tempo real. Seu documento é salvo automaticamente. Clique em <strong>Tour</strong> sempre que quiser rever. Bom atendimento!',
         isLast: true
       },
     ];
@@ -2834,6 +3383,391 @@
     });
 
     function esc(s) { return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
+
+    /* ══════════════════════════════════════════════
+       COLLAB — WebRTC via PeerJS
+       ── Star topology: host relays all messages ──
+    ══════════════════════════════════════════════ */
+    const PEER_COLORS = ['#e8a020','#2fa88a','#6c7de8','#e85c5c','#c87de0','#4db8d4','#d4a22f','#82c44e'];
+    let myPeer = null;
+    let myId = '';        // peerjs peer id
+    let myName = '';
+    let myColor = '';
+    let roomCode = '';    // 6-char code
+    let isHost = false;
+    let hostConn = null;  // joiner → host connection
+    let peerConns = {};   // host → Map<peerId, {conn, user}>
+    let peerUsers = {};   // peerId → {name, color}
+    let unreadChat = 0;
+    let chatOpen = false;
+    let applyingRemote = false;
+
+    function genCode() {
+      return Math.random().toString(36).slice(2,8).toUpperCase();
+    }
+    function initials(name) {
+      return name.trim().split(/\s+/).map(w=>w[0]).join('').slice(0,2).toUpperCase() || '?';
+    }
+    function colorForIdx(idx) { return PEER_COLORS[idx % PEER_COLORS.length]; }
+
+    /* ── Modal open/close ── */
+    function openCollabModal() {
+      if (myPeer && roomCode) {
+        // already in session — show code
+        $('cm-tab-create').click();
+        switchCollabTab('create');
+        $('cm-create-step1').style.display = 'none';
+        $('cm-create-step2').style.display = 'flex';
+        $('cm-code-val').textContent = roomCode;
+        $('cm-host-name').value = myName;
+      }
+      $('collab-backdrop').classList.add('vis');
+    }
+    function closeCollabModal() { $('collab-backdrop').classList.remove('vis'); }
+    function closeCollabOnBg(e) { if (e.target === $('collab-backdrop')) closeCollabModal(); }
+
+    function switchCollabTab(tab) {
+      $('cm-tab-create').classList.toggle('on', tab==='create');
+      $('cm-tab-join').classList.toggle('on', tab==='join');
+      $('cm-create-body').style.display = tab==='create' ? 'flex' : 'none';
+      $('cm-join-body').style.display = tab==='join' ? 'flex' : 'none';
+    }
+
+    /* ── Host a session ── */
+    function hostSession() {
+      const nameEl = $('cm-host-name');
+      myName = nameEl.value.trim() || 'Anônimo';
+      myColor = colorForIdx(0);
+      roomCode = genCode();
+      isHost = true;
+
+      $('cm-create-btn').disabled = true;
+      $('cm-create-btn').innerHTML = '<span class="cm-spinner"></span> Conectando...';
+
+      myPeer = new Peer('mkd-' + roomCode, { debug: 0 });
+
+      myPeer.on('open', (id) => {
+        myId = id;
+        peerUsers[myId] = { name: myName, color: myColor };
+        $('cm-create-step1').style.display = 'none';
+        $('cm-create-step2').style.display = 'flex';
+        $('cm-code-val').textContent = roomCode;
+        $('pb-room-code').textContent = roomCode;
+        activateSession();
+        toast('Sessão criada! Compartilhe o código: ' + roomCode);
+      });
+
+      myPeer.on('error', (err) => {
+        if (err.type === 'unavailable-id') {
+          // code taken — try a new one
+          myPeer.destroy();
+          roomCode = genCode();
+          hostSession();
+          return;
+        }
+        $('cm-create-btn').disabled = false;
+        $('cm-create-btn').textContent = 'Criar sessão';
+        toast('Erro ao criar sessão: ' + err.message);
+      });
+
+      myPeer.on('connection', (conn) => {
+        conn.on('open', () => {
+          // Send welcome: current doc + all users
+          const userList = Object.values(peerUsers);
+          conn.send({ type:'welcome', content: editor.value, users: userList, hostId: myId });
+          // Announce new peer to everyone
+          conn.on('data', (data) => onHostReceive(data, conn));
+          conn.on('close', () => onPeerLeft(conn.peer));
+          conn.on('error', () => onPeerLeft(conn.peer));
+        });
+      });
+    }
+
+    /* ── Join a session ── */
+    function joinSession() {
+      const nameEl = $('cm-join-name');
+      const codeEl = $('cm-join-code');
+      myName = nameEl.value.trim() || 'Anônimo';
+      const code = codeEl.value.trim().toUpperCase();
+      if (code.length !== 6) { showJoinStatus('Digite um código de 6 letras/números.', true); return; }
+
+      myColor = colorForIdx(Object.keys(peerUsers).length + 1);
+      roomCode = code;
+      isHost = false;
+
+      const btn = $('cm-join-btn');
+      btn.disabled = true;
+      btn.innerHTML = '<span class="cm-spinner"></span> Conectando...';
+      showJoinStatus('Localizando sessão...', false);
+
+      myPeer = new Peer({ debug: 0 });
+
+      myPeer.on('open', (id) => {
+        myId = id;
+        peerUsers[myId] = { name: myName, color: myColor };
+        hostConn = myPeer.connect('mkd-' + code, { reliable: true });
+
+        hostConn.on('open', () => {
+          // Send hello
+          hostConn.send({ type:'hello', user: { id: myId, name: myName, color: myColor } });
+          showJoinStatus('Conectado! Sincronizando documento...', false);
+        });
+
+        hostConn.on('data', (data) => onJoinerReceive(data));
+        hostConn.on('close', onDisconnected);
+        hostConn.on('error', onDisconnected);
+      });
+
+      myPeer.on('error', (err) => {
+        btn.disabled = false;
+        btn.innerHTML = 'Entrar na sessão →';
+        if (err.type === 'peer-unavailable') showJoinStatus('Sessão não encontrada. Verifique o código.', true);
+        else showJoinStatus('Erro: ' + err.message, true);
+      });
+    }
+
+    function showJoinStatus(msg, err) {
+      const el = $('cm-join-status');
+      el.textContent = msg;
+      el.className = 'cm-status vis' + (err ? ' cm-err' : '');
+      if (err) {
+        const btn = $('cm-join-btn');
+        btn.disabled = false;
+        btn.innerHTML = 'Entrar na sessão →';
+      }
+    }
+
+    /* ── Host receives data ── */
+    function onHostReceive(data, fromConn) {
+      if (data.type === 'hello') {
+        const u = data.user;
+        peerUsers[u.id] = { name: u.name, color: u.color };
+        peerConns[u.id] = fromConn;
+        // send welcome to this peer
+        fromConn.send({ type:'welcome', content: editor.value, users: Object.values(peerUsers), hostId: myId });
+        // announce to all others
+        broadcastExcept({ type:'join', user: u }, fromConn);
+        renderPresence();
+        addSysMsg(u.name + ' entrou na sessão');
+        toast(u.name + ' entrou na sessão');
+      } else if (data.type === 'edit') {
+        applyRemoteContent(data.content);
+        broadcastExcept(data, fromConn);
+      } else if (data.type === 'chat') {
+        appendChatMsg(data);
+        broadcastExcept(data, fromConn);
+      }
+    }
+
+    /* ── Joiner receives data ── */
+    function onJoinerReceive(data) {
+      if (data.type === 'welcome') {
+        data.users.forEach(u => { peerUsers[u.id] = u; });
+        applyRemoteContent(data.content);
+        $('pb-room-code').textContent = roomCode;
+        activateSession();
+        closeCollabModal();
+        toast('Bem-vindo à sessão! ' + Object.keys(peerUsers).length + ' pessoa(s) online.');
+        addSysMsg('Você entrou na sessão');
+        renderPresence();
+        const btn = $('cm-join-btn');
+        btn.disabled = false;
+        btn.innerHTML = 'Entrar na sessão →';
+        $('cm-join-status').className = 'cm-status';
+      } else if (data.type === 'join') {
+        const u = data.user;
+        if (!peerUsers[u.id]) {
+          peerUsers[u.id] = u;
+          renderPresence();
+          addSysMsg(u.name + ' entrou na sessão');
+          toast(u.name + ' entrou na sessão');
+        }
+      } else if (data.type === 'leave') {
+        onPeerLeft(data.userId);
+      } else if (data.type === 'edit') {
+        applyRemoteContent(data.content);
+      } else if (data.type === 'chat') {
+        appendChatMsg(data);
+      }
+    }
+
+    function broadcastExcept(data, exceptConn) {
+      Object.values(peerConns).forEach(c => {
+        if (c !== exceptConn && c.open) {
+          try { c.send(data); } catch(e) {}
+        }
+      });
+    }
+    function broadcastAll(data) {
+      broadcastExcept(data, null);
+    }
+
+    function applyRemoteContent(content) {
+      if (content === editor.value) return;
+      applyingRemote = true;
+      const sel = editor.selectionStart;
+      editor.value = content;
+      try { editor.selectionStart = editor.selectionEnd = sel; } catch(e){}
+      render(); updateCC(); scheduleSave();
+      applyingRemote = false;
+    }
+
+    function onPeerLeft(peerId) {
+      const u = peerUsers[peerId];
+      if (u) {
+        delete peerUsers[peerId];
+        delete peerConns[peerId];
+        renderPresence();
+        addSysMsg((u.name || 'Alguém') + ' saiu da sessão');
+        toast((u.name || 'Alguém') + ' saiu da sessão');
+      }
+    }
+
+    function onDisconnected() {
+      toast('Conexão com a sessão perdida.');
+      leaveSession();
+    }
+
+    /* ── Session activation / deactivation ── */
+    function activateSession() {
+      $('collab-btn').classList.add('active');
+      $('presence-bar').classList.add('active');
+      $('chat-toggle-btn').classList.add('vis');
+      $('chat-panel').classList.add('pb-active');
+      renderPresence();
+    }
+
+    function leaveSession() {
+      // Announce leave
+      const leaveMsg = { type:'leave', userId: myId };
+      if (isHost) broadcastAll(leaveMsg);
+      else if (hostConn && hostConn.open) try { hostConn.send(leaveMsg); } catch(e){}
+      // Cleanup
+      if (myPeer) { try { myPeer.destroy(); } catch(e){} myPeer = null; }
+      peerConns = {}; peerUsers = {}; hostConn = null;
+      roomCode = ''; isHost = false;
+      $('collab-btn').classList.remove('active');
+      $('presence-bar').classList.remove('active');
+      $('chat-toggle-btn').classList.remove('vis');
+      $('chat-toggle-btn').classList.remove('on');
+      $('chat-panel').classList.remove('open','pb-active');
+      $('presence-list').innerHTML = '';
+      $('chat-messages').innerHTML = '';
+      chatOpen = false; unreadChat = 0;
+      updateChatBadge();
+      closeCollabModal();
+      // Reset create modal
+      $('cm-create-step1').style.display = 'block';
+      $('cm-create-step2').style.display = 'none';
+      $('cm-create-btn').disabled = false;
+      $('cm-create-btn').innerHTML = '<svg viewBox="0 0 14 14" fill="currentColor" width="13" height="13"><path d="M7 1v12M1 7h12"/></svg> Criar sessão';
+      $('cm-join-status').className = 'cm-status';
+      toast('Você saiu da sessão.');
+    }
+
+    /* ── Presence render ── */
+    function renderPresence() {
+      const list = $('presence-list');
+      list.innerHTML = '';
+      Object.entries(peerUsers).forEach(([id, u]) => {
+        const chip = document.createElement('div');
+        chip.className = 'presence-chip' + (id === myId ? ' presence-me' : '');
+        chip.innerHTML = `<div class="presence-avatar" style="background:${u.color}">${initials(u.name)}</div><span>${u.name}${id === myId ? ' (você)' : ''}</span>`;
+        list.appendChild(chip);
+      });
+    }
+
+    /* ── Intercept editor input to broadcast ── */
+    const _origEditorInput = editor.oninput;
+    editor.addEventListener('input', () => {
+      if (applyingRemote) return;
+      const msg = { type:'edit', content: editor.value, userId: myId };
+      if (isHost) broadcastAll(msg);
+      else if (hostConn && hostConn.open) try { hostConn.send(msg); } catch(e){}
+    });
+
+    /* ── Chat ── */
+    function toggleChat() {
+      chatOpen = !chatOpen;
+      $('chat-panel').classList.toggle('open', chatOpen);
+      $('chat-toggle-btn').classList.toggle('on', chatOpen);
+      if (chatOpen) {
+        unreadChat = 0;
+        updateChatBadge();
+        setTimeout(() => {
+          const m = $('chat-messages');
+          m.scrollTop = m.scrollHeight;
+          $('chat-input').focus();
+        }, 30);
+      }
+    }
+
+    function sendChat() {
+      const input = $('chat-input');
+      const text = input.value.trim();
+      if (!text) return;
+      input.value = '';
+      const msg = {
+        type: 'chat',
+        text,
+        userId: myId,
+        userName: myName,
+        userColor: myColor,
+        ts: Date.now()
+      };
+      appendChatMsg(msg);
+      if (isHost) broadcastAll(msg);
+      else if (hostConn && hostConn.open) try { hostConn.send(msg); } catch(e){}
+    }
+
+    $('chat-input').addEventListener('keydown', e => {
+      if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendChat(); }
+    });
+
+    function appendChatMsg(msg) {
+      const m = $('chat-messages');
+      const isMine = msg.userId === myId;
+      const time = new Date(msg.ts).toLocaleTimeString('pt-BR', { hour:'2-digit', minute:'2-digit' });
+      const div = document.createElement('div');
+      div.className = 'chat-msg' + (isMine ? ' mine' : '');
+      div.innerHTML = `
+        <div class="chat-msg-meta">
+          <div class="chat-msg-avatar" style="background:${msg.userColor}">${initials(msg.userName)}</div>
+          <span class="chat-msg-name">${escH(msg.userName)}</span>
+          <span class="chat-msg-time">${time}</span>
+        </div>
+        <div class="chat-msg-text">${escH(msg.text)}</div>`;
+      m.appendChild(div);
+      m.scrollTop = m.scrollHeight;
+      if (!chatOpen && !isMine) {
+        unreadChat++;
+        updateChatBadge();
+      }
+    }
+
+    function addSysMsg(text) {
+      const m = $('chat-messages');
+      const div = document.createElement('div');
+      div.className = 'chat-sys-msg';
+      div.textContent = text;
+      m.appendChild(div);
+      m.scrollTop = m.scrollHeight;
+    }
+
+    function updateChatBadge() {
+      const b = $('chat-badge');
+      b.textContent = unreadChat > 9 ? '9+' : unreadChat;
+      b.classList.toggle('vis', unreadChat > 0);
+    }
+
+    function copyRoomCode() {
+      if (!roomCode) return;
+      navigator.clipboard.writeText(roomCode).then(() => toast('Código ' + roomCode + ' copiado!'));
+    }
+
+    function escH(s) {
+      return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    }
 
     /* ════ INIT ════ */
     (function init() {
