@@ -2580,6 +2580,59 @@
       }
     }
 
+    /* ── Modal participants list ── */
+    #cm-participants-list {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      margin-top: 2px;
+    }
+
+    .cm-peer-row {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      background: var(--s2);
+      border: 1px solid var(--bd);
+      border-radius: var(--rr);
+      padding: 7px 11px;
+      font-size: var(--fs-sm);
+      color: var(--tx);
+    }
+
+    .cm-peer-avatar {
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 9px;
+      font-weight: 700;
+      color: #fff;
+      flex-shrink: 0;
+    }
+
+    .cm-peer-name {
+      flex: 1;
+    }
+
+    .cm-peer-you {
+      font-size: var(--fs-xs);
+      color: var(--tx3);
+      font-family: var(--fm);
+      letter-spacing: .04em;
+    }
+
+    .cm-waiting-row {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      color: var(--tx3);
+      font-size: var(--fs-sm);
+      padding: 4px 2px;
+    }
+
     /* ═══════════════════════════════════ CHAT PANEL */
     #chat-panel {
       position: fixed;
@@ -3169,9 +3222,10 @@
               <button class="cm-copy-code" onclick="copyRoomCode()">Copiar</button>
             </div>
           </div>
-          <div class="cm-host-waiting vis" id="cm-waiting">
-            <span class="cm-spinner"></span>
-            <span style="font-size:var(--fs-sm);color:var(--tx2)">Aguardando participantes...</span>
+          <!-- Participants area: spinner when alone, list when others join -->
+          <div id="cm-participants-area">
+            <div class="cm-label">Participantes</div>
+            <div id="cm-participants-list"></div>
           </div>
           <div class="cm-note">Qualquer pessoa com o código pode <strong>ver e editar o documento em tempo real</strong>
             e participar do chat da sessão.</div>
@@ -3837,6 +3891,7 @@
         $('cm-create-step2').style.display = 'flex';
         $('cm-code-val').textContent = roomCode;
         $('cm-host-name').value = myName;
+        renderModalParticipants();
       } else {
         // pre-fill saved name
         const sn = savedName();
@@ -3894,6 +3949,7 @@
         $('cm-code-val').textContent = roomCode;
         $('pb-room-code').textContent = roomCode;
         activateSession();
+        renderModalParticipants();
         addSysMsg('Sessão criada. Aguardando participantes...');
         toast('✓ Sessão criada! Código: ' + roomCode);
       });
@@ -4123,12 +4179,39 @@
         list.appendChild(chip);
       });
       updateCollabBtnCount();
+      renderModalParticipants();
     }
 
     function updateCollabBtnCount() {
       const n = peerCount();
       const lbl = $('collab-btn').querySelector('.lbl');
       lbl.textContent = n > 0 ? 'Colaborar (' + n + ')' : 'Colaborar';
+    }
+
+    function renderModalParticipants() {
+      const list = $('cm-participants-list');
+      if (!list) return;
+      list.innerHTML = '';
+      const users = Object.entries(peerUsers);
+      if (users.length === 0) return;
+
+      users.forEach(([id, u]) => {
+        const row = document.createElement('div');
+        row.className = 'cm-peer-row';
+        row.innerHTML = `
+          <div class="cm-peer-avatar" style="background:${u.color}">${initials(u.name)}</div>
+          <span class="cm-peer-name">${escH(u.name)}</span>
+          ${id === myId ? '<span class="cm-peer-you">você</span>' : ''}`;
+        list.appendChild(row);
+      });
+
+      // Show spinner row only when alone (waiting for others)
+      if (users.length === 1) {
+        const wait = document.createElement('div');
+        wait.className = 'cm-waiting-row';
+        wait.innerHTML = '<span class="cm-spinner"></span><span>Aguardando participantes...</span>';
+        list.appendChild(wait);
+      }
     }
 
     /* ── Broadcast edits ── */
