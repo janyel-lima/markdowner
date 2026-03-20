@@ -118,6 +118,7 @@
       /* prevent iOS auto font bump */
       text-size-adjust: 100%;
     }
+
     body {
       display: flex;
       flex-direction: column;
@@ -2005,21 +2006,53 @@
       touch-action: manipulation;
       position: relative;
     }
-    #collab-btn:hover { border-color: var(--a1); color: var(--a1); background: var(--ta1); }
-    #collab-btn.active { background: rgba(var(--a2r),.14); border-color: var(--a2); color: var(--a2); }
-    #collab-btn svg { width: 12px; height: 12px; }
+
+    #collab-btn:hover {
+      border-color: var(--a1);
+      color: var(--a1);
+      background: var(--ta1);
+    }
+
+    #collab-btn.active {
+      background: rgba(var(--a2r), .14);
+      border-color: var(--a2);
+      color: var(--a2);
+    }
+
+    #collab-btn svg {
+      width: 12px;
+      height: 12px;
+    }
+
     #collab-pulse {
-      position: absolute; top: 4px; right: 4px;
-      width: 7px; height: 7px; border-radius: 50%;
-      background: var(--a2); display: none;
-      box-shadow: 0 0 0 0 rgba(var(--a2r),.6);
+      position: absolute;
+      top: 4px;
+      right: 4px;
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--a2);
+      display: none;
+      box-shadow: 0 0 0 0 rgba(var(--a2r), .6);
       animation: pulse-ring 1.6s ease-out infinite;
     }
-    #collab-btn.active #collab-pulse { display: block; }
+
+    #collab-btn.active #collab-pulse {
+      display: block;
+    }
+
     @keyframes pulse-ring {
-      0%  { box-shadow: 0 0 0 0 rgba(var(--a2r),.55); }
-      70% { box-shadow: 0 0 0 6px rgba(var(--a2r),0); }
-      100%{ box-shadow: 0 0 0 0 rgba(var(--a2r),0); }
+      0% {
+        box-shadow: 0 0 0 0 rgba(var(--a2r), .55);
+      }
+
+      70% {
+        box-shadow: 0 0 0 6px rgba(var(--a2r), 0);
+      }
+
+      100% {
+        box-shadow: 0 0 0 0 rgba(var(--a2r), 0);
+      }
     }
 
     #chat-toggle-btn {
@@ -2042,24 +2075,54 @@
       touch-action: manipulation;
       position: relative;
     }
-    #chat-toggle-btn.vis { display: flex; }
-    #chat-toggle-btn:hover { border-color: var(--a2); color: var(--a2); background: var(--ta2); }
-    #chat-toggle-btn.on { background: rgba(var(--a2r),.14); border-color: var(--a2); color: var(--a2); }
-    #chat-toggle-btn svg { width: 12px; height: 12px; }
+
+    #chat-toggle-btn.vis {
+      display: flex;
+    }
+
+    #chat-toggle-btn:hover {
+      border-color: var(--a2);
+      color: var(--a2);
+      background: var(--ta2);
+    }
+
+    #chat-toggle-btn.on {
+      background: rgba(var(--a2r), .14);
+      border-color: var(--a2);
+      color: var(--a2);
+    }
+
+    #chat-toggle-btn svg {
+      width: 12px;
+      height: 12px;
+    }
+
     .chat-badge {
-      position: absolute; top: -4px; right: -5px;
-      background: var(--a2); color: var(--inv);
-      font-size: 9px; font-weight: 700;
-      min-width: 16px; height: 16px;
-      border-radius: 99px; padding: 0 4px;
-      display: none; align-items: center; justify-content: center;
+      position: absolute;
+      top: -4px;
+      right: -5px;
+      background: var(--a2);
+      color: var(--inv);
+      font-size: 9px;
+      font-weight: 700;
+      min-width: 16px;
+      height: 16px;
+      border-radius: 99px;
+      padding: 0 4px;
+      display: none;
+      align-items: center;
+      justify-content: center;
       font-family: var(--fm);
     }
-    .chat-badge.vis { display: flex; }
+
+    .chat-badge.vis {
+      display: flex;
+    }
 
     /* ═══════════════════════════════════ PRESENCE BAR */
     #presence-bar {
-      height: 0; overflow: hidden;
+      height: 0;
+      overflow: hidden;
       background: var(--s1);
       border-bottom: 1px solid transparent;
       display: flex;
@@ -2070,11 +2133,13 @@
       transition: height .25s ease, padding .25s ease, border-color var(--tw), background var(--tw);
       z-index: 50;
     }
+
     #presence-bar.active {
       height: 38px;
       padding: 0 16px;
       border-color: var(--bd);
     }
+
     .pb-label {
       font-family: var(--fm);
       font-size: var(--fs-2xs);
@@ -2084,27 +2149,55 @@
       color: var(--tx3);
       flex-shrink: 0;
     }
+
     .pb-dot {
-      width: 6px; height: 6px; border-radius: 50%;
-      background: var(--a2); flex-shrink: 0;
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--a2);
+      flex-shrink: 0;
       animation: pulse-ring 1.6s ease-out infinite;
     }
+
     #presence-list {
-      display: flex; align-items: center; gap: 6px; flex: 1; overflow: hidden;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex: 1;
+      overflow: hidden;
     }
+
     .presence-chip {
-      display: flex; align-items: center; gap: 6px;
-      background: var(--s2); border: 1px solid var(--bd);
-      border-radius: 99px; padding: 3px 10px 3px 5px;
-      font-size: var(--fs-xs); color: var(--tx);
-      white-space: nowrap; transition: all var(--tw);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--s2);
+      border: 1px solid var(--bd);
+      border-radius: 99px;
+      padding: 3px 10px 3px 5px;
+      font-size: var(--fs-xs);
+      color: var(--tx);
+      white-space: nowrap;
+      transition: all var(--tw);
     }
+
     .presence-avatar {
-      width: 18px; height: 18px; border-radius: 50%;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 9px; font-weight: 700; color: #fff; flex-shrink: 0;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 9px;
+      font-weight: 700;
+      color: #fff;
+      flex-shrink: 0;
     }
-    .presence-me { border: 1.5px solid var(--a2); }
+
+    .presence-me {
+      border: 1.5px solid var(--a2);
+    }
+
     .pb-room-code {
       font-family: var(--fm);
       font-size: var(--fs-xs);
@@ -2118,13 +2211,18 @@
       transition: all var(--tw);
       flex-shrink: 0;
     }
-    .pb-room-code:hover { border-color: var(--a1); color: var(--a1); }
+
+    .pb-room-code:hover {
+      border-color: var(--a1);
+      color: var(--a1);
+    }
+
     #pb-leave {
       font-family: var(--ff);
       font-size: var(--fs-xs);
       padding: 3px 9px;
       border-radius: var(--rr);
-      border: 1px solid rgba(232,80,80,.3);
+      border: 1px solid rgba(232, 80, 80, .3);
       background: transparent;
       color: #e85050;
       cursor: pointer;
@@ -2132,16 +2230,27 @@
       flex-shrink: 0;
       white-space: nowrap;
     }
-    #pb-leave:hover { background: rgba(232,80,80,.1); }
+
+    #pb-leave:hover {
+      background: rgba(232, 80, 80, .1);
+    }
 
     /* ═══════════════════════════════════ COLLAB MODAL */
     #collab-backdrop {
-      position: fixed; inset: 0;
-      background: rgba(8,10,20,.75);
-      display: none; align-items: center; justify-content: center;
-      z-index: 8000; padding: 20px;
+      position: fixed;
+      inset: 0;
+      background: rgba(8, 10, 20, .75);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 8000;
+      padding: 20px;
     }
-    #collab-backdrop.vis { display: flex; }
+
+    #collab-backdrop.vis {
+      display: flex;
+    }
+
     .collab-modal {
       background: var(--s1);
       border: 1px solid var(--bd);
@@ -2151,33 +2260,66 @@
       overflow: hidden;
       animation: modal-in .2s ease;
     }
+
     @keyframes modal-in {
-      from { opacity:0; transform: scale(.95) translateY(8px); }
-      to   { opacity:1; transform: scale(1)  translateY(0); }
+      from {
+        opacity: 0;
+        transform: scale(.95) translateY(8px);
+      }
+
+      to {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+      }
     }
+
     .cm-header {
       padding: 16px 18px 12px;
       border-bottom: 1px solid var(--bd);
-      display: flex; align-items: center; justify-content: space-between;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
     }
+
     .cm-title {
       font-size: var(--fs-lg);
-      font-weight: 700; color: var(--txh);
-      display: flex; align-items: center; gap: 8px;
+      font-weight: 700;
+      color: var(--txh);
+      display: flex;
+      align-items: center;
+      gap: 8px;
     }
-    .cm-title svg { width:14px;height:14px;color:var(--a2) }
+
+    .cm-title svg {
+      width: 14px;
+      height: 14px;
+      color: var(--a2)
+    }
+
     .cm-close {
-      background: none; border: none; cursor: pointer;
-      color: var(--tx3); padding: 4px; border-radius: var(--rr);
-      transition: color var(--tw); font-size: 16px; line-height:1;
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: var(--tx3);
+      padding: 4px;
+      border-radius: var(--rr);
+      transition: color var(--tw);
+      font-size: 16px;
+      line-height: 1;
     }
-    .cm-close:hover { color: var(--tx); }
+
+    .cm-close:hover {
+      color: var(--tx);
+    }
+
     .cm-tabs {
       display: flex;
       border-bottom: 1px solid var(--bd);
     }
+
     .cm-tab {
-      flex: 1; padding: 11px 14px;
+      flex: 1;
+      padding: 11px 14px;
       font-family: var(--ff);
       font-size: var(--fs-sm);
       font-weight: 500;
@@ -2188,16 +2330,29 @@
       border-bottom: 2px solid transparent;
       transition: all var(--tw);
     }
+
     .cm-tab.on {
-      color: var(--a1); border-bottom-color: var(--a1);
+      color: var(--a1);
+      border-bottom-color: var(--a1);
       background: var(--ta1);
     }
-    .cm-body { padding: 18px; display: flex; flex-direction: column; gap: 14px; }
-    .cm-label {
-      font-size: var(--fs-xs); font-weight: 600;
-      letter-spacing: .06em; text-transform: uppercase;
-      color: var(--tx3); margin-bottom: 5px;
+
+    .cm-body {
+      padding: 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
     }
+
+    .cm-label {
+      font-size: var(--fs-xs);
+      font-weight: 600;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+      color: var(--tx3);
+      margin-bottom: 5px;
+    }
+
     .cm-input {
       font-family: var(--ff);
       font-size: var(--fs-md);
@@ -2210,67 +2365,220 @@
       width: 100%;
       transition: border-color var(--tw), background var(--tw);
     }
-    .cm-input:focus { border-color: var(--a1); }
+
+    .cm-input:focus {
+      border-color: var(--a1);
+    }
+
     .cm-code-display {
-      display: flex; align-items: center; gap: 8px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
       background: var(--bg2);
-      border: 1px solid var(--bd); border-radius: var(--rr);
+      border: 1px solid var(--bd);
+      border-radius: var(--rr);
       padding: 9px 12px;
     }
+
     .cm-code-val {
-      font-family: var(--fm); font-size: 22px;
-      font-weight: 700; letter-spacing: .18em;
-      color: var(--a1); flex: 1;
-    }
-    .cm-copy-code {
-      font-family: var(--ff); font-size: var(--fs-xs);
-      background: rgba(var(--a1r),.12);
-      border: 1px solid rgba(var(--a1r),.24);
+      font-family: var(--fm);
+      font-size: 22px;
+      font-weight: 700;
+      letter-spacing: .18em;
       color: var(--a1);
-      border-radius: 3px; padding: 4px 10px;
-      cursor: pointer; transition: background .12s;
+      flex: 1;
     }
-    .cm-copy-code:hover { background: rgba(var(--a1r),.22); }
+
+    .cm-copy-code {
+      font-family: var(--ff);
+      font-size: var(--fs-xs);
+      background: rgba(var(--a1r), .12);
+      border: 1px solid rgba(var(--a1r), .24);
+      color: var(--a1);
+      border-radius: 3px;
+      padding: 4px 10px;
+      cursor: pointer;
+      transition: background .12s;
+    }
+
+    .cm-copy-code:hover {
+      background: rgba(var(--a1r), .22);
+    }
+
     .cm-note {
-      font-size: var(--fs-xs); color: var(--tx3); line-height: 1.65;
+      font-size: var(--fs-xs);
+      color: var(--tx3);
+      line-height: 1.65;
     }
-    .cm-note strong { color: var(--tx2); }
+
+    .cm-note strong {
+      color: var(--tx2);
+    }
+
     .cm-btn {
-      font-family: var(--ff); font-size: var(--fs-md);
+      font-family: var(--ff);
+      font-size: var(--fs-md);
       font-weight: 600;
-      background: var(--a1); color: var(--inv);
-      border: none; border-radius: var(--rr);
-      padding: 10px 18px; cursor: pointer;
-      width: 100%; min-height: 40px;
-      display: flex; align-items: center; justify-content: center; gap: 7px;
+      background: var(--a1);
+      color: var(--inv);
+      border: none;
+      border-radius: var(--rr);
+      padding: 10px 18px;
+      cursor: pointer;
+      width: 100%;
+      min-height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 7px;
       transition: opacity .15s;
     }
-    .cm-btn:hover { opacity: .88; }
-    .cm-btn:disabled { opacity: .4; cursor: not-allowed; }
-    .cm-btn.a2 { background: var(--a2); }
+
+    .cm-btn:hover {
+      opacity: .88;
+    }
+
+    .cm-btn:disabled {
+      opacity: .4;
+      cursor: not-allowed;
+    }
+
+    .cm-btn.a2 {
+      background: var(--a2);
+    }
+
     .cm-status {
       text-align: center;
-      font-size: var(--fs-xs); color: var(--tx2);
+      font-size: var(--fs-xs);
+      color: var(--tx2);
       padding: 6px 0 2px;
       display: none;
     }
-    .cm-status.vis { display: block; }
-    .cm-err { color: #e85050; }
-    .cm-host-waiting {
-      display: none; text-align: center;
-      padding: 10px;
+
+    .cm-status.vis {
+      display: block;
     }
-    .cm-host-waiting.vis { display: block; }
+
+    .cm-err {
+      color: #e85050;
+    }
+
+    .cm-ok {
+      color: var(--a2);
+      font-weight: 600;
+    }
+
+    /* ── Grouped chat messages ── */
+    .chat-msg.grouped {
+      margin-top: -4px;
+    }
+
+    .chat-msg.grouped .chat-msg-text {
+      border-radius: 6px;
+    }
+
+    .chat-msg.mine.grouped .chat-msg-text {
+      border-radius: 6px;
+    }
+
+    /* ── Chat empty state ── */
+    .chat-empty {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      color: var(--tx3);
+      font-size: var(--fs-sm);
+      line-height: 1.65;
+      padding: 24px 16px;
+      pointer-events: none;
+    }
+
+    #chat-input {
+      flex: 1;
+      font-family: var(--ff);
+      font-size: var(--fs-sm);
+      background: var(--bg2);
+      border: 1px solid var(--bd);
+      border-radius: var(--rr);
+      padding: 7px 10px;
+      color: var(--tx);
+      outline: none;
+      transition: border-color var(--tw);
+      resize: none;
+      min-height: 34px;
+      max-height: 88px;
+      line-height: 1.5;
+      overflow-y: auto;
+    }
+
+    #chat-input:focus {
+      border-color: var(--a2);
+    }
+
+    #chat-send {
+      width: 32px;
+      height: 32px;
+      background: var(--a2);
+      color: var(--inv);
+      border: none;
+      border-radius: var(--rr);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: opacity .15s;
+      flex-shrink: 0;
+      font-size: 14px;
+      align-self: flex-end;
+    }
+
+    #chat-send:hover {
+      opacity: .85;
+    }
+
+    #chat-send svg {
+      width: 12px;
+      height: 12px;
+    }
+
+    /* workspace wraps both the workspace row and chat panel */
+    #workspace-outer {
+      display: flex;
+      flex-direction: column;
+      flex: 1;
+      overflow: hidden;
+    }
+
+    /* ════════ SAFE AREA (iPhone notch/home bar) ════════ */
+    display: none;
+    text-align: center;
+    padding: 10px;
+    }
+
+    .cm-host-waiting.vis {
+      display: block;
+    }
+
     .cm-spinner {
       display: inline-block;
-      width: 16px; height: 16px;
+      width: 16px;
+      height: 16px;
       border: 2px solid var(--bd);
       border-top-color: var(--a2);
       border-radius: 50%;
       animation: spin .8s linear infinite;
-      vertical-align: middle; margin-right: 7px;
+      vertical-align: middle;
+      margin-right: 7px;
     }
-    @keyframes spin { to { transform: rotate(360deg); } }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
 
     /* ═══════════════════════════════════ CHAT PANEL */
     #chat-panel {
@@ -2281,60 +2589,122 @@
       bottom: 0;
       background: var(--s1);
       border-left: 1px solid var(--bd);
-      display: flex; flex-direction: column;
+      display: flex;
+      flex-direction: column;
       z-index: 200;
-      transition: right .25s cubic-bezier(.4,0,.2,1), top .25s ease, background var(--tw), border-color var(--tw);
-      box-shadow: -4px 0 24px rgba(0,0,0,.18);
+      transition: right .25s cubic-bezier(.4, 0, .2, 1), top .25s ease, background var(--tw), border-color var(--tw);
+      box-shadow: -4px 0 24px rgba(0, 0, 0, .18);
     }
-    #chat-panel.open { right: 0; }
-    #chat-panel.pb-active { top: calc(var(--hh) + 38px); }
+
+    #chat-panel.open {
+      right: 0;
+    }
+
+    #chat-panel.pb-active {
+      top: calc(var(--hh) + 38px);
+    }
+
     @media (max-width: 700px) {
-      #chat-panel { width: 100%; right: -100%; }
-      #chat-panel.open { right: 0; }
+      #chat-panel {
+        width: 100%;
+        right: -100%;
+      }
+
+      #chat-panel.open {
+        right: 0;
+      }
     }
+
     .cp-head {
       padding: 11px 14px;
       border-bottom: 1px solid var(--bd);
-      display: flex; align-items: center; justify-content: space-between;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
       flex-shrink: 0;
     }
+
     .cp-head-title {
-      font-size: var(--fs-sm); font-weight: 600;
+      font-size: var(--fs-sm);
+      font-weight: 600;
       color: var(--txh);
-      display: flex; align-items: center; gap: 7px;
+      display: flex;
+      align-items: center;
+      gap: 7px;
     }
-    .cp-head-title svg { width:12px; height:12px; color: var(--a2); }
+
+    .cp-head-title svg {
+      width: 12px;
+      height: 12px;
+      color: var(--a2);
+    }
+
     .cp-close {
-      background: none; border: none; cursor: pointer;
-      color: var(--tx3); padding: 4px; font-size: 14px; line-height: 1;
-      border-radius: var(--rr); transition: color var(--tw);
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: var(--tx3);
+      padding: 4px;
+      font-size: 14px;
+      line-height: 1;
+      border-radius: var(--rr);
+      transition: color var(--tw);
     }
-    .cp-close:hover { color: var(--tx); }
+
+    .cp-close:hover {
+      color: var(--tx);
+    }
+
     #chat-messages {
-      flex: 1; overflow-y: auto;
+      flex: 1;
+      overflow-y: auto;
       padding: 12px 12px 6px;
-      display: flex; flex-direction: column; gap: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
     }
+
     .chat-msg {
-      display: flex; flex-direction: column; gap: 2px;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
     }
+
     .chat-msg-meta {
-      display: flex; align-items: center; gap: 6px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
     }
+
     .chat-msg-avatar {
-      width: 16px; height: 16px; border-radius: 50%;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 7.5px; font-weight: 700; color: #fff; flex-shrink: 0;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 7.5px;
+      font-weight: 700;
+      color: #fff;
+      flex-shrink: 0;
     }
+
     .chat-msg-name {
-      font-size: var(--fs-2xs); font-weight: 600; color: var(--tx2);
+      font-size: var(--fs-2xs);
+      font-weight: 600;
+      color: var(--tx2);
     }
+
     .chat-msg-time {
       font-family: var(--fm);
-      font-size: var(--fs-2xs); color: var(--tx3); margin-left: auto;
+      font-size: var(--fs-2xs);
+      color: var(--tx3);
+      margin-left: auto;
     }
+
     .chat-msg-text {
-      font-size: var(--fs-sm); color: var(--tx);
+      font-size: var(--fs-sm);
+      color: var(--tx);
       line-height: 1.55;
       background: var(--s2);
       border: 1px solid var(--bd);
@@ -2342,52 +2712,91 @@
       padding: 6px 10px;
       word-break: break-word;
     }
+
     .chat-msg.mine .chat-msg-text {
-      background: rgba(var(--a2r),.1);
-      border-color: rgba(var(--a2r),.25);
+      background: rgba(var(--a2r), .1);
+      border-color: rgba(var(--a2r), .25);
       border-radius: 6px 0 6px 6px;
     }
-    .chat-msg.mine { align-items: flex-end; }
-    .chat-msg.mine .chat-msg-meta { flex-direction: row-reverse; }
-    .chat-msg.mine .chat-msg-time { margin-left: 0; margin-right: auto; }
+
+    .chat-msg.mine {
+      align-items: flex-end;
+    }
+
+    .chat-msg.mine .chat-msg-meta {
+      flex-direction: row-reverse;
+    }
+
+    .chat-msg.mine .chat-msg-time {
+      margin-left: 0;
+      margin-right: auto;
+    }
+
     .chat-sys-msg {
       text-align: center;
-      font-size: var(--fs-xs); color: var(--tx3);
-      padding: 2px 0; font-style: italic;
+      font-size: var(--fs-xs);
+      color: var(--tx3);
+      padding: 2px 0;
+      font-style: italic;
     }
+
     .cp-input-row {
       padding: 10px 10px;
       border-top: 1px solid var(--bd);
-      display: flex; gap: 7px; align-items: center;
+      display: flex;
+      gap: 7px;
+      align-items: flex-end;
       flex-shrink: 0;
     }
+
     #chat-input {
       flex: 1;
-      font-family: var(--ff); font-size: var(--fs-sm);
+      font-family: var(--ff);
+      font-size: var(--fs-sm);
       background: var(--bg2);
       border: 1px solid var(--bd);
       border-radius: var(--rr);
       padding: 7px 10px;
-      color: var(--tx); outline: none;
+      color: var(--tx);
+      outline: none;
       transition: border-color var(--tw);
     }
-    #chat-input:focus { border-color: var(--a2); }
+
+    #chat-input:focus {
+      border-color: var(--a2);
+    }
+
     #chat-send {
-      width: 32px; height: 32px;
-      background: var(--a2); color: var(--inv);
-      border: none; border-radius: var(--rr);
-      cursor: pointer; display: flex;
-      align-items: center; justify-content: center;
-      transition: opacity .15s; flex-shrink: 0;
+      width: 32px;
+      height: 32px;
+      background: var(--a2);
+      color: var(--inv);
+      border: none;
+      border-radius: var(--rr);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: opacity .15s;
+      flex-shrink: 0;
       font-size: 14px;
     }
-    #chat-send:hover { opacity: .85; }
-    #chat-send svg { width: 12px; height: 12px; }
+
+    #chat-send:hover {
+      opacity: .85;
+    }
+
+    #chat-send svg {
+      width: 12px;
+      height: 12px;
+    }
 
     /* workspace wraps both the workspace row and chat panel */
     #workspace-outer {
-      display: flex; flex-direction: column;
-      flex: 1; overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      flex: 1;
+      overflow: hidden;
     }
 
     /* ════════ SAFE AREA (iPhone notch/home bar) ════════ */
@@ -2568,8 +2977,9 @@
         <svg viewBox="0 0 14 14" fill="currentColor">
           <circle cx="4.5" cy="4" r="2" />
           <circle cx="9.5" cy="4" r="2" />
-          <path d="M1 11c0-2 1.5-3 3.5-3s3.5 1 3.5 3" fill="currentColor"/>
-          <path d="M8.5 9c.6-.6 1.4-1 2.5-1 1.5 0 2.5.9 2.5 2.5" stroke="currentColor" stroke-width="1.2" fill="none" stroke-linecap="round"/>
+          <path d="M1 11c0-2 1.5-3 3.5-3s3.5 1 3.5 3" fill="currentColor" />
+          <path d="M8.5 9c.6-.6 1.4-1 2.5-1 1.5 0 2.5.9 2.5 2.5" stroke="currentColor" stroke-width="1.2" fill="none"
+            stroke-linecap="round" />
         </svg>
         <span class="lbl">Colaborar</span>
         <span id="collab-pulse"></span>
@@ -2578,7 +2988,7 @@
       <!-- Chat toggle (only visible in session) -->
       <button id="chat-toggle-btn" onclick="toggleChat()" title="Abrir chat">
         <svg viewBox="0 0 14 14" fill="currentColor">
-          <path d="M2 2h10a1 1 0 011 1v6a1 1 0 01-1 1H8l-2 2-2-2H2a1 1 0 01-1-1V3a1 1 0 011-1z"/>
+          <path d="M2 2h10a1 1 0 011 1v6a1 1 0 01-1 1H8l-2 2-2-2H2a1 1 0 01-1-1V3a1 1 0 011-1z" />
         </svg>
         <span class="lbl">Chat</span>
         <span class="chat-badge" id="chat-badge"></span>
@@ -2721,9 +3131,11 @@
       <div class="cm-header">
         <div class="cm-title">
           <svg viewBox="0 0 14 14" fill="currentColor">
-            <circle cx="4.5" cy="4" r="2"/><circle cx="9.5" cy="4" r="2"/>
-            <path d="M1 11c0-2 1.5-3 3.5-3s3.5 1 3.5 3"/>
-            <path d="M8.5 9c.6-.6 1.4-1 2.5-1 1.5 0 2.5.9 2.5 2.5" stroke="currentColor" stroke-width="1.2" fill="none" stroke-linecap="round"/>
+            <circle cx="4.5" cy="4" r="2" />
+            <circle cx="9.5" cy="4" r="2" />
+            <path d="M1 11c0-2 1.5-3 3.5-3s3.5 1 3.5 3" />
+            <path d="M8.5 9c.6-.6 1.4-1 2.5-1 1.5 0 2.5.9 2.5 2.5" stroke="currentColor" stroke-width="1.2" fill="none"
+              stroke-linecap="round" />
           </svg>
           Colaboração em tempo real
         </div>
@@ -2743,7 +3155,9 @@
         </div>
         <div id="cm-create-step1">
           <button class="cm-btn a2" id="cm-create-btn" onclick="hostSession()">
-            <svg viewBox="0 0 14 14" fill="currentColor" width="13" height="13"><path d="M7 1v12M1 7h12"/></svg>
+            <svg viewBox="0 0 14 14" fill="currentColor" width="13" height="13">
+              <path d="M7 1v12M1 7h12" />
+            </svg>
             Criar sessão
           </button>
         </div>
@@ -2759,8 +3173,10 @@
             <span class="cm-spinner"></span>
             <span style="font-size:var(--fs-sm);color:var(--tx2)">Aguardando participantes...</span>
           </div>
-          <div class="cm-note">Qualquer pessoa com o código pode <strong>ver e editar o documento em tempo real</strong> e participar do chat da sessão.</div>
-          <button class="cm-btn" style="background:var(--s3);color:var(--tx2);border:1px solid var(--bd);" onclick="closeCollabModal()">Fechar e continuar</button>
+          <div class="cm-note">Qualquer pessoa com o código pode <strong>ver e editar o documento em tempo real</strong>
+            e participar do chat da sessão.</div>
+          <button class="cm-btn" style="background:var(--s3);color:var(--tx2);border:1px solid var(--bd);"
+            onclick="closeCollabModal()">Fechar e continuar</button>
         </div>
       </div>
 
@@ -2788,7 +3204,7 @@
     <div class="cp-head">
       <div class="cp-head-title">
         <svg viewBox="0 0 14 14" fill="currentColor">
-          <path d="M2 2h10a1 1 0 011 1v6a1 1 0 01-1 1H8l-2 2-2-2H2a1 1 0 01-1-1V3a1 1 0 011-1z"/>
+          <path d="M2 2h10a1 1 0 011 1v6a1 1 0 01-1 1H8l-2 2-2-2H2a1 1 0 01-1-1V3a1 1 0 011-1z" />
         </svg>
         Chat da sessão
       </div>
@@ -2796,9 +3212,11 @@
     </div>
     <div id="chat-messages"></div>
     <div class="cp-input-row">
-      <input id="chat-input" placeholder="Mensagem..." maxlength="400" autocomplete="off">
+      <textarea id="chat-input" placeholder="Mensagem... (Enter para enviar)" maxlength="400" rows="1"></textarea>
       <button id="chat-send" onclick="sendChat()">
-        <svg viewBox="0 0 14 14" fill="currentColor"><path d="M1 7L13 1 9 13 7 8z"/></svg>
+        <svg viewBox="0 0 14 14" fill="currentColor">
+          <path d="M1 7L13 1 9 13 7 8z" />
+        </svg>
       </button>
     </div>
   </div>
@@ -3388,61 +3806,83 @@
        COLLAB — WebRTC via PeerJS
        ── Star topology: host relays all messages ──
     ══════════════════════════════════════════════ */
-    const PEER_COLORS = ['#e8a020','#2fa88a','#6c7de8','#e85c5c','#c87de0','#4db8d4','#d4a22f','#82c44e'];
+    const PEER_COLORS = ['#e8a020', '#2fa88a', '#6c7de8', '#e85c5c', '#c87de0', '#4db8d4', '#d4a22f', '#82c44e'];
+    const SK_COLLABNAME = 'mkd_collab_name';   // persist display name
     let myPeer = null;
-    let myId = '';        // peerjs peer id
+    let myId = '';
     let myName = '';
     let myColor = '';
-    let roomCode = '';    // 6-char code
+    let roomCode = '';
     let isHost = false;
-    let hostConn = null;  // joiner → host connection
-    let peerConns = {};   // host → Map<peerId, {conn, user}>
-    let peerUsers = {};   // peerId → {name, color}
+    let hostConn = null;
+    let peerConns = {};
+    let peerUsers = {};
     let unreadChat = 0;
     let chatOpen = false;
     let applyingRemote = false;
+    let lastChatSenderId = null;   // for message grouping
 
-    function genCode() {
-      return Math.random().toString(36).slice(2,8).toUpperCase();
-    }
-    function initials(name) {
-      return name.trim().split(/\s+/).map(w=>w[0]).join('').slice(0,2).toUpperCase() || '?';
-    }
+    function genCode() { return Math.random().toString(36).slice(2, 8).toUpperCase(); }
+    function initials(name) { return name.trim().split(/\s+/).map(w => w[0]).join('').slice(0, 2).toUpperCase() || '?'; }
     function colorForIdx(idx) { return PEER_COLORS[idx % PEER_COLORS.length]; }
+    function escH(s) { return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
+    function savedName() { return lsGet(SK_COLLABNAME, ''); }
 
     /* ── Modal open/close ── */
     function openCollabModal() {
+      const modal = $('collab-backdrop');
       if (myPeer && roomCode) {
-        // already in session — show code
-        $('cm-tab-create').click();
         switchCollabTab('create');
         $('cm-create-step1').style.display = 'none';
         $('cm-create-step2').style.display = 'flex';
         $('cm-code-val').textContent = roomCode;
         $('cm-host-name').value = myName;
+      } else {
+        // pre-fill saved name
+        const sn = savedName();
+        if (sn) { $('cm-host-name').value = sn; $('cm-join-name').value = sn; }
+        // auto-focus name field
+        setTimeout(() => {
+          const active = $('cm-join-body').style.display === 'flex' ? $('cm-join-name') : $('cm-host-name');
+          active.focus(); active.select();
+        }, 80);
       }
-      $('collab-backdrop').classList.add('vis');
+      modal.classList.add('vis');
     }
+
     function closeCollabModal() { $('collab-backdrop').classList.remove('vis'); }
     function closeCollabOnBg(e) { if (e.target === $('collab-backdrop')) closeCollabModal(); }
 
+    // Esc closes modal or chat
+    document.addEventListener('keydown', e => {
+      if (e.key !== 'Escape') return;
+      if ($('collab-backdrop').classList.contains('vis')) { closeCollabModal(); return; }
+      if (chatOpen) { toggleChat(); }
+    });
+
     function switchCollabTab(tab) {
-      $('cm-tab-create').classList.toggle('on', tab==='create');
-      $('cm-tab-join').classList.toggle('on', tab==='join');
-      $('cm-create-body').style.display = tab==='create' ? 'flex' : 'none';
-      $('cm-join-body').style.display = tab==='join' ? 'flex' : 'none';
+      $('cm-tab-create').classList.toggle('on', tab === 'create');
+      $('cm-tab-join').classList.toggle('on', tab === 'join');
+      $('cm-create-body').style.display = tab === 'create' ? 'flex' : 'none';
+      $('cm-join-body').style.display = tab === 'join' ? 'flex' : 'none';
+      // focus the name field of active tab
+      setTimeout(() => {
+        const f = tab === 'create' ? $('cm-host-name') : $('cm-join-name');
+        if (f && !f.value) { f.focus(); }
+      }, 60);
     }
 
     /* ── Host a session ── */
     function hostSession() {
-      const nameEl = $('cm-host-name');
-      myName = nameEl.value.trim() || 'Anônimo';
+      myName = $('cm-host-name').value.trim() || 'Anônimo';
+      lsSet(SK_COLLABNAME, myName);
       myColor = colorForIdx(0);
       roomCode = genCode();
       isHost = true;
 
-      $('cm-create-btn').disabled = true;
-      $('cm-create-btn').innerHTML = '<span class="cm-spinner"></span> Conectando...';
+      const btn = $('cm-create-btn');
+      btn.disabled = true;
+      btn.innerHTML = '<span class="cm-spinner"></span> Criando sessão...';
 
       myPeer = new Peer('mkd-' + roomCode, { debug: 0 });
 
@@ -3454,28 +3894,22 @@
         $('cm-code-val').textContent = roomCode;
         $('pb-room-code').textContent = roomCode;
         activateSession();
-        toast('Sessão criada! Compartilhe o código: ' + roomCode);
+        addSysMsg('Sessão criada. Aguardando participantes...');
+        toast('✓ Sessão criada! Código: ' + roomCode);
       });
 
       myPeer.on('error', (err) => {
         if (err.type === 'unavailable-id') {
-          // code taken — try a new one
-          myPeer.destroy();
-          roomCode = genCode();
-          hostSession();
-          return;
+          myPeer.destroy(); roomCode = genCode(); hostSession(); return;
         }
-        $('cm-create-btn').disabled = false;
-        $('cm-create-btn').textContent = 'Criar sessão';
-        toast('Erro ao criar sessão: ' + err.message);
+        btn.disabled = false;
+        btn.innerHTML = '<svg viewBox="0 0 14 14" fill="currentColor" width="13" height="13"><path d="M7 1v12M1 7h12"/></svg> Criar sessão';
+        showToastErr('Erro ao criar sessão. Tente novamente.');
       });
 
       myPeer.on('connection', (conn) => {
         conn.on('open', () => {
-          // Send welcome: current doc + all users
-          const userList = Object.values(peerUsers);
-          conn.send({ type:'welcome', content: editor.value, users: userList, hostId: myId });
-          // Announce new peer to everyone
+          conn.send({ type: 'welcome', content: editor.value, users: Object.values(peerUsers), hostId: myId });
           conn.on('data', (data) => onHostReceive(data, conn));
           conn.on('close', () => onPeerLeft(conn.peer));
           conn.on('error', () => onPeerLeft(conn.peer));
@@ -3485,20 +3919,19 @@
 
     /* ── Join a session ── */
     function joinSession() {
-      const nameEl = $('cm-join-name');
-      const codeEl = $('cm-join-code');
-      myName = nameEl.value.trim() || 'Anônimo';
-      const code = codeEl.value.trim().toUpperCase();
-      if (code.length !== 6) { showJoinStatus('Digite um código de 6 letras/números.', true); return; }
+      myName = $('cm-join-name').value.trim() || 'Anônimo';
+      lsSet(SK_COLLABNAME, myName);
+      const code = $('cm-join-code').value.trim().toUpperCase().replace(/[^A-Z0-9]/g, '');
+      if (code.length !== 6) { showJoinStatus('Digite o código de 6 caracteres.', 'err'); return; }
 
-      myColor = colorForIdx(Object.keys(peerUsers).length + 1);
+      myColor = colorForIdx(1);
       roomCode = code;
       isHost = false;
 
       const btn = $('cm-join-btn');
       btn.disabled = true;
       btn.innerHTML = '<span class="cm-spinner"></span> Conectando...';
-      showJoinStatus('Localizando sessão...', false);
+      showJoinStatus('Localizando sessão ' + code + '...', 'info');
 
       myPeer = new Peer({ debug: 0 });
 
@@ -3508,9 +3941,8 @@
         hostConn = myPeer.connect('mkd-' + code, { reliable: true });
 
         hostConn.on('open', () => {
-          // Send hello
-          hostConn.send({ type:'hello', user: { id: myId, name: myName, color: myColor } });
-          showJoinStatus('Conectado! Sincronizando documento...', false);
+          hostConn.send({ type: 'hello', user: { id: myId, name: myName, color: myColor } });
+          showJoinStatus('Sincronizando documento...', 'info');
         });
 
         hostConn.on('data', (data) => onJoinerReceive(data));
@@ -3521,20 +3953,19 @@
       myPeer.on('error', (err) => {
         btn.disabled = false;
         btn.innerHTML = 'Entrar na sessão →';
-        if (err.type === 'peer-unavailable') showJoinStatus('Sessão não encontrada. Verifique o código.', true);
-        else showJoinStatus('Erro: ' + err.message, true);
+        if (err.type === 'peer-unavailable')
+          showJoinStatus('❌ Sessão "' + code + '" não encontrada. Verifique o código.', 'err');
+        else
+          showJoinStatus('❌ Erro de conexão. Tente novamente.', 'err');
+        roomCode = ''; isHost = false;
+        if (myPeer) { try { myPeer.destroy(); } catch (e) { } myPeer = null; }
       });
     }
 
-    function showJoinStatus(msg, err) {
+    function showJoinStatus(msg, type) {
       const el = $('cm-join-status');
-      el.textContent = msg;
-      el.className = 'cm-status vis' + (err ? ' cm-err' : '');
-      if (err) {
-        const btn = $('cm-join-btn');
-        btn.disabled = false;
-        btn.innerHTML = 'Entrar na sessão →';
-      }
+      el.innerHTML = msg;
+      el.className = 'cm-status vis' + (type === 'err' ? ' cm-err' : '') + (type === 'ok' ? ' cm-ok' : '');
     }
 
     /* ── Host receives data ── */
@@ -3543,13 +3974,15 @@
         const u = data.user;
         peerUsers[u.id] = { name: u.name, color: u.color };
         peerConns[u.id] = fromConn;
-        // send welcome to this peer
-        fromConn.send({ type:'welcome', content: editor.value, users: Object.values(peerUsers), hostId: myId });
-        // announce to all others
-        broadcastExcept({ type:'join', user: u }, fromConn);
+        fromConn.send({ type: 'welcome', content: editor.value, users: Object.values(peerUsers), hostId: myId });
+        broadcastExcept({ type: 'join', user: u }, fromConn);
         renderPresence();
-        addSysMsg(u.name + ' entrou na sessão');
-        toast(u.name + ' entrou na sessão');
+        addSysMsg('👋 ' + u.name + ' entrou na sessão');
+        toast('👋 ' + u.name + ' entrou! ' + peerCount() + ' pessoa(s) online.');
+        // host: auto-open chat on first guest
+        if (!chatOpen && Object.keys(peerConns).length === 1) {
+          setTimeout(toggleChat, 400);
+        }
       } else if (data.type === 'edit') {
         applyRemoteContent(data.content);
         broadcastExcept(data, fromConn);
@@ -3565,22 +3998,36 @@
         data.users.forEach(u => { peerUsers[u.id] = u; });
         applyRemoteContent(data.content);
         $('pb-room-code').textContent = roomCode;
-        activateSession();
-        closeCollabModal();
-        toast('Bem-vindo à sessão! ' + Object.keys(peerUsers).length + ' pessoa(s) online.');
-        addSysMsg('Você entrou na sessão');
+
+        // Show ✓ success briefly, then close modal and open chat
+        showJoinStatus('✓ Conectado com sucesso!', 'ok');
         renderPresence();
+        activateSession();
+
+        const others = Object.keys(peerUsers).filter(id => id !== myId);
+        const otherNames = others.map(id => peerUsers[id].name).join(', ');
+
+        setTimeout(() => {
+          closeCollabModal();
+          addSysMsg('✓ Você entrou na sessão');
+          if (otherNames) addSysMsg('Online agora: ' + otherNames + ' e você');
+          toast('✓ Conectado! ' + peerCount() + ' pessoa(s) online.');
+          // auto-open chat after joining
+          setTimeout(toggleChat, 300);
+        }, 700);
+
+        // reset join btn
         const btn = $('cm-join-btn');
         btn.disabled = false;
         btn.innerHTML = 'Entrar na sessão →';
-        $('cm-join-status').className = 'cm-status';
+
       } else if (data.type === 'join') {
         const u = data.user;
         if (!peerUsers[u.id]) {
           peerUsers[u.id] = u;
           renderPresence();
-          addSysMsg(u.name + ' entrou na sessão');
-          toast(u.name + ' entrou na sessão');
+          addSysMsg('👋 ' + u.name + ' entrou na sessão');
+          toast('👋 ' + u.name + ' também entrou!');
         }
       } else if (data.type === 'leave') {
         onPeerLeft(data.userId);
@@ -3593,21 +4040,19 @@
 
     function broadcastExcept(data, exceptConn) {
       Object.values(peerConns).forEach(c => {
-        if (c !== exceptConn && c.open) {
-          try { c.send(data); } catch(e) {}
-        }
+        if (c !== exceptConn && c.open) { try { c.send(data); } catch (e) { } }
       });
     }
-    function broadcastAll(data) {
-      broadcastExcept(data, null);
-    }
+    function broadcastAll(data) { broadcastExcept(data, null); }
+
+    function peerCount() { return Object.keys(peerUsers).length; }
 
     function applyRemoteContent(content) {
       if (content === editor.value) return;
       applyingRemote = true;
       const sel = editor.selectionStart;
       editor.value = content;
-      try { editor.selectionStart = editor.selectionEnd = sel; } catch(e){}
+      try { editor.selectionStart = editor.selectionEnd = sel; } catch (e) { }
       render(); updateCC(); scheduleSave();
       applyingRemote = false;
     }
@@ -3618,14 +4063,15 @@
         delete peerUsers[peerId];
         delete peerConns[peerId];
         renderPresence();
-        addSysMsg((u.name || 'Alguém') + ' saiu da sessão');
-        toast((u.name || 'Alguém') + ' saiu da sessão');
+        addSysMsg('← ' + u.name + ' saiu da sessão');
+        toast('← ' + u.name + ' saiu da sessão');
       }
     }
 
     function onDisconnected() {
-      toast('Conexão com a sessão perdida.');
-      leaveSession();
+      addSysMsg('⚠ Conexão com a sessão perdida.');
+      toast('⚠ Conexão perdida. Saindo da sessão...');
+      setTimeout(leaveSession, 1200);
     }
 
     /* ── Session activation / deactivation ── */
@@ -3635,33 +4081,34 @@
       $('chat-toggle-btn').classList.add('vis');
       $('chat-panel').classList.add('pb-active');
       renderPresence();
+      renderChatEmpty();
     }
 
     function leaveSession() {
-      // Announce leave
-      const leaveMsg = { type:'leave', userId: myId };
+      if (!myPeer && !roomCode) return;
+      const leaveMsg = { type: 'leave', userId: myId };
       if (isHost) broadcastAll(leaveMsg);
-      else if (hostConn && hostConn.open) try { hostConn.send(leaveMsg); } catch(e){}
-      // Cleanup
-      if (myPeer) { try { myPeer.destroy(); } catch(e){} myPeer = null; }
+      else if (hostConn && hostConn.open) try { hostConn.send(leaveMsg); } catch (e) { }
+      if (myPeer) { try { myPeer.destroy(); } catch (e) { } myPeer = null; }
       peerConns = {}; peerUsers = {}; hostConn = null;
-      roomCode = ''; isHost = false;
+      roomCode = ''; isHost = false; lastChatSenderId = null;
       $('collab-btn').classList.remove('active');
       $('presence-bar').classList.remove('active');
-      $('chat-toggle-btn').classList.remove('vis');
-      $('chat-toggle-btn').classList.remove('on');
-      $('chat-panel').classList.remove('open','pb-active');
+      $('chat-toggle-btn').classList.remove('vis', 'on');
+      $('chat-panel').classList.remove('open', 'pb-active');
       $('presence-list').innerHTML = '';
       $('chat-messages').innerHTML = '';
       chatOpen = false; unreadChat = 0;
       updateChatBadge();
+      updateCollabBtnCount();
       closeCollabModal();
-      // Reset create modal
+      // reset create modal
       $('cm-create-step1').style.display = 'block';
       $('cm-create-step2').style.display = 'none';
       $('cm-create-btn').disabled = false;
       $('cm-create-btn').innerHTML = '<svg viewBox="0 0 14 14" fill="currentColor" width="13" height="13"><path d="M7 1v12M1 7h12"/></svg> Criar sessão';
       $('cm-join-status').className = 'cm-status';
+      $('cm-join-code').value = '';
       toast('Você saiu da sessão.');
     }
 
@@ -3675,15 +4122,21 @@
         chip.innerHTML = `<div class="presence-avatar" style="background:${u.color}">${initials(u.name)}</div><span>${u.name}${id === myId ? ' (você)' : ''}</span>`;
         list.appendChild(chip);
       });
+      updateCollabBtnCount();
     }
 
-    /* ── Intercept editor input to broadcast ── */
-    const _origEditorInput = editor.oninput;
+    function updateCollabBtnCount() {
+      const n = peerCount();
+      const lbl = $('collab-btn').querySelector('.lbl');
+      lbl.textContent = n > 0 ? 'Colaborar (' + n + ')' : 'Colaborar';
+    }
+
+    /* ── Broadcast edits ── */
     editor.addEventListener('input', () => {
-      if (applyingRemote) return;
-      const msg = { type:'edit', content: editor.value, userId: myId };
+      if (applyingRemote || !myPeer) return;
+      const msg = { type: 'edit', content: editor.value, userId: myId };
       if (isHost) broadcastAll(msg);
-      else if (hostConn && hostConn.open) try { hostConn.send(msg); } catch(e){}
+      else if (hostConn && hostConn.open) try { hostConn.send(msg); } catch (e) { }
     });
 
     /* ── Chat ── */
@@ -3698,47 +4151,64 @@
           const m = $('chat-messages');
           m.scrollTop = m.scrollHeight;
           $('chat-input').focus();
-        }, 30);
+        }, 50);
       }
     }
 
     function sendChat() {
       const input = $('chat-input');
       const text = input.value.trim();
-      if (!text) return;
+      if (!text || !myPeer) return;
       input.value = '';
-      const msg = {
-        type: 'chat',
-        text,
-        userId: myId,
-        userName: myName,
-        userColor: myColor,
-        ts: Date.now()
-      };
+      autoResizeChatInput();
+      const msg = { type: 'chat', text, userId: myId, userName: myName, userColor: myColor, ts: Date.now() };
       appendChatMsg(msg);
       if (isHost) broadcastAll(msg);
-      else if (hostConn && hostConn.open) try { hostConn.send(msg); } catch(e){}
+      else if (hostConn && hostConn.open) try { hostConn.send(msg); } catch (e) { }
     }
 
     $('chat-input').addEventListener('keydown', e => {
       if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendChat(); }
     });
+    $('chat-input').addEventListener('input', autoResizeChatInput);
+
+    function autoResizeChatInput() {
+      const el = $('chat-input');
+      el.style.height = 'auto';
+      el.style.height = Math.min(el.scrollHeight, 88) + 'px';
+    }
 
     function appendChatMsg(msg) {
       const m = $('chat-messages');
+
+      // Remove empty state if present
+      const empty = m.querySelector('.chat-empty');
+      if (empty) empty.remove();
+
       const isMine = msg.userId === myId;
-      const time = new Date(msg.ts).toLocaleTimeString('pt-BR', { hour:'2-digit', minute:'2-digit' });
+      const time = new Date(msg.ts).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+      const grouped = lastChatSenderId === msg.userId;
+      lastChatSenderId = msg.userId;
+
       const div = document.createElement('div');
-      div.className = 'chat-msg' + (isMine ? ' mine' : '');
-      div.innerHTML = `
-        <div class="chat-msg-meta">
-          <div class="chat-msg-avatar" style="background:${msg.userColor}">${initials(msg.userName)}</div>
-          <span class="chat-msg-name">${escH(msg.userName)}</span>
-          <span class="chat-msg-time">${time}</span>
-        </div>
-        <div class="chat-msg-text">${escH(msg.text)}</div>`;
+      div.className = 'chat-msg' + (isMine ? ' mine' : '') + (grouped ? ' grouped' : '');
+
+      if (grouped) {
+        // Only the bubble, no header
+        div.innerHTML = `<div class="chat-msg-text">${escH(msg.text)}</div>`;
+      } else {
+        div.innerHTML = `
+          <div class="chat-msg-meta">
+            <div class="chat-msg-avatar" style="background:${msg.userColor}">${initials(msg.userName)}</div>
+            <span class="chat-msg-name">${escH(msg.userName)}</span>
+            <span class="chat-msg-time">${time}</span>
+          </div>
+          <div class="chat-msg-text">${escH(msg.text)}</div>`;
+      }
+
       m.appendChild(div);
       m.scrollTop = m.scrollHeight;
+
       if (!chatOpen && !isMine) {
         unreadChat++;
         updateChatBadge();
@@ -3747,11 +4217,24 @@
 
     function addSysMsg(text) {
       const m = $('chat-messages');
+      const empty = m.querySelector('.chat-empty');
+      if (empty) empty.remove();
       const div = document.createElement('div');
       div.className = 'chat-sys-msg';
       div.textContent = text;
       m.appendChild(div);
       m.scrollTop = m.scrollHeight;
+      lastChatSenderId = null; // sys msgs break grouping
+    }
+
+    function renderChatEmpty() {
+      const m = $('chat-messages');
+      if (m.children.length === 0) {
+        const div = document.createElement('div');
+        div.className = 'chat-empty';
+        div.innerHTML = `<div style="font-size:22px;margin-bottom:8px">💬</div><div>Nenhuma mensagem ainda.<br>Diga oi para a equipe!</div>`;
+        m.appendChild(div);
+      }
     }
 
     function updateChatBadge() {
@@ -3760,14 +4243,27 @@
       b.classList.toggle('vis', unreadChat > 0);
     }
 
+    /* ── Code input QoL: auto-uppercase + auto-submit at 6 chars ── */
+    $('cm-join-code').addEventListener('input', function () {
+      const v = this.value.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 6);
+      this.value = v;
+      if (v.length === 6 && $('cm-join-name').value.trim()) {
+        // slight delay so user sees the 6th char
+        setTimeout(joinSession, 280);
+      }
+    });
+
+    // Enter on name fields triggers action
+    $('cm-host-name').addEventListener('keydown', e => { if (e.key === 'Enter') hostSession(); });
+    $('cm-join-name').addEventListener('keydown', e => { if (e.key === 'Enter') $('cm-join-code').focus(); });
+    $('cm-join-code').addEventListener('keydown', e => { if (e.key === 'Enter') joinSession(); });
+
     function copyRoomCode() {
       if (!roomCode) return;
-      navigator.clipboard.writeText(roomCode).then(() => toast('Código ' + roomCode + ' copiado!'));
+      navigator.clipboard.writeText(roomCode).then(() => toast('✓ Código ' + roomCode + ' copiado!'));
     }
 
-    function escH(s) {
-      return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-    }
+    function showToastErr(msg) { toast(msg); }
 
     /* ════ INIT ════ */
     (function init() {
