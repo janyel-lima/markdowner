@@ -4261,8 +4261,7 @@
         text, userId: myId, userName: myName,
         userColor: myColor, ts: firebase.database.ServerValue.TIMESTAMP
       }).catch(() => { });
-      // Append locally immediately (optimistic)
-      appendChatMsg({ text, userId: myId, userName: myName, userColor: myColor, ts: Date.now() });
+      // No local append — the child_added listener handles all messages
     }
 
     $('chat-input').addEventListener('keydown', e => {
