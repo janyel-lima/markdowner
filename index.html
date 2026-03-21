@@ -11,7 +11,8 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/9.1.6/marked.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.1.6/purify.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
-  <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
   <link id="hl-dark" rel="stylesheet"
     href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark-dimmed.min.css">
   <link id="hl-light" rel="stylesheet"
@@ -3857,35 +3858,70 @@
     function esc(s) { return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
 
     /* ══════════════════════════════════════════════
-       COLLAB — WebRTC via PeerJS
-       ── Star topology: host relays all messages ──
+       COLLAB — Firebase Realtime Database
+       ── Fully HTTPS, firewall-proof ──
     ══════════════════════════════════════════════ */
+
+    /* ── Firebase config (injected by GitHub Actions) ── */
+    const FIREBASE_CONFIG = {
+      apiKey: "__FIREBASE_API_KEY__",
+      authDomain: "__FIREBASE_PROJECT_ID__.firebaseapp.com",
+      databaseURL: "__FIREBASE_DB_URL__",
+      projectId: "__FIREBASE_PROJECT_ID__",
+    };
+
+    /* ── Check if config was actually injected ── */
+    const FB_READY = !FIREBASE_CONFIG.apiKey.startsWith('__');
+
     const PEER_COLORS = ['#e8a020', '#2fa88a', '#6c7de8', '#e85c5c', '#c87de0', '#4db8d4', '#d4a22f', '#82c44e'];
-    const SK_COLLABNAME = 'mkd_collab_name';   // persist display name
-    let myPeer = null;
+    const SK_COLLABNAME = 'mkd_collab_name';
+
+    let fbApp = null;
+    let fbDb = null;
+    let fbRoom = null;   // firebase ref to current room
+
     let myId = '';
     let myName = '';
     let myColor = '';
     let roomCode = '';
-    let isHost = false;
-    let hostConn = null;
-    let peerConns = {};
-    let peerUsers = {};
+
+    // Active listeners — kept so we can detach on leave
+    let listeners = [];
+
     let unreadChat = 0;
     let chatOpen = false;
     let applyingRemote = false;
-    let lastChatSenderId = null;   // for message grouping
+    let lastChatSenderId = null;
+    let writeDocTimer = null;  // debounce doc writes
 
+    /* ── Utilities ── */
     function genCode() { return Math.random().toString(36).slice(2, 8).toUpperCase(); }
-    function initials(name) { return name.trim().split(/\s+/).map(w => w[0]).join('').slice(0, 2).toUpperCase() || '?'; }
-    function colorForIdx(idx) { return PEER_COLORS[idx % PEER_COLORS.length]; }
+    function genUserId() { return Math.random().toString(36).slice(2, 12); }
+    function initials(n) { return n.trim().split(/\s+/).map(w => w[0]).join('').slice(0, 2).toUpperCase() || '?'; }
+    function colorForIdx(i) { return PEER_COLORS[i % PEER_COLORS.length]; }
     function escH(s) { return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
     function savedName() { return lsGet(SK_COLLABNAME, ''); }
 
-    /* ── Modal open/close ── */
+    /* ── Init Firebase once ── */
+    function initFirebase() {
+      if (fbApp) return true;
+      if (!FB_READY) {
+        toast('⚠ Firebase não configurado. Veja o README.');
+        return false;
+      }
+      try {
+        fbApp = firebase.initializeApp(FIREBASE_CONFIG);
+        fbDb = firebase.database();
+        return true;
+      } catch (e) {
+        toast('⚠ Erro ao iniciar Firebase: ' + e.message);
+        return false;
+      }
+    }
+
+    /* ── Modal open / close ── */
     function openCollabModal() {
-      const modal = $('collab-backdrop');
-      if (myPeer && roomCode) {
+      if (roomCode) {
         switchCollabTab('create');
         $('cm-create-step1').style.display = 'none';
         $('cm-create-step2').style.display = 'flex';
@@ -3893,26 +3929,23 @@
         $('cm-host-name').value = myName;
         renderModalParticipants();
       } else {
-        // pre-fill saved name
         const sn = savedName();
         if (sn) { $('cm-host-name').value = sn; $('cm-join-name').value = sn; }
-        // auto-focus name field
         setTimeout(() => {
-          const active = $('cm-join-body').style.display === 'flex' ? $('cm-join-name') : $('cm-host-name');
-          active.focus(); active.select();
+          const f = $('cm-join-body').style.display === 'flex' ? $('cm-join-name') : $('cm-host-name');
+          f.focus(); f.select();
         }, 80);
       }
-      modal.classList.add('vis');
+      $('collab-backdrop').classList.add('vis');
     }
 
     function closeCollabModal() { $('collab-backdrop').classList.remove('vis'); }
     function closeCollabOnBg(e) { if (e.target === $('collab-backdrop')) closeCollabModal(); }
 
-    // Esc closes modal or chat
     document.addEventListener('keydown', e => {
       if (e.key !== 'Escape') return;
       if ($('collab-backdrop').classList.contains('vis')) { closeCollabModal(); return; }
-      if (chatOpen) { toggleChat(); }
+      if (chatOpen) toggleChat();
     });
 
     function switchCollabTab(tab) {
@@ -3920,30 +3953,41 @@
       $('cm-tab-join').classList.toggle('on', tab === 'join');
       $('cm-create-body').style.display = tab === 'create' ? 'flex' : 'none';
       $('cm-join-body').style.display = tab === 'join' ? 'flex' : 'none';
-      // focus the name field of active tab
       setTimeout(() => {
         const f = tab === 'create' ? $('cm-host-name') : $('cm-join-name');
-        if (f && !f.value) { f.focus(); }
+        if (f && !f.value) f.focus();
       }, 60);
     }
 
-    /* ── Host a session ── */
+    /* ── Create session ── */
     function hostSession() {
+      if (!initFirebase()) return;
       myName = $('cm-host-name').value.trim() || 'Anônimo';
       lsSet(SK_COLLABNAME, myName);
       myColor = colorForIdx(0);
+      myId = genUserId();
       roomCode = genCode();
-      isHost = true;
 
       const btn = $('cm-create-btn');
       btn.disabled = true;
       btn.innerHTML = '<span class="cm-spinner"></span> Criando sessão...';
 
-      myPeer = new Peer('mkd-' + roomCode, { debug: 0 });
+      fbRoom = fbDb.ref('rooms/' + roomCode);
 
-      myPeer.on('open', (id) => {
-        myId = id;
-        peerUsers[myId] = { name: myName, color: myColor };
+      // Write initial room doc (only if it doesn't exist yet)
+      fbRoom.once('value').then(snap => {
+        if (snap.exists()) {
+          // Code collision — retry
+          roomCode = genCode();
+          fbRoom = fbDb.ref('rooms/' + roomCode);
+        }
+        return fbRoom.set({
+          doc: editor.value,
+          createdAt: firebase.database.ServerValue.TIMESTAMP,
+          hostId: myId,
+        });
+      }).then(() => {
+        joinRoom();
         $('cm-create-step1').style.display = 'none';
         $('cm-create-step2').style.display = 'flex';
         $('cm-code-val').textContent = roomCode;
@@ -3952,156 +3996,132 @@
         renderModalParticipants();
         addSysMsg('Sessão criada. Aguardando participantes...');
         toast('✓ Sessão criada! Código: ' + roomCode);
-      });
-
-      myPeer.on('error', (err) => {
-        if (err.type === 'unavailable-id') {
-          myPeer.destroy(); roomCode = genCode(); hostSession(); return;
-        }
+      }).catch(err => {
         btn.disabled = false;
         btn.innerHTML = '<svg viewBox="0 0 14 14" fill="currentColor" width="13" height="13"><path d="M7 1v12M1 7h12"/></svg> Criar sessão';
-        showToastErr('Erro ao criar sessão. Tente novamente.');
-      });
-
-      myPeer.on('connection', (conn) => {
-        conn.on('open', () => {
-          conn.send({ type: 'welcome', content: editor.value, users: Object.values(peerUsers), hostId: myId });
-          conn.on('data', (data) => onHostReceive(data, conn));
-          conn.on('close', () => onPeerLeft(conn.peer));
-          conn.on('error', () => onPeerLeft(conn.peer));
-        });
+        toast('❌ Erro ao criar sessão: ' + err.message);
+        roomCode = '';
       });
     }
 
-    /* ── Join a session ── */
+    /* ── Join session ── */
     function joinSession() {
+      if (!initFirebase()) return;
       myName = $('cm-join-name').value.trim() || 'Anônimo';
       lsSet(SK_COLLABNAME, myName);
       const code = $('cm-join-code').value.trim().toUpperCase().replace(/[^A-Z0-9]/g, '');
       if (code.length !== 6) { showJoinStatus('Digite o código de 6 caracteres.', 'err'); return; }
 
-      myColor = colorForIdx(1);
+      myColor = colorForIdx(Math.floor(Math.random() * PEER_COLORS.length));
+      myId = genUserId();
       roomCode = code;
-      isHost = false;
 
       const btn = $('cm-join-btn');
       btn.disabled = true;
       btn.innerHTML = '<span class="cm-spinner"></span> Conectando...';
-      showJoinStatus('Localizando sessão ' + code + '...', 'info');
+      showJoinStatus('Verificando sessão ' + code + '...', 'info');
 
-      myPeer = new Peer({ debug: 0 });
+      fbRoom = fbDb.ref('rooms/' + code);
+      fbRoom.once('value').then(snap => {
+        if (!snap.exists()) {
+          roomCode = '';
+          showJoinStatus('❌ Sessão "' + code + '" não encontrada. Verifique o código.', 'err');
+          btn.disabled = false;
+          btn.innerHTML = 'Entrar na sessão →';
+          return;
+        }
+        // Sync doc
+        const data = snap.val();
+        if (data.doc !== undefined) applyRemoteContent(data.doc);
+        showJoinStatus('✓ Conectado com sucesso!', 'ok');
 
-      myPeer.on('open', (id) => {
-        myId = id;
-        peerUsers[myId] = { name: myName, color: myColor };
-        hostConn = myPeer.connect('mkd-' + code, { reliable: true });
+        joinRoom();
+        activateSession();
 
-        hostConn.on('open', () => {
-          hostConn.send({ type: 'hello', user: { id: myId, name: myName, color: myColor } });
-          showJoinStatus('Sincronizando documento...', 'info');
-        });
+        setTimeout(() => {
+          closeCollabModal();
+          addSysMsg('✓ Você entrou na sessão');
+          toast('✓ Conectado! Abrindo chat...');
+          setTimeout(toggleChat, 300);
+        }, 700);
 
-        hostConn.on('data', (data) => onJoinerReceive(data));
-        hostConn.on('close', onDisconnected);
-        hostConn.on('error', onDisconnected);
-      });
-
-      myPeer.on('error', (err) => {
         btn.disabled = false;
         btn.innerHTML = 'Entrar na sessão →';
-        if (err.type === 'peer-unavailable')
-          showJoinStatus('❌ Sessão "' + code + '" não encontrada. Verifique o código.', 'err');
-        else
-          showJoinStatus('❌ Erro de conexão. Tente novamente.', 'err');
-        roomCode = ''; isHost = false;
-        if (myPeer) { try { myPeer.destroy(); } catch (e) { } myPeer = null; }
+
+      }).catch(err => {
+        roomCode = '';
+        showJoinStatus('❌ Erro de conexão: ' + err.message, 'err');
+        btn.disabled = false;
+        btn.innerHTML = 'Entrar na sessão →';
       });
+    }
+
+    /* ── Join room: write presence + attach all listeners ── */
+    function joinRoom() {
+      const userRef = fbRoom.child('users/' + myId);
+
+      // Write my presence
+      userRef.set({ name: myName, color: myColor, joinedAt: firebase.database.ServerValue.TIMESTAMP });
+
+      // Remove presence on disconnect
+      userRef.onDisconnect().remove();
+
+      // ── Listen: doc changes ──
+      const docRef = fbRoom.child('doc');
+      const docOff = docRef.on('value', snap => {
+        const val = snap.val();
+        if (val !== null && val !== editor.value) applyRemoteContent(val);
+      });
+      listeners.push(() => docRef.off('value', docOff));
+
+      // ── Listen: presence (users) ──
+      const usersRef = fbRoom.child('users');
+      const usersOff = usersRef.on('value', snap => {
+        const users = snap.val() || {};
+        // Build local peerUsers map
+        window._peerUsers = {};
+        Object.entries(users).forEach(([id, u]) => {
+          window._peerUsers[id] = u;
+        });
+        renderPresence();
+        renderModalParticipants();
+        updateCollabBtnCount();
+      });
+      listeners.push(() => usersRef.off('value', usersOff));
+
+      // ── Listen: new chat messages ──
+      const chatRef = fbRoom.child('chat');
+      let firstLoad = true;
+      const chatOff = chatRef.on('child_added', snap => {
+        if (firstLoad) return; // skip historical messages on join
+        const msg = snap.val();
+        if (msg) appendChatMsg(msg);
+      });
+      // Mark first load done after initial read
+      chatRef.once('value', () => { firstLoad = false; });
+      listeners.push(() => chatRef.off('child_added', chatOff));
+
+      // ── Listen: room deleted (host left) ──
+      const rootOff = fbRoom.child('doc').on('value', snap => {
+        if (!snap.exists() && roomCode) onRoomGone();
+      });
+      listeners.push(() => fbRoom.child('doc').off('value', rootOff));
     }
 
     function showJoinStatus(msg, type) {
       const el = $('cm-join-status');
       el.innerHTML = msg;
-      el.className = 'cm-status vis' + (type === 'err' ? ' cm-err' : '') + (type === 'ok' ? ' cm-ok' : '');
+      el.className = 'cm-status vis' + (type === 'err' ? ' cm-err' : type === 'ok' ? ' cm-ok' : '');
     }
 
-    /* ── Host receives data ── */
-    function onHostReceive(data, fromConn) {
-      if (data.type === 'hello') {
-        const u = data.user;
-        peerUsers[u.id] = { name: u.name, color: u.color };
-        peerConns[u.id] = fromConn;
-        fromConn.send({ type: 'welcome', content: editor.value, users: Object.values(peerUsers), hostId: myId });
-        broadcastExcept({ type: 'join', user: u }, fromConn);
-        renderPresence();
-        addSysMsg('👋 ' + u.name + ' entrou na sessão');
-        toast('👋 ' + u.name + ' entrou! ' + peerCount() + ' pessoa(s) online.');
-        // host: auto-open chat on first guest
-        if (!chatOpen && Object.keys(peerConns).length === 1) {
-          setTimeout(toggleChat, 400);
-        }
-      } else if (data.type === 'edit') {
-        applyRemoteContent(data.content);
-        broadcastExcept(data, fromConn);
-      } else if (data.type === 'chat') {
-        appendChatMsg(data);
-        broadcastExcept(data, fromConn);
-      }
-    }
-
-    /* ── Joiner receives data ── */
-    function onJoinerReceive(data) {
-      if (data.type === 'welcome') {
-        data.users.forEach(u => { peerUsers[u.id] = u; });
-        applyRemoteContent(data.content);
-        $('pb-room-code').textContent = roomCode;
-
-        // Show ✓ success briefly, then close modal and open chat
-        showJoinStatus('✓ Conectado com sucesso!', 'ok');
-        renderPresence();
-        activateSession();
-
-        const others = Object.keys(peerUsers).filter(id => id !== myId);
-        const otherNames = others.map(id => peerUsers[id].name).join(', ');
-
-        setTimeout(() => {
-          closeCollabModal();
-          addSysMsg('✓ Você entrou na sessão');
-          if (otherNames) addSysMsg('Online agora: ' + otherNames + ' e você');
-          toast('✓ Conectado! ' + peerCount() + ' pessoa(s) online.');
-          // auto-open chat after joining
-          setTimeout(toggleChat, 300);
-        }, 700);
-
-        // reset join btn
-        const btn = $('cm-join-btn');
-        btn.disabled = false;
-        btn.innerHTML = 'Entrar na sessão →';
-
-      } else if (data.type === 'join') {
-        const u = data.user;
-        if (!peerUsers[u.id]) {
-          peerUsers[u.id] = u;
-          renderPresence();
-          addSysMsg('👋 ' + u.name + ' entrou na sessão');
-          toast('👋 ' + u.name + ' também entrou!');
-        }
-      } else if (data.type === 'leave') {
-        onPeerLeft(data.userId);
-      } else if (data.type === 'edit') {
-        applyRemoteContent(data.content);
-      } else if (data.type === 'chat') {
-        appendChatMsg(data);
-      }
-    }
-
-    function broadcastExcept(data, exceptConn) {
-      Object.values(peerConns).forEach(c => {
-        if (c !== exceptConn && c.open) { try { c.send(data); } catch (e) { } }
-      });
-    }
-    function broadcastAll(data) { broadcastExcept(data, null); }
-
-    function peerCount() { return Object.keys(peerUsers).length; }
+    /* ── Broadcast doc changes ── */
+    editor.addEventListener('input', () => {
+      if (applyingRemote || !fbRoom) return;
+      clearTimeout(writeDocTimer);
+      writeDocTimer = setTimeout(() => {
+        fbRoom.child('doc').set(editor.value).catch(() => { });
+      }, 250);
+    });
 
     function applyRemoteContent(content) {
       if (content === editor.value) return;
@@ -4113,41 +4133,26 @@
       applyingRemote = false;
     }
 
-    function onPeerLeft(peerId) {
-      const u = peerUsers[peerId];
-      if (u) {
-        delete peerUsers[peerId];
-        delete peerConns[peerId];
-        renderPresence();
-        addSysMsg('← ' + u.name + ' saiu da sessão');
-        toast('← ' + u.name + ' saiu da sessão');
-      }
-    }
-
-    function onDisconnected() {
-      addSysMsg('⚠ Conexão com a sessão perdida.');
-      toast('⚠ Conexão perdida. Saindo da sessão...');
-      setTimeout(leaveSession, 1200);
-    }
-
-    /* ── Session activation / deactivation ── */
-    function activateSession() {
-      $('collab-btn').classList.add('active');
-      $('presence-bar').classList.add('active');
-      $('chat-toggle-btn').classList.add('vis');
-      $('chat-panel').classList.add('pb-active');
-      renderPresence();
-      renderChatEmpty();
-    }
-
+    /* ── Leave session ── */
     function leaveSession() {
-      if (!myPeer && !roomCode) return;
-      const leaveMsg = { type: 'leave', userId: myId };
-      if (isHost) broadcastAll(leaveMsg);
-      else if (hostConn && hostConn.open) try { hostConn.send(leaveMsg); } catch (e) { }
-      if (myPeer) { try { myPeer.destroy(); } catch (e) { } myPeer = null; }
-      peerConns = {}; peerUsers = {}; hostConn = null;
-      roomCode = ''; isHost = false; lastChatSenderId = null;
+      if (!roomCode) return;
+
+      // Detach all listeners
+      listeners.forEach(off => { try { off(); } catch (e) { } });
+      listeners = [];
+
+      // Remove own presence
+      if (fbRoom) {
+        fbRoom.child('users/' + myId).remove().catch(() => { });
+        fbRoom = null;
+      }
+
+      // Reset state
+      roomCode = ''; myId = ''; window._peerUsers = {};
+      lastChatSenderId = null;
+      clearTimeout(writeDocTimer);
+
+      // UI reset
       $('collab-btn').classList.remove('active');
       $('presence-bar').classList.remove('active');
       $('chat-toggle-btn').classList.remove('vis', 'on');
@@ -4158,43 +4163,45 @@
       updateChatBadge();
       updateCollabBtnCount();
       closeCollabModal();
-      // reset create modal
+
+      // Reset create modal
       $('cm-create-step1').style.display = 'block';
       $('cm-create-step2').style.display = 'none';
       $('cm-create-btn').disabled = false;
       $('cm-create-btn').innerHTML = '<svg viewBox="0 0 14 14" fill="currentColor" width="13" height="13"><path d="M7 1v12M1 7h12"/></svg> Criar sessão';
       $('cm-join-status').className = 'cm-status';
       $('cm-join-code').value = '';
+
       toast('Você saiu da sessão.');
     }
 
-    /* ── Presence render ── */
+    function onRoomGone() {
+      if (!roomCode) return;
+      addSysMsg('⚠ A sessão foi encerrada.');
+      toast('⚠ Sessão encerrada.');
+      setTimeout(leaveSession, 1200);
+    }
+
+    /* ── Presence UI ── */
+    function getPeerUsers() { return window._peerUsers || {}; }
+
     function renderPresence() {
       const list = $('presence-list');
       list.innerHTML = '';
-      Object.entries(peerUsers).forEach(([id, u]) => {
+      Object.entries(getPeerUsers()).forEach(([id, u]) => {
         const chip = document.createElement('div');
         chip.className = 'presence-chip' + (id === myId ? ' presence-me' : '');
-        chip.innerHTML = `<div class="presence-avatar" style="background:${u.color}">${initials(u.name)}</div><span>${u.name}${id === myId ? ' (você)' : ''}</span>`;
+        chip.innerHTML = `<div class="presence-avatar" style="background:${u.color}">${initials(u.name)}</div><span>${escH(u.name)}${id === myId ? ' (você)' : ''}</span>`;
         list.appendChild(chip);
       });
-      updateCollabBtnCount();
-      renderModalParticipants();
-    }
-
-    function updateCollabBtnCount() {
-      const n = peerCount();
-      const lbl = $('collab-btn').querySelector('.lbl');
-      lbl.textContent = n > 0 ? 'Colaborar (' + n + ')' : 'Colaborar';
     }
 
     function renderModalParticipants() {
       const list = $('cm-participants-list');
       if (!list) return;
       list.innerHTML = '';
-      const users = Object.entries(peerUsers);
-      if (users.length === 0) return;
-
+      const users = Object.entries(getPeerUsers());
+      if (!users.length) return;
       users.forEach(([id, u]) => {
         const row = document.createElement('div');
         row.className = 'cm-peer-row';
@@ -4204,8 +4211,6 @@
           ${id === myId ? '<span class="cm-peer-you">você</span>' : ''}`;
         list.appendChild(row);
       });
-
-      // Show spinner row only when alone (waiting for others)
       if (users.length === 1) {
         const wait = document.createElement('div');
         wait.className = 'cm-waiting-row';
@@ -4214,13 +4219,22 @@
       }
     }
 
-    /* ── Broadcast edits ── */
-    editor.addEventListener('input', () => {
-      if (applyingRemote || !myPeer) return;
-      const msg = { type: 'edit', content: editor.value, userId: myId };
-      if (isHost) broadcastAll(msg);
-      else if (hostConn && hostConn.open) try { hostConn.send(msg); } catch (e) { }
-    });
+    function updateCollabBtnCount() {
+      const n = Object.keys(getPeerUsers()).length;
+      $('collab-btn').querySelector('.lbl').textContent = n > 0 ? 'Colaborar (' + n + ')' : 'Colaborar';
+    }
+
+    /* ── Session activation ── */
+    function activateSession() {
+      window._peerUsers = window._peerUsers || {};
+      $('collab-btn').classList.add('active');
+      $('presence-bar').classList.add('active');
+      $('chat-toggle-btn').classList.add('vis');
+      $('chat-panel').classList.add('pb-active');
+      $('pb-room-code').textContent = roomCode;
+      renderPresence();
+      renderChatEmpty();
+    }
 
     /* ── Chat ── */
     function toggleChat() {
@@ -4228,8 +4242,7 @@
       $('chat-panel').classList.toggle('open', chatOpen);
       $('chat-toggle-btn').classList.toggle('on', chatOpen);
       if (chatOpen) {
-        unreadChat = 0;
-        updateChatBadge();
+        unreadChat = 0; updateChatBadge();
         setTimeout(() => {
           const m = $('chat-messages');
           m.scrollTop = m.scrollHeight;
@@ -4241,13 +4254,15 @@
     function sendChat() {
       const input = $('chat-input');
       const text = input.value.trim();
-      if (!text || !myPeer) return;
+      if (!text || !fbRoom) return;
       input.value = '';
       autoResizeChatInput();
-      const msg = { type: 'chat', text, userId: myId, userName: myName, userColor: myColor, ts: Date.now() };
-      appendChatMsg(msg);
-      if (isHost) broadcastAll(msg);
-      else if (hostConn && hostConn.open) try { hostConn.send(msg); } catch (e) { }
+      fbRoom.child('chat').push({
+        text, userId: myId, userName: myName,
+        userColor: myColor, ts: firebase.database.ServerValue.TIMESTAMP
+      }).catch(() => { });
+      // Append locally immediately (optimistic)
+      appendChatMsg({ text, userId: myId, userName: myName, userColor: myColor, ts: Date.now() });
     }
 
     $('chat-input').addEventListener('keydown', e => {
@@ -4263,39 +4278,25 @@
 
     function appendChatMsg(msg) {
       const m = $('chat-messages');
-
-      // Remove empty state if present
       const empty = m.querySelector('.chat-empty');
       if (empty) empty.remove();
-
       const isMine = msg.userId === myId;
-      const time = new Date(msg.ts).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
       const grouped = lastChatSenderId === msg.userId;
       lastChatSenderId = msg.userId;
-
+      const time = new Date(msg.ts).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
       const div = document.createElement('div');
       div.className = 'chat-msg' + (isMine ? ' mine' : '') + (grouped ? ' grouped' : '');
-
-      if (grouped) {
-        // Only the bubble, no header
-        div.innerHTML = `<div class="chat-msg-text">${escH(msg.text)}</div>`;
-      } else {
-        div.innerHTML = `
-          <div class="chat-msg-meta">
-            <div class="chat-msg-avatar" style="background:${msg.userColor}">${initials(msg.userName)}</div>
-            <span class="chat-msg-name">${escH(msg.userName)}</span>
-            <span class="chat-msg-time">${time}</span>
-          </div>
-          <div class="chat-msg-text">${escH(msg.text)}</div>`;
-      }
-
+      div.innerHTML = grouped
+        ? `<div class="chat-msg-text">${escH(msg.text)}</div>`
+        : `<div class="chat-msg-meta">
+             <div class="chat-msg-avatar" style="background:${msg.userColor}">${initials(msg.userName)}</div>
+             <span class="chat-msg-name">${escH(msg.userName)}</span>
+             <span class="chat-msg-time">${time}</span>
+           </div>
+           <div class="chat-msg-text">${escH(msg.text)}</div>`;
       m.appendChild(div);
       m.scrollTop = m.scrollHeight;
-
-      if (!chatOpen && !isMine) {
-        unreadChat++;
-        updateChatBadge();
-      }
+      if (!chatOpen && !isMine) { unreadChat++; updateChatBadge(); }
     }
 
     function addSysMsg(text) {
@@ -4307,12 +4308,12 @@
       div.textContent = text;
       m.appendChild(div);
       m.scrollTop = m.scrollHeight;
-      lastChatSenderId = null; // sys msgs break grouping
+      lastChatSenderId = null;
     }
 
     function renderChatEmpty() {
       const m = $('chat-messages');
-      if (m.children.length === 0) {
+      if (!m.children.length) {
         const div = document.createElement('div');
         div.className = 'chat-empty';
         div.innerHTML = `<div style="font-size:22px;margin-bottom:8px">💬</div><div>Nenhuma mensagem ainda.<br>Diga oi para a equipe!</div>`;
@@ -4326,17 +4327,13 @@
       b.classList.toggle('vis', unreadChat > 0);
     }
 
-    /* ── Code input QoL: auto-uppercase + auto-submit at 6 chars ── */
+    /* ── Code input QoL ── */
     $('cm-join-code').addEventListener('input', function () {
       const v = this.value.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 6);
       this.value = v;
-      if (v.length === 6 && $('cm-join-name').value.trim()) {
-        // slight delay so user sees the 6th char
-        setTimeout(joinSession, 280);
-      }
+      if (v.length === 6 && $('cm-join-name').value.trim()) setTimeout(joinSession, 280);
     });
 
-    // Enter on name fields triggers action
     $('cm-host-name').addEventListener('keydown', e => { if (e.key === 'Enter') hostSession(); });
     $('cm-join-name').addEventListener('keydown', e => { if (e.key === 'Enter') $('cm-join-code').focus(); });
     $('cm-join-code').addEventListener('keydown', e => { if (e.key === 'Enter') joinSession(); });
