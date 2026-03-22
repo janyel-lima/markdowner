@@ -160,9 +160,10 @@
       transition: background var(--tw), border-color var(--tw);
       user-select: none;
       flex-shrink: 0;
-      overflow: hidden;
-      /* never overflow, elements shrink instead */
+      /* overflow: hidden removed — clips absolute dropdowns (cpanel, exp-drop) */
     }
+
+    /* Prevent the action row from overflowing on its own without clipping dropdowns */
 
     .brand {
       display: flex;
@@ -1946,28 +1947,23 @@
     }
 
     .tc-split {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      border-top: 1px solid var(--bd)
-    }
-
-    @media (max-width: 500px) {
-      .tc-split {
-        grid-template-columns: 1fr;
-      }
-
-      .tc-sp:first-child {
-        border-right: none;
-        border-bottom: 1px solid var(--bd);
-      }
+      display: flex;
+      flex-direction: column;
+      border-top: 1px solid var(--bd);
     }
 
     .tc-sp {
-      padding: 9px 11px
+      padding: 9px 11px;
     }
 
     .tc-sp:first-child {
-      border-right: 1px solid var(--bd)
+      border-bottom: 1px solid var(--bd);
+    }
+
+    /* Resultado column: scroll if content overflows */
+    .tc-sp-result {
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
     }
 
     .tc-sp-tag {
@@ -2825,13 +2821,13 @@
     }
 
     .dm-btn-avatar {
-      width: 22px;
-      height: 22px;
+      width: 26px;
+      height: 26px;
       border-radius: 50%;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 9px;
+      font-size: 10px;
       font-weight: 700;
       color: #fff;
       flex-shrink: 0;
@@ -2843,6 +2839,7 @@
       height: 100%;
       object-fit: cover;
       border-radius: 50%;
+      display: block;
     }
 
     .dm-btn-name {
@@ -4519,7 +4516,7 @@
         desc: '<code>[texto](url)</code> cria links clicáveis. <code>---</code> em linha sozinha cria um separador horizontal — ótimo para dividir seções.',
         md: `[Portal do Parceiro](https://parceiro.ifood.com.br)\n\n---\n\n[Salesforce](https://ifood.lightning.force.com)`,
         sample: `[Portal do Parceiro](https://parceiro.ifood.com.br)\n\n---\n\n`,
-        preview: `<a class="r-a">Portal do Parceiro</a><hr class="r-hr"><a class="r-a">Salesforce</a>`
+        preview: `<div style="display:flex;flex-direction:column;gap:5px"><a class="r-a" style="display:inline-block">🔗 Portal do Parceiro</a><hr class="r-hr" style="margin:2px 0"><a class="r-a" style="display:inline-block">🔗 Salesforce</a></div>`
       },
       {
         phase: 'Markdown', sel: '#t-epbar',
@@ -4535,7 +4532,7 @@
         desc: 'Use <code>|</code> para separar colunas e <code>---</code> na segunda linha para definir o separador de cabeçalho.',
         md: `| Processo | Código | Ação |\n|---|---|---|\n| Sem entregador | 000001379 | Cancelar |\n| Prod. incorreta | 000001393 | Reembolsar |`,
         sample: `| Processo | Código |\n|---|---|\n| Sem entregador | 000001379 |\n| Prod. incorreta | 000001393 |\n`,
-        preview: `<table class="r-tbl"><thead><tr><th>Processo</th><th>Código</th><th>Ação</th></tr></thead><tbody><tr><td>Sem entregador</td><td>000001379</td><td>Cancelar</td></tr><tr><td>Prod. incorreta</td><td>000001393</td><td>Reembolsar</td></tr></tbody></table>`
+        preview: `<div style="overflow-x:auto"><table class="r-tbl" style="min-width:200px"><thead><tr><th>Processo</th><th>Código</th><th>Ação</th></tr></thead><tbody><tr><td>Sem entregador</td><td>000001379</td><td>Cancelar</td></tr><tr><td>Prod. incorreta</td><td>000001393</td><td>Reembolsar</td></tr></tbody></table></div>`
       },
       {
         phase: 'Colaboração', sel: '#collab-btn',
@@ -4633,7 +4630,7 @@
           split.className = 'tc-split';
           split.innerHTML = `
             <div class="tc-sp"><div class="tc-sp-tag">Markdown</div><div class="tc-sp-md">${esc(s.md)}</div></div>
-            <div class="tc-sp"><div class="tc-sp-tag">Resultado</div><div style="font-size:11px;line-height:1.65">${s.preview}</div></div>`;
+            <div class="tc-sp tc-sp-result"><div class="tc-sp-tag">Resultado</div><div style="font-size:11px;line-height:1.65">${s.preview}</div></div>`;
           extra.appendChild(split);
         }
       }
@@ -5462,19 +5459,32 @@
         btn.className = 'dm-btn' + (activeChannel === chKey ? ' active' : '');
         btn.id = 'dm-btn-' + id;
         btn.onclick = () => switchChannel(chKey);
+
+        // Avatar — uses renderAvatarEl for photo + fallback initials
         const av = document.createElement('div');
         av.className = 'dm-btn-avatar';
-        av.style.background = u.color || '#888';
-        if (u.avatarUrl) { av.innerHTML = `<img src="${escH(u.avatarUrl)}" onerror="this.parentNode.textContent='${initials(u.name)}'"`; } else { av.textContent = initials(u.name || '?'); }
-        const nm = document.createElement('span'); nm.className = 'dm-btn-name'; nm.textContent = u.name || '?';
-        const dot = document.createElement('span'); dot.className = 'dm-online-dot'; dot.title = 'online';
+        renderAvatarEl(av, u.name, u.color, u.avatarUrl);
+
+        const nm = document.createElement('span');
+        nm.className = 'dm-btn-name';
+        nm.textContent = u.name || '?';
+
+        const dot = document.createElement('span');
+        dot.className = 'dm-online-dot';
+        dot.title = 'online';
+
         const badge = document.createElement('span');
-        badge.className = 'dm-ch-badge'; badge.id = 'dm-badge-' + id;
+        badge.className = 'dm-ch-badge';
+        badge.id = 'dm-badge-' + id;
         const cnt = chUnread[chKey] || 0;
         if (cnt > 0) { badge.textContent = cnt > 9 ? '9+' : cnt; badge.classList.add('vis'); }
-        btn.appendChild(av); btn.appendChild(nm); btn.appendChild(dot); btn.appendChild(badge);
+
+        btn.appendChild(av);
+        btn.appendChild(nm);
+        btn.appendChild(dot);
+        btn.appendChild(badge);
         list.appendChild(btn);
-        // Subscribe to DMs with this peer if not already
+
         subscribeDm(id);
       });
     }
