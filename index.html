@@ -4918,21 +4918,24 @@
       lbApplyTransform();
     }, { passive: false });
 
-    // Click backdrop to close (not toolbar)
+    // Click backdrop to close — only if it wasn't a drag
     $('lb-img-wrap').addEventListener('click', e => {
+      if (lbDrag.moved) return;
       if (e.target === $('lb-img-wrap')) closeLightbox();
     });
 
     // Drag to pan
     $('lb-img-wrap').addEventListener('mousedown', e => {
       if (e.target !== $('lb-img-wrap') && e.target !== $('img-lightbox-img')) return;
-      lbDrag = { active: true, sx: e.clientX, sy: e.clientY, ox: lbPan.x, oy: lbPan.y };
+      lbDrag = { active: true, moved: false, sx: e.clientX, sy: e.clientY, ox: lbPan.x, oy: lbPan.y };
       $('lb-img-wrap').classList.add('grabbing');
     });
     window.addEventListener('mousemove', e => {
       if (!lbDrag.active) return;
-      lbPan.x = lbDrag.ox + (e.clientX - lbDrag.sx);
-      lbPan.y = lbDrag.oy + (e.clientY - lbDrag.sy);
+      const dx = e.clientX - lbDrag.sx, dy = e.clientY - lbDrag.sy;
+      if (Math.abs(dx) > 4 || Math.abs(dy) > 4) lbDrag.moved = true;
+      lbPan.x = lbDrag.ox + dx;
+      lbPan.y = lbDrag.oy + dy;
       lbApplyTransform();
     });
     window.addEventListener('mouseup', () => {
