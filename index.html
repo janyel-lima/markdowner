@@ -4482,10 +4482,6 @@
     }
 
     window.addEventListener('beforeunload', _unloadCleanup);
-    // Also catch tab hidden → closed (mobile, some browsers)
-    document.addEventListener('visibilitychange', () => {
-      if (document.visibilityState === 'hidden') _unloadCleanup();
-    });
 
     function onRoomGone() {
       if (!roomCode) return;
