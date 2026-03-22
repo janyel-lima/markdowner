@@ -152,7 +152,7 @@
       border-bottom: 1px solid var(--bd);
       display: flex;
       align-items: center;
-      padding: 0 16px;
+      padding: 0 clamp(8px, 1.5vw, 16px);
       gap: 0;
       position: relative;
       z-index: 100;
@@ -160,23 +160,25 @@
       transition: background var(--tw), border-color var(--tw);
       user-select: none;
       flex-shrink: 0;
+      overflow: hidden;
+      /* never overflow, elements shrink instead */
     }
 
     .brand {
       display: flex;
       align-items: center;
-      gap: 10px;
-      padding-right: 16px;
+      gap: clamp(6px, 1vw, 10px);
+      padding-right: clamp(8px, 1.2vw, 16px);
       border-right: 1px solid var(--bd);
-      margin-right: 14px;
+      margin-right: clamp(6px, 1vw, 14px);
       flex-shrink: 0;
       transition: border-color var(--tw);
       height: 100%;
     }
 
     .brand-mark {
-      width: 28px;
-      height: 28px;
+      width: 26px;
+      height: 26px;
       background: var(--a1);
       border-radius: 6px;
       display: flex;
@@ -187,13 +189,13 @@
     }
 
     .brand-mark svg {
-      width: 14px;
-      height: 14px;
-      fill: var(--inv)
+      width: 13px;
+      height: 13px;
+      fill: var(--inv);
     }
 
     .brand-name {
-      font-size: var(--fs-md);
+      font-size: clamp(11px, 1.1vw, 13px);
       font-weight: 600;
       color: var(--txh);
       letter-spacing: .02em;
@@ -203,36 +205,38 @@
     }
 
     .brand-sub {
-      font-size: var(--fs-2xs);
+      font-size: clamp(8px, 0.75vw, 10px);
       font-weight: 400;
       color: var(--tx3);
       letter-spacing: .06em;
       text-transform: uppercase;
       font-family: var(--fm);
       transition: color var(--tw);
+      white-space: nowrap;
     }
 
     .vd {
       width: 1px;
-      height: 22px;
+      height: 20px;
       background: var(--bd);
       flex-shrink: 0;
-      margin: 0 10px;
+      margin: 0 clamp(4px, 0.7vw, 10px);
       transition: background var(--tw);
     }
 
     .toolbar-group {
       display: flex;
       align-items: center;
-      gap: 2px;
+      gap: 1px;
       flex-shrink: 0;
     }
 
+    /* Base button — fluid padding + font */
     .vbtn {
       font-family: var(--ff);
-      font-size: var(--fs-sm);
+      font-size: clamp(10px, 0.9vw, 11.5px);
       font-weight: 500;
-      padding: 5px 10px;
+      padding: 5px clamp(6px, 0.8vw, 10px);
       border-radius: var(--rr);
       border: 1px solid transparent;
       background: transparent;
@@ -242,29 +246,29 @@
       transition: all var(--tw);
       display: flex;
       align-items: center;
-      gap: 6px;
+      gap: clamp(3px, 0.5vw, 6px);
       white-space: nowrap;
-      min-height: 32px;
+      min-height: 30px;
       touch-action: manipulation;
     }
 
     .vbtn:hover {
       background: var(--s2);
       color: var(--tx);
-      border-color: var(--bd)
+      border-color: var(--bd);
     }
 
     .vbtn.on {
       background: var(--ta1);
       color: var(--a1);
-      border-color: rgba(var(--a1r), .3)
+      border-color: rgba(var(--a1r), .3);
     }
 
     .abtn {
       font-family: var(--ff);
-      font-size: var(--fs-sm);
+      font-size: clamp(10px, 0.9vw, 11.5px);
       font-weight: 500;
-      padding: 5px 11px;
+      padding: 5px clamp(6px, 0.8vw, 11px);
       border-radius: var(--rr);
       border: 1px solid var(--bd);
       background: var(--s2);
@@ -274,28 +278,28 @@
       transition: all var(--tw);
       display: flex;
       align-items: center;
-      gap: 6px;
+      gap: clamp(3px, 0.5vw, 6px);
       white-space: nowrap;
       flex-shrink: 0;
-      min-height: 30px;
+      min-height: 28px;
       touch-action: manipulation;
     }
 
     .abtn:hover {
       border-color: var(--a1);
       color: var(--a1);
-      background: var(--ta1)
+      background: var(--ta1);
     }
 
     .abtn svg {
-      width: 12px;
-      height: 12px;
-      flex-shrink: 0
+      width: 11px;
+      height: 11px;
+      flex-shrink: 0;
     }
 
     .exp-wrap {
       position: relative;
-      flex-shrink: 0
+      flex-shrink: 0;
     }
 
     .exp-drop {
@@ -306,7 +310,7 @@
       border: 1px solid var(--bd);
       border-radius: var(--rr);
       box-shadow: var(--sh2);
-      min-width: 160px;
+      min-width: 150px;
       overflow: hidden;
       display: none;
       flex-direction: column;
@@ -314,74 +318,76 @@
     }
 
     .exp-drop.open {
-      display: flex
+      display: flex;
     }
 
     .exp-item {
       font-family: var(--ff);
-      font-size: var(--fs-sm);
+      font-size: clamp(10px, 0.9vw, 11.5px);
       font-weight: 500;
-      padding: 11px 14px;
+      padding: 10px 13px;
       color: var(--tx);
       cursor: pointer;
       display: flex;
       align-items: center;
-      gap: 9px;
+      gap: 8px;
       border: none;
       background: transparent;
       text-align: left;
       transition: background var(--tw), color var(--tw);
       touch-action: manipulation;
-      min-height: 44px;
+      min-height: 40px;
     }
 
     .exp-item:hover {
       background: var(--s2);
-      color: var(--a1)
+      color: var(--a1);
     }
 
     .exp-item:not(:last-child) {
-      border-bottom: 1px solid var(--bd)
+      border-bottom: 1px solid var(--bd);
     }
 
     .exp-item svg {
-      width: 13px;
-      height: 13px;
+      width: 12px;
+      height: 12px;
       flex-shrink: 0;
-      opacity: .7
+      opacity: .7;
     }
 
+    /* Right-side action group — can shrink a bit */
     .hr {
       margin-left: auto;
       display: flex;
       align-items: center;
-      gap: 6px;
-      flex-shrink: 0;
+      gap: clamp(3px, 0.5vw, 6px);
+      flex-shrink: 1;
+      min-width: 0;
     }
 
-    /* ── theme pill ── */
+    /* Theme pill */
     .theme-pill {
       display: flex;
       align-items: center;
-      gap: 8px;
+      gap: clamp(4px, 0.6vw, 8px);
       background: var(--s2);
       border: 1px solid var(--bd);
       border-radius: 99px;
-      padding: 3px 3px 3px 10px;
+      padding: 3px 3px 3px clamp(6px, 0.8vw, 10px);
       cursor: pointer;
       transition: all var(--tw);
       flex-shrink: 0;
-      min-height: 30px;
+      min-height: 28px;
       touch-action: manipulation;
     }
 
     .theme-pill:hover {
-      border-color: var(--bd2)
+      border-color: var(--bd2);
     }
 
     .theme-pill-label {
       font-family: var(--fm);
-      font-size: var(--fs-2xs);
+      font-size: clamp(8px, 0.75vw, 10px);
       font-weight: 500;
       color: var(--tx2);
       letter-spacing: .08em;
@@ -390,8 +396,8 @@
     }
 
     .theme-knob {
-      width: 22px;
-      height: 22px;
+      width: 20px;
+      height: 20px;
       border-radius: 50%;
       background: var(--s3);
       border: 1px solid var(--bd);
@@ -401,8 +407,8 @@
     }
 
     .theme-knob svg {
-      width: 11px;
-      height: 11px
+      width: 10px;
+      height: 10px;
     }
 
     [data-theme="dark"] .ico-moon {
@@ -606,9 +612,9 @@
     /* ── tour button ── */
     #tour-btn {
       font-family: var(--ff);
-      font-size: var(--fs-sm);
+      font-size: clamp(10px, 0.9vw, 11.5px);
       font-weight: 500;
-      padding: 5px 11px;
+      padding: 5px clamp(6px, 0.8vw, 11px);
       border-radius: var(--rr);
       border: 1px solid var(--bd);
       background: var(--s2);
@@ -616,23 +622,119 @@
       cursor: pointer;
       display: flex;
       align-items: center;
-      gap: 6px;
+      gap: clamp(3px, 0.5vw, 6px);
       transition: all var(--tw);
       white-space: nowrap;
       flex-shrink: 0;
-      min-height: 30px;
+      min-height: 28px;
       touch-action: manipulation;
     }
 
     #tour-btn:hover {
       border-color: var(--a2);
       color: var(--a2);
-      background: var(--ta2)
+      background: var(--ta2);
     }
 
     #tour-btn svg {
-      width: 12px;
-      height: 12px
+      width: 11px;
+      height: 11px;
+    }
+
+    #collab-btn {
+      font-family: var(--ff);
+      font-size: clamp(10px, 0.9vw, 11.5px);
+      font-weight: 500;
+      padding: 5px clamp(6px, 0.8vw, 11px);
+      border-radius: var(--rr);
+      border: 1px solid var(--bd);
+      background: var(--s2);
+      color: var(--tx2);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: clamp(3px, 0.5vw, 6px);
+      transition: all var(--tw);
+      white-space: nowrap;
+      flex-shrink: 0;
+      min-height: 28px;
+      touch-action: manipulation;
+      position: relative;
+    }
+
+    #collab-btn:hover {
+      border-color: var(--a1);
+      color: var(--a1);
+      background: var(--ta1);
+    }
+
+    #collab-btn.active {
+      background: rgba(var(--a2r), .14);
+      border-color: var(--a2);
+      color: var(--a2);
+    }
+
+    #collab-btn svg {
+      width: 11px;
+      height: 11px;
+    }
+
+    #collab-pulse {
+      position: absolute;
+      top: 3px;
+      right: 3px;
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--a2);
+      display: none;
+      animation: pulse-ring 1.6s ease-out infinite;
+    }
+
+    #collab-btn.active #collab-pulse {
+      display: block;
+    }
+
+    #chat-toggle-btn {
+      font-family: var(--ff);
+      font-size: clamp(10px, 0.9vw, 11.5px);
+      font-weight: 500;
+      padding: 5px clamp(6px, 0.8vw, 11px);
+      border-radius: var(--rr);
+      border: 1px solid var(--bd);
+      background: var(--s2);
+      color: var(--tx2);
+      cursor: pointer;
+      display: none;
+      align-items: center;
+      gap: clamp(3px, 0.5vw, 6px);
+      transition: all var(--tw);
+      white-space: nowrap;
+      flex-shrink: 0;
+      min-height: 28px;
+      touch-action: manipulation;
+      position: relative;
+    }
+
+    #chat-toggle-btn.vis {
+      display: flex;
+    }
+
+    #chat-toggle-btn:hover {
+      border-color: var(--a2);
+      color: var(--a2);
+      background: var(--ta2);
+    }
+
+    #chat-toggle-btn.on {
+      background: rgba(var(--a2r), .14);
+      border-color: var(--a2);
+      color: var(--a2);
+    }
+
+    #chat-toggle-btn svg {
+      width: 11px;
+      height: 11px;
     }
 
     /* ═══════════════════════════════════ WORKSPACE */
@@ -1027,23 +1129,65 @@
       transform: translateX(-50%) translateY(0)
     }
 
-    /* ═══════════════════════════════════ RESPONSIVE — 700px */
+    /* ═══════════════════════════════════ RESPONSIVE — 1100px (compact desktop) */
+    @media (max-width: 1100px) {
+      .brand-sub {
+        display: none;
+      }
+
+      #tour-btn .lbl {
+        display: none;
+      }
+
+      .vd {
+        margin: 0 clamp(2px, 0.4vw, 6px);
+      }
+
+      .hr {
+        gap: clamp(2px, 0.4vw, 4px);
+      }
+    }
+
+    /* ═══════════════════════════════════ RESPONSIVE — 900px (tight desktop) */
+    @media (max-width: 900px) {
+      .abtn .lbl {
+        display: none;
+      }
+
+      .color-trigger-label {
+        display: none;
+      }
+
+      .theme-pill-label {
+        display: none;
+      }
+
+      .theme-pill {
+        padding: 3px;
+      }
+
+      #collab-btn .lbl,
+      #chat-toggle-btn .lbl {
+        display: none;
+      }
+    }
+
+    /* ═══════════════════════════════════ RESPONSIVE — 700px (mobile) */
     @media (max-width: 700px) {
 
-      /* ── two-row header ── */
       #header {
         height: var(--hh-mob);
         flex-wrap: wrap;
         padding: 0;
         gap: 0;
         align-content: flex-start;
+        overflow: visible;
       }
 
       .brand {
         height: 44px;
-        padding: 0 12px;
+        padding: 0 10px;
         margin-right: 0;
-        /* keep right border as separator from views */
       }
 
       #t-views {
@@ -1052,53 +1196,47 @@
         gap: 1px;
       }
 
-      /* hide the lone .vd between views and save-status */
       #header>.vd {
-        display: none
+        display: none;
       }
 
-      /* push save-status to right end of row 1 */
       #save-status {
         margin-left: auto;
         height: 44px;
         display: flex;
         align-items: center;
-        padding: 0 12px;
+        padding: 0 10px;
       }
 
-      /* row 2: all action buttons in a scrollable strip */
       .hr {
         width: 100%;
         height: 40px;
         margin-left: 0;
         border-top: 1px solid var(--bd);
-        padding: 0 10px;
+        padding: 0 8px;
         overflow-x: auto;
         overflow-y: hidden;
         scrollbar-width: none;
         justify-content: flex-start;
-        gap: 4px;
+        gap: 3px;
         background: var(--bg2);
         flex-shrink: 0;
       }
 
       .hr::-webkit-scrollbar {
-        display: none
+        display: none;
       }
 
-      /* hide dividers inside action row */
       .hr .vd {
-        display: none
+        display: none;
       }
 
-      /* workspace uses dvh minus two-row header */
       #workspace {
         height: calc(100vh - var(--hh-mob));
         height: calc(100dvh - var(--hh-mob));
         flex-direction: column;
       }
 
-      /* vertical divider becomes horizontal */
       #dv {
         width: 100%;
         height: 5px;
@@ -1106,7 +1244,7 @@
       }
 
       .grip-dots {
-        flex-direction: row
+        flex-direction: row;
       }
 
       .panel {
@@ -1114,29 +1252,21 @@
         min-height: 80px;
       }
 
-      /* hide text labels in action buttons */
       .abtn .lbl,
+      .vbtn .lbl,
       #tour-btn .lbl,
       #collab-btn .lbl,
-      #chat-toggle-btn .lbl {
-        display: none
-      }
-
-      /* compact brand */
+      #chat-toggle-btn .lbl,
+      .color-trigger-label,
+      .theme-pill-label,
       .brand-sub {
-        display: none
+        display: none;
       }
 
-      /* vbtn labels */
-      .vbtn .lbl {
-        display: none
+      .theme-pill {
+        padding: 3px;
       }
 
-      .color-trigger-label {
-        display: none
-      }
-
-      /* presence bar: hide label on mobile to save space */
       .pb-label {
         display: none;
       }
@@ -1146,14 +1276,13 @@
       }
 
       #presence-bar {
-        gap: 6px;
+        gap: 5px;
       }
 
       #presence-bar.active {
-        padding: 0 10px;
+        padding: 0 8px;
       }
 
-      /* chat panel: full-width on mobile */
       #chat-panel {
         width: 100%;
         right: -100%;
@@ -1165,7 +1294,10 @@
         box-shadow: none;
       }
 
-      /* profile pill: hide label, just show avatar */
+      #chat-panel.pb-active {
+        top: calc(var(--hh-mob) + 38px);
+      }
+
       .cp-profile-pill-label {
         display: none;
       }
@@ -1174,7 +1306,7 @@
         padding: 3px;
       }
 
-      /* bottom-sheet for dropdowns on mobile */
+      /* bottom-sheet for dropdowns */
       .exp-drop {
         position: fixed;
         bottom: 0;
@@ -1204,7 +1336,6 @@
         padding-bottom: env(safe-area-inset-bottom, 0px);
       }
 
-      /* bottom-sheet backdrop overlay */
       .sheet-overlay {
         position: fixed;
         inset: 0;
@@ -1214,76 +1345,66 @@
       }
 
       .sheet-overlay.vis {
-        display: block
+        display: block;
       }
 
-      /* editor padding */
       #editor {
-        padding: 14px 14px;
+        padding: 12px 12px;
       }
     }
 
     /* ═══════════════════════════════════ RESPONSIVE — 520px */
     @media (max-width: 520px) {
-      .theme-pill-label {
-        display: none
-      }
-
-      .theme-pill {
-        padding: 3px
-      }
-
       .vbtn {
-        padding: 5px 7px
+        padding: 5px 6px;
       }
 
       .abtn {
-        padding: 5px 8px
+        padding: 5px 7px;
       }
 
-      #tour-btn {
-        padding: 5px 8px
+      #tour-btn,
+      #collab-btn,
+      #chat-toggle-btn {
+        padding: 5px 7px;
       }
 
       .brand-name {
-        font-size: clamp(11px, 3vw, 13px)
+        font-size: clamp(10px, 3.5vw, 12px);
       }
     }
 
-    /* ═══════════════════════════════════ RESPONSIVE — 400px (very small) */
+    /* ═══════════════════════════════════ RESPONSIVE — 400px */
     @media (max-width: 400px) {
       .brand {
-        padding: 0 8px
+        padding: 0 7px;
       }
 
       .brand-mark {
-        width: 24px;
-        height: 24px
+        width: 22px;
+        height: 22px;
       }
 
       .brand-mark svg {
-        width: 12px;
-        height: 12px
-      }
-
-      .vbtn svg {
         width: 11px;
-        height: 11px
+        height: 11px;
       }
 
+      .vbtn svg,
       .abtn svg {
-        width: 11px;
-        height: 11px
+        width: 10px;
+        height: 10px;
       }
 
       #preview {
-        padding: 12px 12px
+        padding: 12px;
       }
 
       #editor {
-        padding: 12px 12px
+        padding: 10px;
       }
     }
+
 
     /* ════════════════════════════════════════════
        IMPORT CONFIRM MODAL
@@ -2025,140 +2146,6 @@
 
     .tc-close:hover {
       color: var(--tx2)
-    }
-
-    /* ═══════════════════════════════════ COLLAB BUTTON */
-    #collab-btn {
-      font-family: var(--ff);
-      font-size: var(--fs-sm);
-      font-weight: 500;
-      padding: 5px 11px;
-      border-radius: var(--rr);
-      border: 1px solid var(--bd);
-      background: var(--s2);
-      color: var(--tx2);
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      transition: all var(--tw);
-      white-space: nowrap;
-      flex-shrink: 0;
-      min-height: 30px;
-      touch-action: manipulation;
-      position: relative;
-    }
-
-    #collab-btn:hover {
-      border-color: var(--a1);
-      color: var(--a1);
-      background: var(--ta1);
-    }
-
-    #collab-btn.active {
-      background: rgba(var(--a2r), .14);
-      border-color: var(--a2);
-      color: var(--a2);
-    }
-
-    #collab-btn svg {
-      width: 12px;
-      height: 12px;
-    }
-
-    #collab-pulse {
-      position: absolute;
-      top: 4px;
-      right: 4px;
-      width: 7px;
-      height: 7px;
-      border-radius: 50%;
-      background: var(--a2);
-      display: none;
-      box-shadow: 0 0 0 0 rgba(var(--a2r), .6);
-      animation: pulse-ring 1.6s ease-out infinite;
-    }
-
-    #collab-btn.active #collab-pulse {
-      display: block;
-    }
-
-    @keyframes pulse-ring {
-      0% {
-        box-shadow: 0 0 0 0 rgba(var(--a2r), .55);
-      }
-
-      70% {
-        box-shadow: 0 0 0 6px rgba(var(--a2r), 0);
-      }
-
-      100% {
-        box-shadow: 0 0 0 0 rgba(var(--a2r), 0);
-      }
-    }
-
-    #chat-toggle-btn {
-      font-family: var(--ff);
-      font-size: var(--fs-sm);
-      font-weight: 500;
-      padding: 5px 11px;
-      border-radius: var(--rr);
-      border: 1px solid var(--bd);
-      background: var(--s2);
-      color: var(--tx2);
-      cursor: pointer;
-      display: none;
-      align-items: center;
-      gap: 6px;
-      transition: all var(--tw);
-      white-space: nowrap;
-      flex-shrink: 0;
-      min-height: 30px;
-      touch-action: manipulation;
-      position: relative;
-    }
-
-    #chat-toggle-btn.vis {
-      display: flex;
-    }
-
-    #chat-toggle-btn:hover {
-      border-color: var(--a2);
-      color: var(--a2);
-      background: var(--ta2);
-    }
-
-    #chat-toggle-btn.on {
-      background: rgba(var(--a2r), .14);
-      border-color: var(--a2);
-      color: var(--a2);
-    }
-
-    #chat-toggle-btn svg {
-      width: 12px;
-      height: 12px;
-    }
-
-    .chat-badge {
-      position: absolute;
-      top: -4px;
-      right: -5px;
-      background: var(--a2);
-      color: var(--inv);
-      font-size: 9px;
-      font-weight: 700;
-      min-width: 16px;
-      height: 16px;
-      border-radius: 99px;
-      padding: 0 4px;
-      display: none;
-      align-items: center;
-      justify-content: center;
-      font-family: var(--fm);
-    }
-
-    .chat-badge.vis {
-      display: flex;
     }
 
     /* ═══════════════════════════════════ PRESENCE BAR */
