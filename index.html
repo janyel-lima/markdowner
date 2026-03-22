@@ -37,8 +37,8 @@
       --tw: 0.16s ease;
 
       /* ── Fluid typography tokens ── */
-      --fs-2xs: clamp(8.5px, 1.6vw, 10px);
-      --fs-xs: clamp(9.5px, 1.9vw, 11px);
+      --fs-2xs: clamp(10px, 1.8vw, 11.5px);
+      --fs-xs: clamp(11px, 2.1vw, 12.5px);
       --fs-sm: clamp(10px, 2.1vw, 11.5px);
       --fs-md: clamp(11px, 2.6vw, 13px);
       --fs-lg: clamp(12px, 3vw, 14px);
@@ -2570,16 +2570,16 @@
     #chat-panel {
       position: fixed;
       top: var(--hh);
-      right: -340px;
-      width: 320px;
+      right: -360px;
+      width: 340px;
       bottom: 0;
-      background: var(--s1);
+      background: var(--bg);
       border-left: 1px solid var(--bd);
       display: flex;
       flex-direction: column;
       z-index: 200;
-      transition: right .25s cubic-bezier(.4, 0, .2, 1), top .25s ease, background var(--tw), border-color var(--tw);
-      box-shadow: -4px 0 24px rgba(0, 0, 0, .18);
+      transition: right .28s cubic-bezier(.4, 0, .2, 1), top .25s ease, background var(--tw), border-color var(--tw);
+      box-shadow: -6px 0 32px rgba(0, 0, 0, .22);
     }
 
     #chat-panel.open {
@@ -2601,35 +2601,39 @@
       }
     }
 
-    /* ── Chat header ── */
+    /* ── Header ── */
     .cp-head {
-      padding: 9px 12px;
+      padding: 0 14px;
+      height: 48px;
+      background: var(--s1);
       border-bottom: 1px solid var(--bd);
       display: flex;
       align-items: center;
-      gap: 8px;
+      gap: 10px;
       flex-shrink: 0;
+      box-shadow: 0 1px 0 var(--bd);
     }
 
     .cp-my-avatar {
-      width: 26px;
-      height: 26px;
+      width: 28px;
+      height: 28px;
       border-radius: 50%;
       cursor: pointer;
       flex-shrink: 0;
       border: 2px solid transparent;
-      transition: border-color .15s;
+      transition: border-color .15s, transform .15s;
       overflow: hidden;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 10px;
+      font-size: 11px;
       font-weight: 700;
       color: #fff;
     }
 
     .cp-my-avatar:hover {
       border-color: var(--a2);
+      transform: scale(1.08);
     }
 
     .cp-my-avatar img {
@@ -2640,73 +2644,100 @@
     }
 
     .cp-head-title {
-      font-size: var(--fs-sm);
+      font-size: var(--fs-md);
       font-weight: 600;
       color: var(--txh);
       flex: 1;
       display: flex;
       align-items: center;
-      gap: 6px;
+      gap: 7px;
+      letter-spacing: -.01em;
     }
 
-    .cp-head-title svg {
-      width: 12px;
-      height: 12px;
-      color: var(--a2);
+    .cp-head-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--a2);
       flex-shrink: 0;
+      animation: pulse-ring 2s ease-out infinite;
     }
 
     .cp-close {
+      width: 28px;
+      height: 28px;
       background: none;
       border: none;
       cursor: pointer;
       color: var(--tx3);
-      padding: 4px;
-      font-size: 14px;
-      line-height: 1;
-      border-radius: var(--rr);
-      transition: color var(--tw);
+      border-radius: 6px;
+      transition: color var(--tw), background var(--tw);
+      display: flex;
+      align-items: center;
+      justify-content: center;
       flex-shrink: 0;
+      font-size: 15px;
     }
 
     .cp-close:hover {
       color: var(--tx);
+      background: var(--s2);
     }
 
-    /* ── Messages ── */
+    /* ── Messages list ── */
     #chat-messages {
       flex: 1;
       overflow-y: auto;
-      padding: 12px 12px 6px;
+      padding: 16px 0 8px;
       display: flex;
       flex-direction: column;
-      gap: 8px;
+      scroll-behavior: smooth;
     }
 
+    /* Discord layout: all left, avatar anchors the block */
     .chat-msg {
       display: flex;
-      flex-direction: column;
-      gap: 2px;
+      flex-direction: row;
+      gap: 0;
+      padding: 2px 14px;
+      position: relative;
+      transition: background .1s;
     }
 
-    .chat-msg-meta {
+    .chat-msg:hover {
+      background: rgba(0, 0, 0, .04);
+    }
+
+    [data-theme="dark"] .chat-msg:hover {
+      background: rgba(255, 255, 255, .02);
+    }
+
+    .chat-msg-side {
+      width: 44px;
+      flex-shrink: 0;
       display: flex;
-      align-items: center;
-      gap: 6px;
+      align-items: flex-start;
+      padding-top: 2px;
     }
 
     .chat-msg-avatar {
-      width: 20px;
-      height: 20px;
+      width: 36px;
+      height: 36px;
       border-radius: 50%;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 8px;
+      font-size: 13px;
       font-weight: 700;
       color: #fff;
       flex-shrink: 0;
       overflow: hidden;
+      cursor: default;
+      transition: transform .15s;
+    }
+
+    .chat-msg-avatar:hover {
+      transform: scale(1.1);
     }
 
     .chat-msg-avatar img {
@@ -2716,193 +2747,259 @@
       border-radius: 50%;
     }
 
+    .chat-msg-body {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .chat-msg-meta {
+      display: flex;
+      align-items: baseline;
+      gap: 8px;
+      margin-bottom: 3px;
+    }
+
     .chat-msg-name {
-      font-size: var(--fs-2xs);
+      font-size: var(--fs-sm);
       font-weight: 600;
-      color: var(--tx2);
+      color: var(--txh);
+      letter-spacing: -.01em;
+      line-height: 1;
     }
 
     .chat-msg-time {
-      font-family: var(--fm);
-      font-size: var(--fs-2xs);
+      font-size: clamp(9px, 1.8vw, 10.5px);
       color: var(--tx3);
-      margin-left: auto;
+      font-family: var(--fm);
+      letter-spacing: .02em;
+      line-height: 1;
+    }
+
+    /* Hover timestamp on grouped */
+    .chat-msg.grouped .chat-msg-hover-time {
+      display: none;
+      position: absolute;
+      left: 0;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 44px;
+      text-align: center;
+      font-size: 9px;
+      color: var(--tx3);
+      font-family: var(--fm);
+      pointer-events: none;
+    }
+
+    .chat-msg.grouped:hover .chat-msg-hover-time {
+      display: block;
     }
 
     .chat-msg-text {
       font-size: var(--fs-sm);
       color: var(--tx);
-      line-height: 1.55;
-      background: var(--s2);
-      border: 1px solid var(--bd);
-      border-radius: 0 6px 6px 6px;
-      padding: 6px 10px;
+      line-height: 1.6;
       word-break: break-word;
+      white-space: pre-wrap;
     }
 
+    /* Grouped: indent under avatar, no avatar shown */
+    .chat-msg.grouped {
+      padding-top: 1px;
+      padding-bottom: 1px;
+    }
+
+    .chat-msg.grouped .chat-msg-side {
+      visibility: hidden;
+    }
+
+    .chat-msg.grouped .chat-msg-meta {
+      display: none;
+    }
+
+    /* Image bubble */
     .chat-msg-img {
-      max-width: 100%;
-      max-height: 220px;
-      border-radius: 6px;
+      max-width: min(260px, 100%);
+      max-height: 280px;
+      border-radius: 8px;
       cursor: pointer;
-      border: 1px solid var(--bd);
       display: block;
       object-fit: contain;
       background: var(--s3);
+      margin-top: 4px;
+      transition: opacity .15s;
+    }
+
+    .chat-msg-img:hover {
+      opacity: .92;
     }
 
     .chat-msg-img-wrap {
-      background: var(--s2);
-      border: 1px solid var(--bd);
-      border-radius: 0 6px 6px 6px;
-      padding: 5px;
       display: inline-block;
     }
 
-    .chat-msg.mine .chat-msg-img-wrap {
-      border-radius: 6px 0 6px 6px;
+    .chat-msg-img-caption {
+      font-size: var(--fs-xs);
+      color: var(--tx2);
+      margin-top: 4px;
+      font-style: italic;
     }
 
-    .chat-msg.mine .chat-msg-text {
-      background: rgba(var(--a2r), .1);
-      border-color: rgba(var(--a2r), .25);
-      border-radius: 6px 0 6px 6px;
-    }
-
-    .chat-msg.mine {
-      align-items: flex-end;
-    }
-
-    .chat-msg.mine .chat-msg-meta {
-      flex-direction: row-reverse;
-    }
-
-    .chat-msg.mine .chat-msg-time {
-      margin-left: 0;
-      margin-right: auto;
-    }
-
-    .chat-msg.grouped {
-      margin-top: -4px;
-    }
-
-    .chat-msg.grouped .chat-msg-text,
-    .chat-msg.mine.grouped .chat-msg-text {
-      border-radius: 6px;
-    }
-
-    .chat-msg.grouped .chat-msg-img-wrap,
-    .chat-msg.mine.grouped .chat-msg-img-wrap {
-      border-radius: 6px;
-    }
-
+    /* System messages */
     .chat-sys-msg {
       text-align: center;
-      font-size: var(--fs-xs);
+      font-size: clamp(10px, 2vw, 11px);
       color: var(--tx3);
-      padding: 2px 0;
-      font-style: italic;
+      padding: 6px 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .chat-sys-msg::before,
+    .chat-sys-msg::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--bd);
+    }
+
+    /* ── Empty state ── */
+    .chat-empty {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      color: var(--tx3);
+      font-size: var(--fs-sm);
+      line-height: 1.7;
+      padding: 24px 20px;
+      pointer-events: none;
+      gap: 6px;
+    }
+
+    .chat-empty-icon {
+      font-size: 32px;
+      margin-bottom: 4px;
+      opacity: .6;
+    }
+
+    .chat-empty-title {
+      font-size: var(--fs-md);
+      font-weight: 600;
+      color: var(--tx2);
     }
 
     /* ── Input area ── */
     .cp-input-row {
-      padding: 8px 10px;
-      border-top: 1px solid var(--bd);
+      padding: 0 12px 14px;
       display: flex;
       flex-direction: column;
-      gap: 6px;
+      gap: 8px;
       flex-shrink: 0;
+      background: var(--bg);
+    }
+
+    .cp-input-box {
+      background: var(--s2);
+      border: 1px solid var(--bd);
+      border-radius: 10px;
+      transition: border-color var(--tw), background var(--tw);
+      overflow: hidden;
+    }
+
+    .cp-input-box:focus-within {
+      border-color: var(--a2);
     }
 
     .cp-input-actions {
       display: flex;
-      gap: 5px;
+      gap: 4px;
       align-items: flex-end;
+      padding: 6px 8px;
     }
 
     #chat-input {
       flex: 1;
       font-family: var(--ff);
       font-size: var(--fs-sm);
-      background: var(--bg2);
-      border: 1px solid var(--bd);
-      border-radius: var(--rr);
-      padding: 7px 10px;
-      color: var(--tx);
+      background: transparent;
+      border: none;
       outline: none;
-      transition: border-color var(--tw);
+      padding: 5px 6px;
+      color: var(--tx);
       resize: none;
-      min-height: 34px;
-      max-height: 88px;
-      line-height: 1.5;
+      min-height: 32px;
+      max-height: 120px;
+      line-height: 1.55;
       overflow-y: auto;
     }
 
-    #chat-input:focus {
-      border-color: var(--a2);
+    #chat-input::placeholder {
+      color: var(--tx3);
     }
 
     .cp-action-btn {
       width: 30px;
       height: 30px;
       flex-shrink: 0;
-      background: var(--s2);
-      color: var(--tx2);
-      border: 1px solid var(--bd);
-      border-radius: var(--rr);
+      background: transparent;
+      color: var(--tx3);
+      border: none;
+      border-radius: 6px;
       cursor: pointer;
       display: flex;
       align-items: center;
       justify-content: center;
-      transition: all .15s;
-      font-size: 14px;
+      transition: color .15s, background .15s;
       align-self: flex-end;
     }
 
     .cp-action-btn:hover {
-      border-color: var(--a2);
       color: var(--a2);
-      background: var(--ta2);
+      background: rgba(var(--a2r), .1);
     }
 
     .cp-action-btn svg {
-      width: 13px;
-      height: 13px;
+      width: 16px;
+      height: 16px;
     }
 
     #chat-send {
       width: 30px;
       height: 30px;
       background: var(--a2);
-      color: var(--inv);
+      color: #fff;
       border: none;
-      border-radius: var(--rr);
+      border-radius: 7px;
       cursor: pointer;
       display: flex;
       align-items: center;
       justify-content: center;
-      transition: opacity .15s;
+      transition: opacity .15s, transform .1s;
       flex-shrink: 0;
       align-self: flex-end;
     }
 
     #chat-send:hover {
-      opacity: .85;
+      opacity: .88;
+      transform: scale(1.05);
     }
 
     #chat-send svg {
-      width: 12px;
-      height: 12px;
+      width: 13px;
+      height: 13px;
     }
 
-    /* ── Image preview before send ── */
+    /* ── Image preview ── */
     #chat-img-preview {
       display: none;
       position: relative;
-      padding: 6px;
-      background: var(--s2);
-      border: 1px solid var(--bd);
-      border-radius: var(--rr);
+      padding: 8px;
+      background: var(--s3);
+      border-radius: 8px 8px 0 0;
+      border-bottom: 1px solid var(--bd);
     }
 
     #chat-img-preview.vis {
@@ -2910,27 +3007,32 @@
     }
 
     #chat-img-preview img {
-      max-height: 100px;
+      max-height: 90px;
       max-width: 100%;
-      border-radius: 4px;
+      border-radius: 5px;
       display: block;
     }
 
     #chat-img-preview-clear {
       position: absolute;
-      top: 4px;
-      right: 4px;
-      width: 18px;
-      height: 18px;
+      top: 5px;
+      right: 5px;
+      width: 20px;
+      height: 20px;
       border-radius: 50%;
-      background: rgba(0, 0, 0, .55);
+      background: rgba(0, 0, 0, .65);
       color: #fff;
       border: none;
       cursor: pointer;
-      font-size: 10px;
+      font-size: 11px;
       display: flex;
       align-items: center;
       justify-content: center;
+      transition: background .12s;
+    }
+
+    #chat-img-preview-clear:hover {
+      background: rgba(0, 0, 0, .85);
     }
 
     /* ── Emoji picker ── */
@@ -2940,9 +3042,10 @@
       bottom: calc(100% + 6px);
       right: 0;
       z-index: 500;
-      border-radius: 8px;
+      border-radius: 12px;
       overflow: hidden;
       box-shadow: var(--sh2);
+      border: 1px solid var(--bd);
     }
 
     #emoji-picker-wrap.open {
@@ -2959,8 +3062,8 @@
       --category-font-color: var(--tx3);
       --button-hover-background: var(--s2);
       --button-active-background: var(--s3);
-      height: 320px;
-      width: 300px;
+      height: 340px;
+      width: 310px;
     }
 
     .cp-input-outer {
@@ -3565,48 +3668,52 @@
     <div class="cp-head">
       <div class="cp-my-avatar" id="cp-my-avatar" onclick="openProfileModal()" title="Editar perfil"></div>
       <div class="cp-head-title">
-        <svg viewBox="0 0 14 14" fill="currentColor">
-          <path d="M2 2h10a1 1 0 011 1v6a1 1 0 01-1 1H8l-2 2-2-2H2a1 1 0 01-1-1V3a1 1 0 011-1z" />
-        </svg>
+        <div class="cp-head-dot"></div>
         Chat da sessão
       </div>
-      <button class="cp-close" onclick="toggleChat()">✕</button>
+      <button class="cp-close" onclick="toggleChat()" title="Fechar (Esc)">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2"
+          stroke-linecap="round">
+          <path d="M2 2l10 10M12 2L2 12" />
+        </svg>
+      </button>
     </div>
     <div id="chat-messages"></div>
     <div class="cp-input-row">
-      <div id="chat-img-preview">
-        <img id="chat-img-preview-img" src="" alt="">
-        <button id="chat-img-preview-clear" onclick="clearImgPreview()">✕</button>
-      </div>
       <div class="cp-input-outer">
         <div id="emoji-picker-wrap">
           <emoji-picker id="emoji-picker"></emoji-picker>
         </div>
-        <div class="cp-input-actions">
-          <button class="cp-action-btn" id="emoji-btn" onclick="toggleEmojiPicker()" title="Emojis">
-            <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round">
-              <circle cx="7" cy="7" r="5.5" />
-              <circle cx="5" cy="6" r=".6" fill="currentColor" stroke="none" />
-              <circle cx="9" cy="6" r=".6" fill="currentColor" stroke="none" />
-              <path d="M4.5 8.5c.5 1 4.5 1 5 0" />
-            </svg>
-          </button>
-          <button class="cp-action-btn" id="img-upload-btn" onclick="$('chat-file-input').click()"
-            title="Enviar imagem">
-            <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"
-              stroke-linejoin="round">
-              <rect x="1" y="2" width="12" height="10" rx="1.5" />
-              <circle cx="4.5" cy="5.5" r="1" fill="currentColor" stroke="none" />
-              <path d="M1 9.5l3-3 2.5 2.5L9 6l4 4" />
-            </svg>
-          </button>
-          <input type="file" id="chat-file-input" accept="image/*" style="display:none">
-          <textarea id="chat-input" placeholder="Mensagem... (Enter envia)" maxlength="1000" rows="1"></textarea>
-          <button id="chat-send" onclick="sendChat()">
-            <svg viewBox="0 0 14 14" fill="currentColor">
-              <path d="M1 7L13 1 9 13 7 8z" />
-            </svg>
-          </button>
+        <div class="cp-input-box">
+          <div id="chat-img-preview">
+            <img id="chat-img-preview-img" src="" alt="">
+            <button id="chat-img-preview-clear" onclick="clearImgPreview()">✕</button>
+          </div>
+          <div class="cp-input-actions">
+            <button class="cp-action-btn" id="emoji-btn" onclick="toggleEmojiPicker()" title="Emojis">
+              <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round">
+                <circle cx="8" cy="8" r="6.5" />
+                <circle cx="5.5" cy="7" r=".7" fill="currentColor" stroke="none" />
+                <circle cx="10.5" cy="7" r=".7" fill="currentColor" stroke="none" />
+                <path d="M5 10.5c.8 1.2 5.2 1.2 6 0" />
+              </svg>
+            </button>
+            <button class="cp-action-btn" onclick="$('chat-file-input').click()" title="Enviar imagem">
+              <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"
+                stroke-linejoin="round">
+                <rect x="1.5" y="2.5" width="13" height="11" rx="1.5" />
+                <circle cx="5.5" cy="6.5" r="1.2" fill="currentColor" stroke="none" />
+                <path d="M1.5 11l4-4 3 3 2.5-2.5 4 4" />
+              </svg>
+            </button>
+            <input type="file" id="chat-file-input" accept="image/*" style="display:none">
+            <textarea id="chat-input" placeholder="Enviar mensagem..." maxlength="1000" rows="1"></textarea>
+            <button id="chat-send" onclick="sendChat()" title="Enviar (Enter)">
+              <svg viewBox="0 0 14 14" fill="currentColor">
+                <path d="M1 7L13 1 9 13 7 8z" />
+              </svg>
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -4808,34 +4915,76 @@
       const grouped = lastChatSenderId === msg.userId;
       lastChatSenderId = msg.userId;
       const time = new Date(msg.ts).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+
       const div = document.createElement('div');
       div.className = 'chat-msg' + (isMine ? ' mine' : '') + (grouped ? ' grouped' : '');
-      const metaHtml = grouped ? '' :
-        `<div class="chat-msg-meta">
-           <div class="chat-msg-avatar" style="background:${escH(msg.userColor || '#888')}">${buildAvatarInner(msg)}</div>
-           <span class="chat-msg-name">${escH(msg.userName)}</span>
-           <span class="chat-msg-time">${time}</span>
-         </div>`;
-      if (msg.type === 'image' && msg.imageData) {
-        const capHtml = msg.caption
-          ? `<div style="font-size:var(--fs-xs);color:var(--tx2);padding:4px 4px 0">${escH(msg.caption)}</div>` : '';
-        div.innerHTML = metaHtml +
-          `<div class="chat-msg-img-wrap">
-             <img class="chat-msg-img" src="${escH(msg.imageData)}" alt="imagem"
-               onclick="openLightbox(this.src)" loading="lazy">${capHtml}
-           </div>`;
+
+      // Side column
+      const side = document.createElement('div');
+      side.className = 'chat-msg-side';
+      if (!grouped) {
+        const av = document.createElement('div');
+        av.className = 'chat-msg-avatar';
+        av.style.background = msg.userColor || '#888';
+        av.title = msg.userName;
+        if (msg.avatarUrl) {
+          const img = document.createElement('img');
+          img.src = msg.avatarUrl;
+          img.onerror = () => { av.removeChild(img); av.textContent = initials(msg.userName); };
+          av.appendChild(img);
+        } else { av.textContent = initials(msg.userName); }
+        side.appendChild(av);
       } else {
-        div.innerHTML = metaHtml +
-          `<div class="chat-msg-text">${escH(msg.text || '')}</div>`;
+        const ht = document.createElement('span');
+        ht.className = 'chat-msg-hover-time';
+        ht.textContent = time;
+        side.appendChild(ht);
       }
-      m.appendChild(div);
-      m.scrollTop = m.scrollHeight;
+
+      // Body column
+      const body = document.createElement('div');
+      body.className = 'chat-msg-body';
+      if (!grouped) {
+        const nameColor = isMine ? 'var(--a2)' : (msg.userColor || 'var(--tx2)');
+        const meta = document.createElement('div');
+        meta.className = 'chat-msg-meta';
+        meta.innerHTML = `<span class="chat-msg-name" style="color:${nameColor}">${escH(msg.userName)}</span><span class="chat-msg-time">${time}</span>`;
+        body.appendChild(meta);
+      }
+
+      if (msg.type === 'image' && msg.imageData) {
+        const wrap = document.createElement('div');
+        wrap.className = 'chat-msg-img-wrap';
+        const imgEl = document.createElement('img');
+        imgEl.className = 'chat-msg-img'; imgEl.loading = 'lazy';
+        imgEl.src = msg.imageData; imgEl.alt = 'imagem';
+        imgEl.onclick = () => openLightbox(msg.imageData);
+        wrap.appendChild(imgEl);
+        if (msg.caption) {
+          const cap = document.createElement('div');
+          cap.className = 'chat-msg-img-caption'; cap.textContent = msg.caption;
+          wrap.appendChild(cap);
+        }
+        body.appendChild(wrap);
+      } else {
+        const text = document.createElement('div');
+        text.className = 'chat-msg-text'; text.textContent = msg.text || '';
+        body.appendChild(text);
+      }
+
+      div.appendChild(side); div.appendChild(body);
+      m.appendChild(div); m.scrollTop = m.scrollHeight;
       if (!chatOpen && !isMine) { unreadChat++; updateChatBadge(); }
     }
 
-    function buildAvatarInner(msg) {
-      if (msg.avatarUrl) return `<img src="${escH(msg.avatarUrl)}" onerror="this.parentNode.innerHTML='${initials(msg.userName)}';this.parentNode.style.background='${msg.userColor || '#888'}'">`;
-      return initials(msg.userName || '?');
+    function renderChatEmpty() {
+      const m = $('chat-messages');
+      if (!m.children.length) {
+        const div = document.createElement('div');
+        div.className = 'chat-empty';
+        div.innerHTML = '<div class="chat-empty-icon">💬</div><div class="chat-empty-title">Nenhuma mensagem ainda</div><div>Seja o primeiro a dizer oi!</div>';
+        m.appendChild(div);
+      }
     }
 
     function addSysMsg(text) {
@@ -4845,15 +4994,6 @@
       div.className = 'chat-sys-msg'; div.textContent = text;
       m.appendChild(div); m.scrollTop = m.scrollHeight;
       lastChatSenderId = null;
-    }
-    function renderChatEmpty() {
-      const m = $('chat-messages');
-      if (!m.children.length) {
-        const div = document.createElement('div');
-        div.className = 'chat-empty';
-        div.innerHTML = '<div style="font-size:22px;margin-bottom:8px">💬</div><div>Nenhuma mensagem ainda.<br>Diga oi para a equipe!</div>';
-        m.appendChild(div);
-      }
     }
     function updateChatBadge() {
       const b = $('chat-badge');
