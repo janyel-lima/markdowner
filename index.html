@@ -4178,9 +4178,11 @@
     const SK_COLLABNAME = 'mkd_collab_name';
 
     // Image compression settings
-    const IMG_MAX_PX = 1280;   // max width or height
-    const IMG_QUALITY = 0.72;   // JPEG quality
-    const IMG_MAX_B64 = 400_000; // ~300KB base64 hard limit per message
+    const IMG_MAX_PX_PHOTO = 1280;   // fotos: reduz mais agressivo
+    const IMG_MAX_PX_SCREEN = 1920;   // prints: preserva resolução maior
+    const IMG_QUALITY_PHOTO = 0.72;   // JPEG qualidade para fotos
+    const IMG_QUALITY_SCREEN = 0.88;   // PNG→JPEG qualidade para prints
+    const IMG_MAX_B64 = 900_000; // ~675KB base64 hard limit
 
     let fbApp = null, fbDb = null;
     let fbRoom = null;
@@ -4559,29 +4561,48 @@
     /* ── Image compression → base64 → RTDB ── */
     function compressImage(file) {
       return new Promise((resolve, reject) => {
+        const isScreen = file.type === 'image/png';   // screenshots are usually PNG
+        const maxPx = isScreen ? IMG_MAX_PX_SCREEN : IMG_MAX_PX_PHOTO;
+        const quality = isScreen ? IMG_QUALITY_SCREEN : IMG_QUALITY_PHOTO;
+
         const img = new Image();
         const url = URL.createObjectURL(file);
         img.onload = () => {
           URL.revokeObjectURL(url);
           let { width: w, height: h } = img;
-          // Scale down if needed
-          if (w > IMG_MAX_PX || h > IMG_MAX_PX) {
-            if (w >= h) { h = Math.round(h * IMG_MAX_PX / w); w = IMG_MAX_PX; }
-            else { w = Math.round(w * IMG_MAX_PX / h); h = IMG_MAX_PX; }
+
+          // Only scale down if actually over the limit
+          if (w > maxPx || h > maxPx) {
+            if (w >= h) { h = Math.round(h * maxPx / w); w = maxPx; }
+            else { w = Math.round(w * maxPx / h); h = maxPx; }
           }
+
           const canvas = document.createElement('canvas');
           canvas.width = w; canvas.height = h;
-          canvas.getContext('2d').drawImage(img, 0, 0, w, h);
-          // Try JPEG first; PNG fallback for transparency
-          const mime = file.type === 'image/png' ? 'image/png' : 'image/jpeg';
-          const q = mime === 'image/jpeg' ? IMG_QUALITY : undefined;
-          const b64 = canvas.toDataURL(mime, q);
-          if (b64.length > IMG_MAX_B64) {
-            // Second pass: lower quality
-            const b64b = canvas.toDataURL('image/jpeg', 0.45);
-            if (b64b.length > IMG_MAX_B64) { reject(new Error('Imagem muito grande após compressão (máx ~300 KB).')); return; }
-            resolve(b64b);
-          } else { resolve(b64); }
+          const ctx = canvas.getContext('2d');
+
+          // White background for PNG with transparency (avoids black fill on JPEG)
+          if (isScreen) { ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, w, h); }
+          ctx.drawImage(img, 0, 0, w, h);
+
+          // Screenshots: try high-quality JPEG first
+          // Photos: go straight to JPEG
+          const b64 = canvas.toDataURL('image/jpeg', quality);
+
+          if (b64.length <= IMG_MAX_B64) { resolve(b64); return; }
+
+          // Second pass: lower quality
+          const b64b = canvas.toDataURL('image/jpeg', isScreen ? 0.70 : 0.45);
+          if (b64b.length <= IMG_MAX_B64) { resolve(b64b); return; }
+
+          // Third pass: scale down 50% + lower quality
+          const c2 = document.createElement('canvas');
+          c2.width = Math.round(w * .6); c2.height = Math.round(h * .6);
+          c2.getContext('2d').drawImage(canvas, 0, 0, c2.width, c2.height);
+          const b64c = c2.toDataURL('image/jpeg', 0.60);
+          if (b64c.length <= IMG_MAX_B64) { resolve(b64c); return; }
+
+          reject(new Error('Imagem muito grande mesmo após compressão. Tente recortar antes de enviar.'));
         };
         img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('Não foi possível ler a imagem.')); };
         img.src = url;
