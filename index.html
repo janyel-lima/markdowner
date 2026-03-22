@@ -5349,7 +5349,7 @@
       // Unread: only for session channel messages when chat is closed or on different channel
       if (!isMine) {
         const isVisible = chatOpen && activeChannel === 'session';
-        if (!isVisible) {
+        if (!isVisible && !isLoadingHistory) {
           chUnread['session'] = (chUnread['session'] || 0) + 1;
           renderChannelBadge('session');
           updateTotalBadge();
@@ -5385,6 +5385,7 @@
     let activeChannel = 'session';   // 'session' | 'dm:{peerId}'
     let dmListeners = {};            // peerId → off() fn
     let chUnread = {};               // channelKey → count
+    let isLoadingHistory = false;    // suppress unread during history render
 
     function dmKey(a, b) { return [a, b].sort().join('_'); }
 
@@ -5436,7 +5437,9 @@
       ref.orderByChild('ts').limitToLast(80).once('value', snap => {
         const msgs = [];
         snap.forEach(s => { if (s.val()) msgs.push(s.val()); });
+        isLoadingHistory = true;
         msgs.forEach(m => appendChatMsg(m));
+        isLoadingHistory = false;
         const el = $('chat-messages');
         el.scrollTop = el.scrollHeight;
         if (!msgs.length) renderChatEmpty(channel);
