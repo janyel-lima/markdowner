@@ -4499,11 +4499,11 @@
       });
       listeners.push(() => usersRef.off('value', usersOff));
 
-      // chat
+      // chat — only messages after we joined
       const chatRef = fbRoom.child('chat');
-      let firstLoad = true;
-      const chatOff = chatRef.on('child_added', snap => { if (!firstLoad && snap.val()) appendChatMsg(snap.val()); });
-      chatRef.once('value', () => { firstLoad = false; });
+      const joinedAt = Date.now();
+      const chatOff = chatRef.orderByChild('ts').startAt(joinedAt)
+        .on('child_added', snap => { if (snap.val()) appendChatMsg(snap.val()); });
       listeners.push(() => chatRef.off('child_added', chatOff));
     }
 
