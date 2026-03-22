@@ -4756,6 +4756,9 @@
       const b = $('chat-badge');
       b.textContent = unreadChat > 9 ? '9+' : unreadChat;
       b.classList.toggle('vis', unreadChat > 0);
+      document.title = unreadChat > 0
+        ? `(${unreadChat}) 🔴 Markdowner | MD Editor & Viewer`
+        : 'Markdowner | MD Editor & Viewer';
     }
 
     /* ── Chat panel toggle ── */
