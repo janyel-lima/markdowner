@@ -36,6 +36,18 @@ projectId: "seu-projeto-id",
 
 ---
 
+## Passo 2b — Ativar o Firebase Storage (para imagens no chat)
+
+1. No menu lateral do Firebase, clique em **Storage**
+2. Clique em **Começar**
+3. Selecione **Modo de teste** → **Avançar** → escolha a região → **Concluído**
+
+> O bucket criado terá o formato `seu-projeto-id.appspot.com` — é preenchido automaticamente pelo workflow usando o `FIREBASE_PROJECT_ID`.
+
+As imagens enviadas no chat são armazenadas em `rooms/{código}/attachments/` e **deletadas automaticamente quando o usuário sai da sessão**.
+
+---
+
 ## Passo 3 — Adicionar os secrets no GitHub
 
 1. No seu repositório, vá em **Settings → Secrets and variables → Actions**

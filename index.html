@@ -13,6 +13,7 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
+  <script type="module" src="https://cdn.jsdelivr.net/npm/emoji-picker-element@1/index.js"></script>
   <link id="hl-dark" rel="stylesheet"
     href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark-dimmed.min.css">
   <link id="hl-light" rel="stylesheet"
@@ -2193,6 +2194,13 @@
       font-weight: 700;
       color: #fff;
       flex-shrink: 0;
+      overflow: hidden;
+    }
+
+    .presence-avatar img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
     }
 
     .presence-me {
@@ -2469,82 +2477,6 @@
       font-weight: 600;
     }
 
-    /* ── Grouped chat messages ── */
-    .chat-msg.grouped {
-      margin-top: -4px;
-    }
-
-    .chat-msg.grouped .chat-msg-text {
-      border-radius: 6px;
-    }
-
-    .chat-msg.mine.grouped .chat-msg-text {
-      border-radius: 6px;
-    }
-
-    /* ── Chat empty state ── */
-    .chat-empty {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      text-align: center;
-      color: var(--tx3);
-      font-size: var(--fs-sm);
-      line-height: 1.65;
-      padding: 24px 16px;
-      pointer-events: none;
-    }
-
-    #chat-input {
-      flex: 1;
-      font-family: var(--ff);
-      font-size: var(--fs-sm);
-      background: var(--bg2);
-      border: 1px solid var(--bd);
-      border-radius: var(--rr);
-      padding: 7px 10px;
-      color: var(--tx);
-      outline: none;
-      transition: border-color var(--tw);
-      resize: none;
-      min-height: 34px;
-      max-height: 88px;
-      line-height: 1.5;
-      overflow-y: auto;
-    }
-
-    #chat-input:focus {
-      border-color: var(--a2);
-    }
-
-    #chat-send {
-      width: 32px;
-      height: 32px;
-      background: var(--a2);
-      color: var(--inv);
-      border: none;
-      border-radius: var(--rr);
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      transition: opacity .15s;
-      flex-shrink: 0;
-      font-size: 14px;
-      align-self: flex-end;
-    }
-
-    #chat-send:hover {
-      opacity: .85;
-    }
-
-    #chat-send svg {
-      width: 12px;
-      height: 12px;
-    }
-
     /* workspace wraps both the workspace row and chat panel */
     #workspace-outer {
       display: flex;
@@ -2638,8 +2570,8 @@
     #chat-panel {
       position: fixed;
       top: var(--hh);
-      right: -320px;
-      width: 300px;
+      right: -340px;
+      width: 320px;
       bottom: 0;
       background: var(--s1);
       border-left: 1px solid var(--bd);
@@ -2669,28 +2601,59 @@
       }
     }
 
+    /* ── Chat header ── */
     .cp-head {
-      padding: 11px 14px;
+      padding: 9px 12px;
       border-bottom: 1px solid var(--bd);
       display: flex;
       align-items: center;
-      justify-content: space-between;
+      gap: 8px;
       flex-shrink: 0;
+    }
+
+    .cp-my-avatar {
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      cursor: pointer;
+      flex-shrink: 0;
+      border: 2px solid transparent;
+      transition: border-color .15s;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 10px;
+      font-weight: 700;
+      color: #fff;
+    }
+
+    .cp-my-avatar:hover {
+      border-color: var(--a2);
+    }
+
+    .cp-my-avatar img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      border-radius: 50%;
     }
 
     .cp-head-title {
       font-size: var(--fs-sm);
       font-weight: 600;
       color: var(--txh);
+      flex: 1;
       display: flex;
       align-items: center;
-      gap: 7px;
+      gap: 6px;
     }
 
     .cp-head-title svg {
       width: 12px;
       height: 12px;
       color: var(--a2);
+      flex-shrink: 0;
     }
 
     .cp-close {
@@ -2703,19 +2666,21 @@
       line-height: 1;
       border-radius: var(--rr);
       transition: color var(--tw);
+      flex-shrink: 0;
     }
 
     .cp-close:hover {
       color: var(--tx);
     }
 
+    /* ── Messages ── */
     #chat-messages {
       flex: 1;
       overflow-y: auto;
       padding: 12px 12px 6px;
       display: flex;
       flex-direction: column;
-      gap: 10px;
+      gap: 8px;
     }
 
     .chat-msg {
@@ -2731,16 +2696,24 @@
     }
 
     .chat-msg-avatar {
-      width: 16px;
-      height: 16px;
+      width: 20px;
+      height: 20px;
       border-radius: 50%;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 7.5px;
+      font-size: 8px;
       font-weight: 700;
       color: #fff;
       flex-shrink: 0;
+      overflow: hidden;
+    }
+
+    .chat-msg-avatar img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      border-radius: 50%;
     }
 
     .chat-msg-name {
@@ -2767,6 +2740,29 @@
       word-break: break-word;
     }
 
+    .chat-msg-img {
+      max-width: 100%;
+      max-height: 220px;
+      border-radius: 6px;
+      cursor: pointer;
+      border: 1px solid var(--bd);
+      display: block;
+      object-fit: contain;
+      background: var(--s3);
+    }
+
+    .chat-msg-img-wrap {
+      background: var(--s2);
+      border: 1px solid var(--bd);
+      border-radius: 0 6px 6px 6px;
+      padding: 5px;
+      display: inline-block;
+    }
+
+    .chat-msg.mine .chat-msg-img-wrap {
+      border-radius: 6px 0 6px 6px;
+    }
+
     .chat-msg.mine .chat-msg-text {
       background: rgba(var(--a2r), .1);
       border-color: rgba(var(--a2r), .25);
@@ -2786,6 +2782,20 @@
       margin-right: auto;
     }
 
+    .chat-msg.grouped {
+      margin-top: -4px;
+    }
+
+    .chat-msg.grouped .chat-msg-text,
+    .chat-msg.mine.grouped .chat-msg-text {
+      border-radius: 6px;
+    }
+
+    .chat-msg.grouped .chat-msg-img-wrap,
+    .chat-msg.mine.grouped .chat-msg-img-wrap {
+      border-radius: 6px;
+    }
+
     .chat-sys-msg {
       text-align: center;
       font-size: var(--fs-xs);
@@ -2794,13 +2804,20 @@
       font-style: italic;
     }
 
+    /* ── Input area ── */
     .cp-input-row {
-      padding: 10px 10px;
+      padding: 8px 10px;
       border-top: 1px solid var(--bd);
       display: flex;
-      gap: 7px;
-      align-items: flex-end;
+      flex-direction: column;
+      gap: 6px;
       flex-shrink: 0;
+    }
+
+    .cp-input-actions {
+      display: flex;
+      gap: 5px;
+      align-items: flex-end;
     }
 
     #chat-input {
@@ -2814,15 +2831,48 @@
       color: var(--tx);
       outline: none;
       transition: border-color var(--tw);
+      resize: none;
+      min-height: 34px;
+      max-height: 88px;
+      line-height: 1.5;
+      overflow-y: auto;
     }
 
     #chat-input:focus {
       border-color: var(--a2);
     }
 
+    .cp-action-btn {
+      width: 30px;
+      height: 30px;
+      flex-shrink: 0;
+      background: var(--s2);
+      color: var(--tx2);
+      border: 1px solid var(--bd);
+      border-radius: var(--rr);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all .15s;
+      font-size: 14px;
+      align-self: flex-end;
+    }
+
+    .cp-action-btn:hover {
+      border-color: var(--a2);
+      color: var(--a2);
+      background: var(--ta2);
+    }
+
+    .cp-action-btn svg {
+      width: 13px;
+      height: 13px;
+    }
+
     #chat-send {
-      width: 32px;
-      height: 32px;
+      width: 30px;
+      height: 30px;
       background: var(--a2);
       color: var(--inv);
       border: none;
@@ -2833,7 +2883,7 @@
       justify-content: center;
       transition: opacity .15s;
       flex-shrink: 0;
-      font-size: 14px;
+      align-self: flex-end;
     }
 
     #chat-send:hover {
@@ -2843,6 +2893,193 @@
     #chat-send svg {
       width: 12px;
       height: 12px;
+    }
+
+    /* ── Image preview before send ── */
+    #chat-img-preview {
+      display: none;
+      position: relative;
+      padding: 6px;
+      background: var(--s2);
+      border: 1px solid var(--bd);
+      border-radius: var(--rr);
+    }
+
+    #chat-img-preview.vis {
+      display: block;
+    }
+
+    #chat-img-preview img {
+      max-height: 100px;
+      max-width: 100%;
+      border-radius: 4px;
+      display: block;
+    }
+
+    #chat-img-preview-clear {
+      position: absolute;
+      top: 4px;
+      right: 4px;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: rgba(0, 0, 0, .55);
+      color: #fff;
+      border: none;
+      cursor: pointer;
+      font-size: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* ── Emoji picker ── */
+    #emoji-picker-wrap {
+      display: none;
+      position: absolute;
+      bottom: calc(100% + 6px);
+      right: 0;
+      z-index: 500;
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: var(--sh2);
+    }
+
+    #emoji-picker-wrap.open {
+      display: block;
+    }
+
+    emoji-picker {
+      --background: var(--s1);
+      --border-color: var(--bd);
+      --text-color: var(--tx);
+      --input-border-color: var(--bd);
+      --input-font-color: var(--tx);
+      --input-placeholder-color: var(--tx3);
+      --category-font-color: var(--tx3);
+      --button-hover-background: var(--s2);
+      --button-active-background: var(--s3);
+      height: 320px;
+      width: 300px;
+    }
+
+    .cp-input-outer {
+      position: relative;
+    }
+
+    /* ── Lightbox for images ── */
+    #img-lightbox {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, .85);
+      z-index: 10000;
+      align-items: center;
+      justify-content: center;
+      cursor: zoom-out;
+    }
+
+    #img-lightbox.vis {
+      display: flex;
+    }
+
+    #img-lightbox img {
+      max-width: 92vw;
+      max-height: 88vh;
+      border-radius: 6px;
+      box-shadow: 0 8px 48px rgba(0, 0, 0, .6);
+    }
+
+    /* ── Profile modal ── */
+    #profile-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(8, 10, 20, .7);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 8500;
+      padding: 20px;
+    }
+
+    #profile-backdrop.vis {
+      display: flex;
+    }
+
+    .profile-modal {
+      background: var(--s1);
+      border: 1px solid var(--bd);
+      border-radius: 10px;
+      box-shadow: var(--sh2);
+      width: min(360px, 100%);
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      animation: modal-in .2s ease;
+    }
+
+    .profile-modal-title {
+      font-size: var(--fs-lg);
+      font-weight: 700;
+      color: var(--txh);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .profile-preview {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .profile-avatar-big {
+      width: 52px;
+      height: 52px;
+      border-radius: 50%;
+      overflow: hidden;
+      flex-shrink: 0;
+      border: 2px solid var(--bd);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      font-weight: 700;
+      color: #fff;
+    }
+
+    .profile-avatar-big img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .profile-name-display {
+      font-size: var(--fs-md);
+      font-weight: 600;
+      color: var(--txh);
+    }
+
+    .profile-color-display {
+      font-size: var(--fs-xs);
+      color: var(--tx2);
+      margin-top: 2px;
+    }
+
+    /* ── Chat empty state ── */
+    .chat-empty {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      color: var(--tx3);
+      font-size: var(--fs-sm);
+      line-height: 1.65;
+      padding: 24px 16px;
+      pointer-events: none;
     }
 
     /* workspace wraps both the workspace row and chat panel */
@@ -3257,6 +3494,7 @@
   <!-- CHAT PANEL -->
   <div id="chat-panel">
     <div class="cp-head">
+      <div class="cp-my-avatar" id="cp-my-avatar" onclick="openProfileModal()" title="Editar perfil"></div>
       <div class="cp-head-title">
         <svg viewBox="0 0 14 14" fill="currentColor">
           <path d="M2 2h10a1 1 0 011 1v6a1 1 0 01-1 1H8l-2 2-2-2H2a1 1 0 01-1-1V3a1 1 0 011-1z" />
@@ -3267,12 +3505,79 @@
     </div>
     <div id="chat-messages"></div>
     <div class="cp-input-row">
-      <textarea id="chat-input" placeholder="Mensagem... (Enter para enviar)" maxlength="400" rows="1"></textarea>
-      <button id="chat-send" onclick="sendChat()">
-        <svg viewBox="0 0 14 14" fill="currentColor">
-          <path d="M1 7L13 1 9 13 7 8z" />
+      <div id="chat-img-preview">
+        <img id="chat-img-preview-img" src="" alt="">
+        <button id="chat-img-preview-clear" onclick="clearImgPreview()">✕</button>
+      </div>
+      <div class="cp-input-outer">
+        <div id="emoji-picker-wrap">
+          <emoji-picker id="emoji-picker"></emoji-picker>
+        </div>
+        <div class="cp-input-actions">
+          <button class="cp-action-btn" id="emoji-btn" onclick="toggleEmojiPicker()" title="Emojis">
+            <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round">
+              <circle cx="7" cy="7" r="5.5" />
+              <circle cx="5" cy="6" r=".6" fill="currentColor" stroke="none" />
+              <circle cx="9" cy="6" r=".6" fill="currentColor" stroke="none" />
+              <path d="M4.5 8.5c.5 1 4.5 1 5 0" />
+            </svg>
+          </button>
+          <button class="cp-action-btn" id="img-upload-btn" onclick="$('chat-file-input').click()"
+            title="Enviar imagem">
+            <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"
+              stroke-linejoin="round">
+              <rect x="1" y="2" width="12" height="10" rx="1.5" />
+              <circle cx="4.5" cy="5.5" r="1" fill="currentColor" stroke="none" />
+              <path d="M1 9.5l3-3 2.5 2.5L9 6l4 4" />
+            </svg>
+          </button>
+          <input type="file" id="chat-file-input" accept="image/*" style="display:none">
+          <textarea id="chat-input" placeholder="Mensagem... (Enter envia)" maxlength="1000" rows="1"></textarea>
+          <button id="chat-send" onclick="sendChat()">
+            <svg viewBox="0 0 14 14" fill="currentColor">
+              <path d="M1 7L13 1 9 13 7 8z" />
+            </svg>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- IMAGE LIGHTBOX -->
+  <div id="img-lightbox" onclick="closeLightbox()">
+    <img id="img-lightbox-img" src="" alt="">
+  </div>
+
+  <!-- PROFILE MODAL -->
+  <div id="profile-backdrop" onclick="closeProfileOnBg(event)">
+    <div class="profile-modal">
+      <div class="profile-modal-title">
+        <svg width="16" height="16" viewBox="0 0 14 14" fill="currentColor">
+          <circle cx="7" cy="4.5" r="2.5" />
+          <path d="M1 13c0-3 2.5-5 6-5s6 2 6 5" />
         </svg>
-      </button>
+        Seu perfil
+      </div>
+      <div class="profile-preview">
+        <div class="profile-avatar-big" id="profile-avatar-big"></div>
+        <div>
+          <div class="profile-name-display" id="profile-name-display">Anônimo</div>
+          <div class="profile-color-display" id="profile-color-display">Cor do avatar</div>
+        </div>
+      </div>
+      <div>
+        <div class="cm-label">Nome de exibição</div>
+        <input class="cm-input" id="profile-name-input" placeholder="Seu nome" maxlength="32" autocomplete="off">
+      </div>
+      <div>
+        <div class="cm-label">URL da foto de perfil <span style="font-weight:400;color:var(--tx3)">(opcional)</span>
+        </div>
+        <input class="cm-input" id="profile-avatar-input" placeholder="https://..." type="url">
+      </div>
+      <button class="cm-btn a2" onclick="saveProfile()">Salvar perfil</button>
+      <button
+        style="background:none;border:none;color:var(--tx3);font-family:var(--ff);font-size:var(--fs-xs);cursor:pointer;text-align:center;padding:2px;"
+        onclick="closeProfileModal()">Cancelar</button>
     </div>
   </div>
 
@@ -3858,68 +4163,113 @@
     function esc(s) { return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
 
     /* ══════════════════════════════════════════════
-       COLLAB — Firebase Realtime Database
-       ── Fully HTTPS, firewall-proof ──
+       COLLAB — Firebase RTDB + Storage
     ══════════════════════════════════════════════ */
-
-    /* ── Firebase config (injected by GitHub Actions) ── */
     const FIREBASE_CONFIG = {
       apiKey: "__FIREBASE_API_KEY__",
       authDomain: "__FIREBASE_PROJECT_ID__.firebaseapp.com",
       databaseURL: "__FIREBASE_DB_URL__",
       projectId: "__FIREBASE_PROJECT_ID__",
     };
-
-    /* ── Check if config was actually injected ── */
     const FB_READY = !FIREBASE_CONFIG.apiKey.startsWith('__');
 
     const PEER_COLORS = ['#e8a020', '#2fa88a', '#6c7de8', '#e85c5c', '#c87de0', '#4db8d4', '#d4a22f', '#82c44e'];
+    const SK_PROFILE = 'mkd_profile';
     const SK_COLLABNAME = 'mkd_collab_name';
 
-    let fbApp = null;
-    let fbDb = null;
-    let fbRoom = null;   // firebase ref to current room
+    // Image compression settings
+    const IMG_MAX_PX = 1280;   // max width or height
+    const IMG_QUALITY = 0.72;   // JPEG quality
+    const IMG_MAX_B64 = 400_000; // ~300KB base64 hard limit per message
 
-    let myId = '';
-    let myName = '';
-    let myColor = '';
+    let fbApp = null, fbDb = null;
+    let fbRoom = null;
+    let myId = '', myName = '', myColor = '', myAvatarUrl = '';
     let roomCode = '';
-
-    // Active listeners — kept so we can detach on leave
     let listeners = [];
-
-    let unreadChat = 0;
-    let chatOpen = false;
-    let applyingRemote = false;
-    let lastChatSenderId = null;
-    let writeDocTimer = null;  // debounce doc writes
+    let unreadChat = 0, chatOpen = false;
+    let applyingRemote = false, lastChatSenderId = null;
+    let writeDocTimer = null;
+    let pendingImgFile = null;
 
     /* ── Utilities ── */
     function genCode() { return Math.random().toString(36).slice(2, 8).toUpperCase(); }
-    function genUserId() { return Math.random().toString(36).slice(2, 12); }
-    function initials(n) { return n.trim().split(/\s+/).map(w => w[0]).join('').slice(0, 2).toUpperCase() || '?'; }
+    function genUserId() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 6); }
+    function initials(n) { return String(n || '?').trim().split(/\s+/).map(w => w[0]).join('').slice(0, 2).toUpperCase() || '?'; }
     function colorForIdx(i) { return PEER_COLORS[i % PEER_COLORS.length]; }
     function escH(s) { return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
-    function savedName() { return lsGet(SK_COLLABNAME, ''); }
 
-    /* ── Init Firebase once ── */
+    /* ── Profile ── */
+    const SK_COL = 'mkd_collab_name';
+    function loadProfile() {
+      try {
+        const p = JSON.parse(localStorage.getItem(SK_PROFILE) || '{}');
+        myName = p.name || lsGet(SK_COL, '') || 'Anônimo';
+        myColor = p.color || colorForIdx(Math.floor(Math.random() * PEER_COLORS.length));
+        myAvatarUrl = p.avatarUrl || '';
+      } catch (e) { myName = 'Anônimo'; myColor = colorForIdx(0); myAvatarUrl = ''; }
+    }
+    function saveProfileData(name, color, avatarUrl) {
+      myName = name; myColor = color; myAvatarUrl = avatarUrl;
+      try { localStorage.setItem(SK_PROFILE, JSON.stringify({ name, color, avatarUrl })); } catch (e) { }
+      lsSet(SK_COL, name);
+    }
+    function renderAvatarEl(el, name, color, avatarUrl) {
+      if (!el) return;
+      el.style.background = color || '#888';
+      if (avatarUrl) {
+        el.innerHTML = `<img src="${escH(avatarUrl)}" onerror="this.parentNode.innerHTML='${initials(name)}';this.parentNode.style.background='${color || '#888'}'">`;
+      } else {
+        el.innerHTML = initials(name);
+      }
+    }
+    function renderMyAvatar() {
+      renderAvatarEl($('cp-my-avatar'), myName, myColor, myAvatarUrl);
+    }
+
+    /* ── Profile modal ── */
+    function openProfileModal() {
+      $('profile-name-input').value = myName;
+      $('profile-avatar-input').value = myAvatarUrl;
+      updateProfilePreview();
+      $('profile-backdrop').classList.add('vis');
+      setTimeout(() => { $('profile-name-input').focus(); }, 80);
+    }
+    function closeProfileModal() { $('profile-backdrop').classList.remove('vis'); }
+    function closeProfileOnBg(e) { if (e.target === $('profile-backdrop')) closeProfileModal(); }
+    function updateProfilePreview() {
+      const name = $('profile-name-input').value.trim() || 'Anônimo';
+      const url = $('profile-avatar-input').value.trim();
+      $('profile-name-display').textContent = name;
+      renderAvatarEl($('profile-avatar-big'), name, myColor, url);
+    }
+    $('profile-name-input').addEventListener('input', updateProfilePreview);
+    $('profile-avatar-input').addEventListener('input', updateProfilePreview);
+    function saveProfile() {
+      const name = $('profile-name-input').value.trim() || 'Anônimo';
+      const url = $('profile-avatar-input').value.trim();
+      saveProfileData(name, myColor, url);
+      renderMyAvatar();
+      // update presence in Firebase
+      if (fbRoom && myId) {
+        fbRoom.child('users/' + myId).update({ name, avatarUrl: url || '' }).catch(() => { });
+      }
+      closeProfileModal();
+      toast('✓ Perfil atualizado');
+    }
+
+    /* ── Firebase init ── */
     function initFirebase() {
       if (fbApp) return true;
-      if (!FB_READY) {
-        toast('⚠ Firebase não configurado. Veja o README.');
-        return false;
-      }
+      if (!FB_READY) { toast('⚠ Firebase não configurado. Veja o SETUP.md.'); return false; }
       try {
         fbApp = firebase.initializeApp(FIREBASE_CONFIG);
         fbDb = firebase.database();
         return true;
-      } catch (e) {
-        toast('⚠ Erro ao iniciar Firebase: ' + e.message);
-        return false;
-      }
+      } catch (e) { toast('⚠ Erro Firebase: ' + e.message); return false; }
     }
 
-    /* ── Modal open / close ── */
+    /* ── Collab modal ── */
     function openCollabModal() {
       if (roomCode) {
         switchCollabTab('create');
@@ -3929,8 +4279,8 @@
         $('cm-host-name').value = myName;
         renderModalParticipants();
       } else {
-        const sn = savedName();
-        if (sn) { $('cm-host-name').value = sn; $('cm-join-name').value = sn; }
+        $('cm-host-name').value = myName;
+        $('cm-join-name').value = myName;
         setTimeout(() => {
           const f = $('cm-join-body').style.display === 'flex' ? $('cm-join-name') : $('cm-host-name');
           f.focus(); f.select();
@@ -3938,54 +4288,35 @@
       }
       $('collab-backdrop').classList.add('vis');
     }
-
     function closeCollabModal() { $('collab-backdrop').classList.remove('vis'); }
     function closeCollabOnBg(e) { if (e.target === $('collab-backdrop')) closeCollabModal(); }
-
     document.addEventListener('keydown', e => {
       if (e.key !== 'Escape') return;
+      if ($('profile-backdrop').classList.contains('vis')) { closeProfileModal(); return; }
       if ($('collab-backdrop').classList.contains('vis')) { closeCollabModal(); return; }
       if (chatOpen) toggleChat();
     });
-
     function switchCollabTab(tab) {
       $('cm-tab-create').classList.toggle('on', tab === 'create');
       $('cm-tab-join').classList.toggle('on', tab === 'join');
       $('cm-create-body').style.display = tab === 'create' ? 'flex' : 'none';
       $('cm-join-body').style.display = tab === 'join' ? 'flex' : 'none';
-      setTimeout(() => {
-        const f = tab === 'create' ? $('cm-host-name') : $('cm-join-name');
-        if (f && !f.value) f.focus();
-      }, 60);
+      setTimeout(() => { const f = tab === 'create' ? $('cm-host-name') : $('cm-join-name'); if (f && !f.value) f.focus(); }, 60);
     }
 
     /* ── Create session ── */
     function hostSession() {
       if (!initFirebase()) return;
-      myName = $('cm-host-name').value.trim() || 'Anônimo';
-      lsSet(SK_COLLABNAME, myName);
-      myColor = colorForIdx(0);
-      myId = genUserId();
-      roomCode = genCode();
-
+      const nameInput = $('cm-host-name').value.trim();
+      if (nameInput) saveProfileData(nameInput, myColor, myAvatarUrl);
+      myId = genUserId(); roomCode = genCode();
       const btn = $('cm-create-btn');
       btn.disabled = true;
       btn.innerHTML = '<span class="cm-spinner"></span> Criando sessão...';
-
       fbRoom = fbDb.ref('rooms/' + roomCode);
-
-      // Write initial room doc (only if it doesn't exist yet)
       fbRoom.once('value').then(snap => {
-        if (snap.exists()) {
-          // Code collision — retry
-          roomCode = genCode();
-          fbRoom = fbDb.ref('rooms/' + roomCode);
-        }
-        return fbRoom.set({
-          doc: editor.value,
-          createdAt: firebase.database.ServerValue.TIMESTAMP,
-          hostId: myId,
-        });
+        if (snap.exists()) { roomCode = genCode(); fbRoom = fbDb.ref('rooms/' + roomCode); }
+        return fbRoom.set({ doc: editor.value, createdAt: firebase.database.ServerValue.TIMESTAMP, hostId: myId });
       }).then(() => {
         joinRoom();
         $('cm-create-step1').style.display = 'none';
@@ -3999,113 +4330,76 @@
       }).catch(err => {
         btn.disabled = false;
         btn.innerHTML = '<svg viewBox="0 0 14 14" fill="currentColor" width="13" height="13"><path d="M7 1v12M1 7h12"/></svg> Criar sessão';
-        toast('❌ Erro ao criar sessão: ' + err.message);
-        roomCode = '';
+        toast('❌ Erro ao criar: ' + err.message); roomCode = '';
       });
     }
 
     /* ── Join session ── */
     function joinSession() {
       if (!initFirebase()) return;
-      myName = $('cm-join-name').value.trim() || 'Anônimo';
-      lsSet(SK_COLLABNAME, myName);
+      const nameInput = $('cm-join-name').value.trim();
+      if (nameInput) saveProfileData(nameInput, myColor, myAvatarUrl);
       const code = $('cm-join-code').value.trim().toUpperCase().replace(/[^A-Z0-9]/g, '');
       if (code.length !== 6) { showJoinStatus('Digite o código de 6 caracteres.', 'err'); return; }
-
-      myColor = colorForIdx(Math.floor(Math.random() * PEER_COLORS.length));
-      myId = genUserId();
-      roomCode = code;
-
+      myId = genUserId(); roomCode = code;
       const btn = $('cm-join-btn');
-      btn.disabled = true;
-      btn.innerHTML = '<span class="cm-spinner"></span> Conectando...';
+      btn.disabled = true; btn.innerHTML = '<span class="cm-spinner"></span> Conectando...';
       showJoinStatus('Verificando sessão ' + code + '...', 'info');
-
       fbRoom = fbDb.ref('rooms/' + code);
       fbRoom.once('value').then(snap => {
         if (!snap.exists()) {
           roomCode = '';
-          showJoinStatus('❌ Sessão "' + code + '" não encontrada. Verifique o código.', 'err');
-          btn.disabled = false;
-          btn.innerHTML = 'Entrar na sessão →';
-          return;
+          showJoinStatus('❌ Sessão "' + code + '" não encontrada.', 'err');
+          btn.disabled = false; btn.innerHTML = 'Entrar na sessão →'; return;
         }
-        // Sync doc
         const data = snap.val();
         if (data.doc !== undefined) applyRemoteContent(data.doc);
         showJoinStatus('✓ Conectado com sucesso!', 'ok');
-
-        joinRoom();
-        activateSession();
-
+        joinRoom(); activateSession();
         setTimeout(() => {
           closeCollabModal();
           addSysMsg('✓ Você entrou na sessão');
           toast('✓ Conectado! Abrindo chat...');
           setTimeout(toggleChat, 300);
         }, 700);
-
-        btn.disabled = false;
-        btn.innerHTML = 'Entrar na sessão →';
-
+        btn.disabled = false; btn.innerHTML = 'Entrar na sessão →';
       }).catch(err => {
-        roomCode = '';
-        showJoinStatus('❌ Erro de conexão: ' + err.message, 'err');
-        btn.disabled = false;
-        btn.innerHTML = 'Entrar na sessão →';
+        roomCode = ''; showJoinStatus('❌ ' + err.message, 'err');
+        btn.disabled = false; btn.innerHTML = 'Entrar na sessão →';
       });
     }
 
-    /* ── Join room: write presence + attach all listeners ── */
+    /* ── Join room listeners ── */
     function joinRoom() {
       const userRef = fbRoom.child('users/' + myId);
-
-      // Write my presence
-      userRef.set({ name: myName, color: myColor, joinedAt: firebase.database.ServerValue.TIMESTAMP });
-
-      // Remove presence on disconnect
+      userRef.set({ name: myName, color: myColor, avatarUrl: myAvatarUrl || '', joinedAt: firebase.database.ServerValue.TIMESTAMP });
+      // Server-side safety: remove presence if connection drops
       userRef.onDisconnect().remove();
 
-      // ── Listen: doc changes ──
+      // doc
       const docRef = fbRoom.child('doc');
-      const docOff = docRef.on('value', snap => {
-        const val = snap.val();
-        if (val !== null && val !== editor.value) applyRemoteContent(val);
-      });
+      const docOff = docRef.on('value', snap => { const v = snap.val(); if (v !== null && v !== editor.value) applyRemoteContent(v); });
       listeners.push(() => docRef.off('value', docOff));
 
-      // ── Listen: presence (users) ──
+      // users — also auto-delete room when it empties
       const usersRef = fbRoom.child('users');
       const usersOff = usersRef.on('value', snap => {
-        const users = snap.val() || {};
-        // Build local peerUsers map
-        window._peerUsers = {};
-        Object.entries(users).forEach(([id, u]) => {
-          window._peerUsers[id] = u;
-        });
-        renderPresence();
-        renderModalParticipants();
-        updateCollabBtnCount();
+        window._peerUsers = snap.val() || {};
+        renderPresence(); renderModalParticipants(); updateCollabBtnCount();
+        // If users node is gone and we're still holding fbRoom, delete the whole room
+        if (!snap.exists() && fbRoom) {
+          fbRoom.remove().catch(() => { });
+          fbRoom = null;
+        }
       });
       listeners.push(() => usersRef.off('value', usersOff));
 
-      // ── Listen: new chat messages ──
+      // chat
       const chatRef = fbRoom.child('chat');
       let firstLoad = true;
-      const chatOff = chatRef.on('child_added', snap => {
-        if (firstLoad) return; // skip historical messages on join
-        const msg = snap.val();
-        if (msg) appendChatMsg(msg);
-      });
-      // Mark first load done after initial read
+      const chatOff = chatRef.on('child_added', snap => { if (!firstLoad && snap.val()) appendChatMsg(snap.val()); });
       chatRef.once('value', () => { firstLoad = false; });
       listeners.push(() => chatRef.off('child_added', chatOff));
-
-      // ── Listen: room deleted (host left) ──
-      const rootOff = fbRoom.child('doc').on('value', snap => {
-        if (!snap.exists() && roomCode) onRoomGone();
-      });
-      listeners.push(() => fbRoom.child('doc').off('value', rootOff));
     }
 
     function showJoinStatus(msg, type) {
@@ -4114,15 +4408,12 @@
       el.className = 'cm-status vis' + (type === 'err' ? ' cm-err' : type === 'ok' ? ' cm-ok' : '');
     }
 
-    /* ── Broadcast doc changes ── */
+    /* ── Doc sync ── */
     editor.addEventListener('input', () => {
       if (applyingRemote || !fbRoom) return;
       clearTimeout(writeDocTimer);
-      writeDocTimer = setTimeout(() => {
-        fbRoom.child('doc').set(editor.value).catch(() => { });
-      }, 250);
+      writeDocTimer = setTimeout(() => { fbRoom.child('doc').set(editor.value).catch(() => { }); }, 250);
     });
-
     function applyRemoteContent(content) {
       if (content === editor.value) return;
       applyingRemote = true;
@@ -4133,26 +4424,22 @@
       applyingRemote = false;
     }
 
-    /* ── Leave session ── */
-    function leaveSession() {
+    /* ── Leave ── */
+    function leaveSession(silent) {
       if (!roomCode) return;
-
-      // Detach all listeners
       listeners.forEach(off => { try { off(); } catch (e) { } });
       listeners = [];
-
-      // Remove own presence
       if (fbRoom) {
-        fbRoom.child('users/' + myId).remove().catch(() => { });
-        fbRoom = null;
+        const ref = fbRoom;
+        // Remove own presence, then delete room if empty
+        ref.child('users/' + myId).remove().then(() => {
+          ref.child('users').once('value').then(snap => {
+            if (!snap.exists()) ref.remove().catch(() => { });
+          }).catch(() => { });
+        }).catch(() => { });
       }
-
-      // Reset state
-      roomCode = ''; myId = ''; window._peerUsers = {};
-      lastChatSenderId = null;
-      clearTimeout(writeDocTimer);
-
-      // UI reset
+      fbRoom = null; roomCode = ''; myId = ''; window._peerUsers = {};
+      lastChatSenderId = null; clearTimeout(writeDocTimer);
       $('collab-btn').classList.remove('active');
       $('presence-bar').classList.remove('active');
       $('chat-toggle-btn').classList.remove('vis', 'on');
@@ -4160,55 +4447,82 @@
       $('presence-list').innerHTML = '';
       $('chat-messages').innerHTML = '';
       chatOpen = false; unreadChat = 0;
-      updateChatBadge();
-      updateCollabBtnCount();
-      closeCollabModal();
-
-      // Reset create modal
+      updateChatBadge(); updateCollabBtnCount(); closeCollabModal();
       $('cm-create-step1').style.display = 'block';
       $('cm-create-step2').style.display = 'none';
       $('cm-create-btn').disabled = false;
       $('cm-create-btn').innerHTML = '<svg viewBox="0 0 14 14" fill="currentColor" width="13" height="13"><path d="M7 1v12M1 7h12"/></svg> Criar sessão';
       $('cm-join-status').className = 'cm-status';
       $('cm-join-code').value = '';
-
-      toast('Você saiu da sessão.');
+      if (!silent) toast('Você saiu da sessão.');
     }
+
+    /* ── Cleanup on page unload / reload ── */
+    function _unloadCleanup() {
+      if (!fbDb || !myId || !roomCode) return;
+      // navigator.sendBeacon can't hit Firebase REST easily,
+      // so we use the Firebase REST DELETE via fetch keepalive
+      const base = FIREBASE_CONFIG.databaseURL;
+      const key = FIREBASE_CONFIG.apiKey;
+      // 1. Remove own presence
+      fetch(`${base}/rooms/${roomCode}/users/${myId}.json?auth=${key}`, {
+        method: 'DELETE', keepalive: true
+      }).then(() => {
+        // 2. Check if room is now empty and delete it
+        fetch(`${base}/rooms/${roomCode}/users.json?auth=${key}`)
+          .then(r => r.json())
+          .then(data => {
+            if (!data) {
+              fetch(`${base}/rooms/${roomCode}.json?auth=${key}`, {
+                method: 'DELETE', keepalive: true
+              });
+            }
+          }).catch(() => { });
+      }).catch(() => { });
+    }
+
+    window.addEventListener('beforeunload', _unloadCleanup);
+    // Also catch tab hidden → closed (mobile, some browsers)
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'hidden') _unloadCleanup();
+    });
 
     function onRoomGone() {
       if (!roomCode) return;
       addSysMsg('⚠ A sessão foi encerrada.');
-      toast('⚠ Sessão encerrada.');
-      setTimeout(leaveSession, 1200);
+      toast('⚠ Sessão encerrada.'); setTimeout(leaveSession, 1200);
     }
 
     /* ── Presence UI ── */
     function getPeerUsers() { return window._peerUsers || {}; }
-
     function renderPresence() {
-      const list = $('presence-list');
-      list.innerHTML = '';
+      const list = $('presence-list'); list.innerHTML = '';
       Object.entries(getPeerUsers()).forEach(([id, u]) => {
         const chip = document.createElement('div');
         chip.className = 'presence-chip' + (id === myId ? ' presence-me' : '');
-        chip.innerHTML = `<div class="presence-avatar" style="background:${u.color}">${initials(u.name)}</div><span>${escH(u.name)}${id === myId ? ' (você)' : ''}</span>`;
+        const av = document.createElement('div');
+        av.className = 'presence-avatar';
+        renderAvatarEl(av, u.name, u.color, u.avatarUrl);
+        chip.appendChild(av);
+        const sp = document.createElement('span');
+        sp.textContent = u.name + (id === myId ? ' (você)' : '');
+        chip.appendChild(sp);
         list.appendChild(chip);
       });
     }
-
     function renderModalParticipants() {
-      const list = $('cm-participants-list');
-      if (!list) return;
+      const list = $('cm-participants-list'); if (!list) return;
       list.innerHTML = '';
       const users = Object.entries(getPeerUsers());
       if (!users.length) return;
       users.forEach(([id, u]) => {
         const row = document.createElement('div');
         row.className = 'cm-peer-row';
-        row.innerHTML = `
-          <div class="cm-peer-avatar" style="background:${u.color}">${initials(u.name)}</div>
-          <span class="cm-peer-name">${escH(u.name)}</span>
-          ${id === myId ? '<span class="cm-peer-you">você</span>' : ''}`;
+        const av = document.createElement('div');
+        av.className = 'cm-peer-avatar';
+        renderAvatarEl(av, u.name, u.color, u.avatarUrl);
+        row.appendChild(av);
+        row.innerHTML += `<span class="cm-peer-name">${escH(u.name)}</span>${id === myId ? '<span class="cm-peer-you">você</span>' : ''}`;
         list.appendChild(row);
       });
       if (users.length === 1) {
@@ -4218,13 +4532,10 @@
         list.appendChild(wait);
       }
     }
-
     function updateCollabBtnCount() {
       const n = Object.keys(getPeerUsers()).length;
       $('collab-btn').querySelector('.lbl').textContent = n > 0 ? 'Colaborar (' + n + ')' : 'Colaborar';
     }
-
-    /* ── Session activation ── */
     function activateSession() {
       window._peerUsers = window._peerUsers || {};
       $('collab-btn').classList.add('active');
@@ -4232,99 +4543,218 @@
       $('chat-toggle-btn').classList.add('vis');
       $('chat-panel').classList.add('pb-active');
       $('pb-room-code').textContent = roomCode;
+      renderMyAvatar();
       renderPresence();
       renderChatEmpty();
     }
 
-    /* ── Chat ── */
-    function toggleChat() {
-      chatOpen = !chatOpen;
-      $('chat-panel').classList.toggle('open', chatOpen);
-      $('chat-toggle-btn').classList.toggle('on', chatOpen);
-      if (chatOpen) {
-        unreadChat = 0; updateChatBadge();
-        setTimeout(() => {
-          const m = $('chat-messages');
-          m.scrollTop = m.scrollHeight;
-          $('chat-input').focus();
-        }, 50);
-      }
-    }
-
+    /* ── Chat send (text) ── */
     function sendChat() {
       const input = $('chat-input');
       const text = input.value.trim();
-      if (!text || !fbRoom) return;
-      input.value = '';
-      autoResizeChatInput();
-      fbRoom.child('chat').push({
-        text, userId: myId, userName: myName,
-        userColor: myColor, ts: firebase.database.ServerValue.TIMESTAMP
-      }).catch(() => { });
-      // No local append — the child_added listener handles all messages
+      const hasImg = pendingImgFile !== null;
+      if (!text && !hasImg) return;
+      if (!fbRoom) return;
+      if (hasImg) { sendImgMessage(pendingImgFile, text); input.value = ''; clearImgPreview(); autoResizeChatInput(); return; }
+      input.value = ''; autoResizeChatInput();
+      fbRoom.child('chat').push({ text, userId: myId, userName: myName, userColor: myColor, avatarUrl: myAvatarUrl || '', ts: firebase.database.ServerValue.TIMESTAMP }).catch(() => { });
     }
 
-    $('chat-input').addEventListener('keydown', e => {
-      if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendChat(); }
-    });
-    $('chat-input').addEventListener('input', autoResizeChatInput);
+    /* ── Image compression → base64 → RTDB ── */
+    function compressImage(file) {
+      return new Promise((resolve, reject) => {
+        const img = new Image();
+        const url = URL.createObjectURL(file);
+        img.onload = () => {
+          URL.revokeObjectURL(url);
+          let { width: w, height: h } = img;
+          // Scale down if needed
+          if (w > IMG_MAX_PX || h > IMG_MAX_PX) {
+            if (w >= h) { h = Math.round(h * IMG_MAX_PX / w); w = IMG_MAX_PX; }
+            else { w = Math.round(w * IMG_MAX_PX / h); h = IMG_MAX_PX; }
+          }
+          const canvas = document.createElement('canvas');
+          canvas.width = w; canvas.height = h;
+          canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+          // Try JPEG first; PNG fallback for transparency
+          const mime = file.type === 'image/png' ? 'image/png' : 'image/jpeg';
+          const q = mime === 'image/jpeg' ? IMG_QUALITY : undefined;
+          const b64 = canvas.toDataURL(mime, q);
+          if (b64.length > IMG_MAX_B64) {
+            // Second pass: lower quality
+            const b64b = canvas.toDataURL('image/jpeg', 0.45);
+            if (b64b.length > IMG_MAX_B64) { reject(new Error('Imagem muito grande após compressão (máx ~300 KB).')); return; }
+            resolve(b64b);
+          } else { resolve(b64); }
+        };
+        img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('Não foi possível ler a imagem.')); };
+        img.src = url;
+      });
+    }
 
+    function sendImgMessage(file, caption) {
+      if (!fbRoom) return;
+      toast('⏳ Comprimindo imagem...');
+      compressImage(file).then(b64 => {
+        fbRoom.child('chat').push({
+          type: 'image', imageData: b64,
+          caption: caption || '',
+          userId: myId, userName: myName,
+          userColor: myColor, avatarUrl: myAvatarUrl || '',
+          ts: firebase.database.ServerValue.TIMESTAMP
+        }).catch(() => { });
+      }).catch(err => toast('❌ ' + err.message));
+    }
+
+    $('chat-file-input').addEventListener('change', e => {
+      const file = e.target.files[0]; if (!file) return;
+      if (!file.type.startsWith('image/')) { toast('Só imagens são suportadas.'); return; }
+      setPendingImg(file); e.target.value = '';
+    });
+
+    // Paste image from clipboard
+    document.addEventListener('paste', e => {
+      if (!chatOpen) return;
+      const items = e.clipboardData?.items;
+      if (!items) return;
+      for (const item of items) {
+        if (item.type.startsWith('image/')) {
+          e.preventDefault();
+          const file = item.getAsFile();
+          if (file) setPendingImg(file);
+          break;
+        }
+      }
+    });
+
+    function setPendingImg(file) {
+      pendingImgFile = file;
+      const reader = new FileReader();
+      reader.onload = ev => {
+        $('chat-img-preview-img').src = ev.target.result;
+        $('chat-img-preview').classList.add('vis');
+        $('chat-input').focus();
+      };
+      reader.readAsDataURL(file);
+    }
+    function clearImgPreview() {
+      pendingImgFile = null;
+      $('chat-img-preview').classList.remove('vis');
+      $('chat-img-preview-img').src = '';
+    }
+
+    /* ── Emoji picker ── */
+    let emojiPickerOpen = false;
+    function toggleEmojiPicker() {
+      emojiPickerOpen = !emojiPickerOpen;
+      $('emoji-picker-wrap').classList.toggle('open', emojiPickerOpen);
+      $('emoji-btn').classList.toggle('on', emojiPickerOpen);
+    }
+    // Wire up emoji selection once the element upgrades
+    document.addEventListener('emoji-click', e => {
+      const emoji = e.detail?.unicode;
+      if (!emoji) return;
+      const ta = $('chat-input');
+      const pos = ta.selectionStart || ta.value.length;
+      ta.value = ta.value.slice(0, pos) + emoji + ta.value.slice(pos);
+      ta.selectionStart = ta.selectionEnd = pos + emoji.length;
+      ta.focus(); autoResizeChatInput();
+      emojiPickerOpen = false;
+      $('emoji-picker-wrap').classList.remove('open');
+      $('emoji-btn').classList.remove('on');
+    });
+    // Close on outside click
+    document.addEventListener('click', e => {
+      if (emojiPickerOpen && !$('emoji-picker-wrap').contains(e.target) && e.target !== $('emoji-btn')) {
+        emojiPickerOpen = false;
+        $('emoji-picker-wrap').classList.remove('open');
+        $('emoji-btn').classList.remove('on');
+      }
+    });
+
+    $('chat-input').addEventListener('keydown', e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendChat(); } });
+    $('chat-input').addEventListener('input', autoResizeChatInput);
     function autoResizeChatInput() {
       const el = $('chat-input');
       el.style.height = 'auto';
       el.style.height = Math.min(el.scrollHeight, 88) + 'px';
     }
 
+    /* ── Append message ── */
     function appendChatMsg(msg) {
       const m = $('chat-messages');
-      const empty = m.querySelector('.chat-empty');
-      if (empty) empty.remove();
+      const empty = m.querySelector('.chat-empty'); if (empty) empty.remove();
       const isMine = msg.userId === myId;
       const grouped = lastChatSenderId === msg.userId;
       lastChatSenderId = msg.userId;
       const time = new Date(msg.ts).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
       const div = document.createElement('div');
       div.className = 'chat-msg' + (isMine ? ' mine' : '') + (grouped ? ' grouped' : '');
-      div.innerHTML = grouped
-        ? `<div class="chat-msg-text">${escH(msg.text)}</div>`
-        : `<div class="chat-msg-meta">
-             <div class="chat-msg-avatar" style="background:${msg.userColor}">${initials(msg.userName)}</div>
-             <span class="chat-msg-name">${escH(msg.userName)}</span>
-             <span class="chat-msg-time">${time}</span>
-           </div>
-           <div class="chat-msg-text">${escH(msg.text)}</div>`;
+      const metaHtml = grouped ? '' :
+        `<div class="chat-msg-meta">
+           <div class="chat-msg-avatar" style="background:${escH(msg.userColor || '#888')}">${buildAvatarInner(msg)}</div>
+           <span class="chat-msg-name">${escH(msg.userName)}</span>
+           <span class="chat-msg-time">${time}</span>
+         </div>`;
+      if (msg.type === 'image' && msg.imageData) {
+        const capHtml = msg.caption
+          ? `<div style="font-size:var(--fs-xs);color:var(--tx2);padding:4px 4px 0">${escH(msg.caption)}</div>` : '';
+        div.innerHTML = metaHtml +
+          `<div class="chat-msg-img-wrap">
+             <img class="chat-msg-img" src="${escH(msg.imageData)}" alt="imagem"
+               onclick="openLightbox(this.src)" loading="lazy">${capHtml}
+           </div>`;
+      } else {
+        div.innerHTML = metaHtml +
+          `<div class="chat-msg-text">${escH(msg.text || '')}</div>`;
+      }
       m.appendChild(div);
       m.scrollTop = m.scrollHeight;
       if (!chatOpen && !isMine) { unreadChat++; updateChatBadge(); }
     }
 
-    function addSysMsg(text) {
-      const m = $('chat-messages');
-      const empty = m.querySelector('.chat-empty');
-      if (empty) empty.remove();
-      const div = document.createElement('div');
-      div.className = 'chat-sys-msg';
-      div.textContent = text;
-      m.appendChild(div);
-      m.scrollTop = m.scrollHeight;
-      lastChatSenderId = null;
+    function buildAvatarInner(msg) {
+      if (msg.avatarUrl) return `<img src="${escH(msg.avatarUrl)}" onerror="this.parentNode.innerHTML='${initials(msg.userName)}';this.parentNode.style.background='${msg.userColor || '#888'}'">`;
+      return initials(msg.userName || '?');
     }
 
+    function addSysMsg(text) {
+      const m = $('chat-messages');
+      const empty = m.querySelector('.chat-empty'); if (empty) empty.remove();
+      const div = document.createElement('div');
+      div.className = 'chat-sys-msg'; div.textContent = text;
+      m.appendChild(div); m.scrollTop = m.scrollHeight;
+      lastChatSenderId = null;
+    }
     function renderChatEmpty() {
       const m = $('chat-messages');
       if (!m.children.length) {
         const div = document.createElement('div');
         div.className = 'chat-empty';
-        div.innerHTML = `<div style="font-size:22px;margin-bottom:8px">💬</div><div>Nenhuma mensagem ainda.<br>Diga oi para a equipe!</div>`;
+        div.innerHTML = '<div style="font-size:22px;margin-bottom:8px">💬</div><div>Nenhuma mensagem ainda.<br>Diga oi para a equipe!</div>';
         m.appendChild(div);
       }
     }
-
     function updateChatBadge() {
       const b = $('chat-badge');
       b.textContent = unreadChat > 9 ? '9+' : unreadChat;
       b.classList.toggle('vis', unreadChat > 0);
     }
+
+    /* ── Chat panel toggle ── */
+    function toggleChat() {
+      chatOpen = !chatOpen;
+      $('chat-panel').classList.toggle('open', chatOpen);
+      $('chat-toggle-btn').classList.toggle('on', chatOpen);
+      if (chatOpen) {
+        unreadChat = 0; updateChatBadge();
+        setTimeout(() => { const m = $('chat-messages'); m.scrollTop = m.scrollHeight; $('chat-input').focus(); }, 50);
+      }
+    }
+
+    /* ── Lightbox ── */
+    function openLightbox(url) { $('img-lightbox-img').src = url; $('img-lightbox').classList.add('vis'); }
+    function closeLightbox() { $('img-lightbox').classList.remove('vis'); }
 
     /* ── Code input QoL ── */
     $('cm-join-code').addEventListener('input', function () {
@@ -4332,7 +4762,6 @@
       this.value = v;
       if (v.length === 6 && $('cm-join-name').value.trim()) setTimeout(joinSession, 280);
     });
-
     $('cm-host-name').addEventListener('keydown', e => { if (e.key === 'Enter') hostSession(); });
     $('cm-join-name').addEventListener('keydown', e => { if (e.key === 'Enter') $('cm-join-code').focus(); });
     $('cm-join-code').addEventListener('keydown', e => { if (e.key === 'Enter') joinSession(); });
@@ -4341,11 +4770,12 @@
       if (!roomCode) return;
       navigator.clipboard.writeText(roomCode).then(() => toast('✓ Código ' + roomCode + ' copiado!'));
     }
-
     function showToastErr(msg) { toast(msg); }
 
+    /* ── Check if config was actually injected ── */
     /* ════ INIT ════ */
     (function init() {
+      loadProfile();
       applyTheme(lsGet(SK.theme, 'dark') === 'dark');
       applyAcc1(lsGet(SK.acc1, '#e8a020'));
       applyAcc2(lsGet(SK.acc2, '#2fa88a'));
