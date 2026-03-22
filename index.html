@@ -1780,7 +1780,7 @@
     #tour-card {
       position: fixed;
       z-index: 9020;
-      width: min(370px, 90vw);
+      width: clamp(300px, 28vw, 400px);
       background: var(--s1);
       border: 1px solid var(--bd);
       border-radius: 10px;
@@ -1792,7 +1792,7 @@
         left .38s cubic-bezier(.4, 0, .2, 1),
         opacity .2s ease;
       opacity: 0;
-      max-height: calc(100dvh - 24px);
+      max-height: calc(100dvh - 32px);
       overflow-y: auto;
     }
 
@@ -1805,9 +1805,10 @@
       #tour-card {
         width: calc(100vw - 24px) !important;
         left: 12px !important;
-        max-height: 55vh;
+        max-height: 56vh;
         overflow-y: auto;
         -webkit-overflow-scrolling: touch;
+        border-radius: 12px;
       }
     }
 
@@ -1948,6 +1949,17 @@
       display: grid;
       grid-template-columns: 1fr 1fr;
       border-top: 1px solid var(--bd)
+    }
+
+    @media (max-width: 500px) {
+      .tc-split {
+        grid-template-columns: 1fr;
+      }
+
+      .tc-sp:first-child {
+        border-right: none;
+        border-bottom: 1px solid var(--bd);
+      }
     }
 
     .tc-sp {
@@ -4661,26 +4673,33 @@
 
     function placeCard(r, pad) {
       const c = card;
-      const cw = Math.min(isMobile() ? window.innerWidth - 24 : 370, window.innerWidth * 0.9);
-      const ch = c.offsetHeight || 280;
+      const mob = isMobile();
+      // Card width: fluid between 300–400px on desktop, full-bleed on mobile
+      const cw = mob
+        ? window.innerWidth - 24
+        : Math.min(Math.max(300, window.innerWidth * 0.26), 400);
       const vw = window.innerWidth, vh = window.innerHeight, mg = 12;
       c.style.width = cw + 'px';
+      // Re-measure height after width is set
+      const ch = Math.min(c.offsetHeight || 300, vh - mg * 2);
+      c.style.maxHeight = (vh - mg * 2) + 'px';
 
       let top, left;
       const below = vh - (r.bottom + pad + mg);
       const above = r.top - pad - mg;
 
-      if (isMobile()) {
-        // On mobile: always anchor to bottom of screen
+      if (mob) {
         left = 12;
-        top = Math.min(vh - ch - mg, Math.max(mg, r.bottom + pad + mg));
-        // If not enough space below, put above the element
-        if (below < ch + 8 && above >= ch + 8) {
+        if (below >= ch + 8) {
+          top = r.bottom + pad + mg;
+        } else if (above >= ch + 8) {
           top = r.top - pad - mg - ch;
-        } else if (below < ch + 8 && above < ch + 8) {
-          // Center it vertically
-          top = Math.max(mg, (vh - ch) / 2);
+        } else {
+          // Not enough room either side — anchor near bottom of viewport
+          top = Math.max(mg, vh - ch - mg - 16);
         }
+        // Always keep on screen
+        top = Math.max(mg, Math.min(top, vh - ch - mg));
       } else {
         if (below >= ch + 8) {
           top = r.bottom + pad + mg;
@@ -4690,14 +4709,21 @@
           left = Math.max(mg, Math.min(r.left, vw - cw - mg));
         } else {
           const spaceRight = vw - (r.right + pad + mg);
+          const spaceLeft = r.left - pad - mg;
           if (spaceRight >= cw + 8) {
             left = r.right + pad + mg;
+            top = Math.max(mg, Math.min(r.top, vh - ch - mg));
+          } else if (spaceLeft >= cw + 8) {
+            left = r.left - pad - mg - cw;
             top = Math.max(mg, Math.min(r.top, vh - ch - mg));
           } else {
             left = Math.max(mg, vw / 2 - cw / 2);
             top = Math.max(mg, Math.min(r.bottom + pad + mg, vh - ch - mg));
           }
         }
+        // Clamp to viewport edges
+        top = Math.max(mg, Math.min(top, vh - ch - mg));
+        left = Math.max(mg, Math.min(left, vw - cw - mg));
       }
 
       c.style.top = top + 'px';
@@ -5417,6 +5443,10 @@
         const el = $('chat-messages');
         el.scrollTop = el.scrollHeight;
         if (!msgs.length) renderChatEmpty(channel);
+        // Clear unread now that history is visible
+        chUnread[channel] = 0;
+        renderChannelBadge(channel);
+        updateTotalBadge();
       });
     }
 
@@ -5487,13 +5517,20 @@
 
     function updateTotalBadge() {
       const total = Object.values(chUnread).reduce((a, b) => a + b, 0);
+      const hasDm = Object.keys(chUnread).some(k => k.startsWith('dm:') && chUnread[k] > 0);
+      const hasSess = (chUnread['session'] || 0) > 0;
       unreadChat = total;
       const b = $('chat-badge');
       b.textContent = total > 9 ? '9+' : total;
       b.classList.toggle('vis', total > 0);
-      document.title = total > 0
-        ? `(${total}) 🔴 Markdowner | MD Editor & Viewer`
-        : 'Markdowner | MD Editor & Viewer';
+      // Title: 🟢 DM-only, 🔴 session (or both)
+      if (total === 0) {
+        document.title = 'Markdowner | MD Editor & Viewer';
+      } else if (hasDm && !hasSess) {
+        document.title = `(${total}) 🟢 Markdowner | MD Editor & Viewer`;
+      } else {
+        document.title = `(${total}) 🔴 Markdowner | MD Editor & Viewer`;
+      }
     }
 
     /* ── Chat panel toggle ── */
