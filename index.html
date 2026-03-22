@@ -2968,26 +2968,95 @@
     }
 
     /* ── Lightbox for images ── */
+    /* ── Lightbox ── */
     #img-lightbox {
       display: none;
       position: fixed;
       inset: 0;
-      background: rgba(0, 0, 0, .85);
+      background: rgba(0, 0, 0, .92);
       z-index: 10000;
+      flex-direction: column;
       align-items: center;
       justify-content: center;
-      cursor: zoom-out;
+      user-select: none;
     }
 
     #img-lightbox.vis {
       display: flex;
     }
 
-    #img-lightbox img {
+    #lb-toolbar {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 6px;
+      padding: 12px 14px;
+      background: linear-gradient(to bottom, rgba(0, 0, 0, .55), transparent);
+      z-index: 2;
+    }
+
+    .lb-btn {
+      width: 36px;
+      height: 36px;
+      background: rgba(255, 255, 255, .12);
+      border: 1px solid rgba(255, 255, 255, .18);
+      border-radius: 8px;
+      color: #fff;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      transition: background .15s;
+      flex-shrink: 0;
+    }
+
+    .lb-btn:hover {
+      background: rgba(255, 255, 255, .24);
+    }
+
+    .lb-btn svg {
+      width: 15px;
+      height: 15px;
+    }
+
+    #lb-zoom-level {
+      font-family: var(--fm);
+      font-size: 11px;
+      color: rgba(255, 255, 255, .7);
+      min-width: 36px;
+      text-align: center;
+      letter-spacing: .04em;
+    }
+
+    #lb-img-wrap {
+      flex: 1;
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      cursor: grab;
+      position: relative;
+    }
+
+    #lb-img-wrap.grabbing {
+      cursor: grabbing;
+    }
+
+    #lb-img-wrap img {
       max-width: 92vw;
-      max-height: 88vh;
+      max-height: 85vh;
       border-radius: 6px;
       box-shadow: 0 8px 48px rgba(0, 0, 0, .6);
+      transform-origin: center center;
+      transition: transform .12s ease;
+      pointer-events: none;
+      display: block;
     }
 
     /* ── Profile modal ── */
@@ -3544,8 +3613,42 @@
   </div>
 
   <!-- IMAGE LIGHTBOX -->
-  <div id="img-lightbox" onclick="closeLightbox()">
-    <img id="img-lightbox-img" src="" alt="">
+  <div id="img-lightbox">
+    <div id="lb-toolbar">
+      <span id="lb-zoom-level">100%</span>
+      <button class="lb-btn" onclick="lbZoom(-0.25)" title="Diminuir zoom">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round">
+          <circle cx="7" cy="7" r="5" />
+          <path d="M11 11l3 3M5 7h4" />
+        </svg>
+      </button>
+      <button class="lb-btn" onclick="lbZoom(0.25)" title="Aumentar zoom">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round">
+          <circle cx="7" cy="7" r="5" />
+          <path d="M11 11l3 3M7 5v4M5 7h4" />
+        </svg>
+      </button>
+      <button class="lb-btn" onclick="lbResetZoom()" title="Zoom original">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"
+          stroke-linejoin="round">
+          <path d="M3 8a5 5 0 105-5H5M5 1v3h3" />
+        </svg>
+      </button>
+      <button class="lb-btn" onclick="lbDownload()" title="Baixar imagem">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"
+          stroke-linejoin="round">
+          <path d="M8 2v8M5 7l3 3 3-3M3 13h10" />
+        </svg>
+      </button>
+      <button class="lb-btn" onclick="closeLightbox()" title="Fechar (Esc)">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
+          <path d="M3 3l10 10M13 3L3 13" />
+        </svg>
+      </button>
+    </div>
+    <div id="lb-img-wrap">
+      <img id="img-lightbox-img" src="" alt="imagem">
+    </div>
   </div>
 
   <!-- PROFILE MODAL -->
@@ -4773,8 +4876,78 @@
     }
 
     /* ── Lightbox ── */
-    function openLightbox(url) { $('img-lightbox-img').src = url; $('img-lightbox').classList.add('vis'); }
-    function closeLightbox() { $('img-lightbox').classList.remove('vis'); }
+    let lbScale = 1, lbMin = 0.2, lbMax = 5;
+    let lbPan = { x: 0, y: 0 }, lbDrag = { active: false, sx: 0, sy: 0, ox: 0, oy: 0 };
+
+    function openLightbox(url) {
+      $('img-lightbox-img').src = url;
+      lbScale = 1; lbPan = { x: 0, y: 0 };
+      lbApplyTransform();
+      $('img-lightbox').classList.add('vis');
+    }
+    function closeLightbox() {
+      $('img-lightbox').classList.remove('vis');
+      $('img-lightbox-img').src = '';
+    }
+    function lbApplyTransform() {
+      $('img-lightbox-img').style.transform =
+        `translate(${lbPan.x}px, ${lbPan.y}px) scale(${lbScale})`;
+      $('lb-zoom-level').textContent = Math.round(lbScale * 100) + '%';
+    }
+    function lbZoom(delta) {
+      lbScale = Math.min(lbMax, Math.max(lbMin, lbScale + delta));
+      lbApplyTransform();
+    }
+    function lbResetZoom() {
+      lbScale = 1; lbPan = { x: 0, y: 0 }; lbApplyTransform();
+    }
+    function lbDownload() {
+      const src = $('img-lightbox-img').src;
+      if (!src) return;
+      const a = document.createElement('a');
+      a.href = src;
+      a.download = 'markdowner-chat-' + Date.now() + '.jpg';
+      a.click();
+    }
+
+    // Scroll to zoom
+    $('img-lightbox').addEventListener('wheel', e => {
+      e.preventDefault();
+      const delta = e.deltaY < 0 ? 0.15 : -0.15;
+      lbScale = Math.min(lbMax, Math.max(lbMin, lbScale + delta));
+      lbApplyTransform();
+    }, { passive: false });
+
+    // Click backdrop to close (not toolbar)
+    $('lb-img-wrap').addEventListener('click', e => {
+      if (e.target === $('lb-img-wrap')) closeLightbox();
+    });
+
+    // Drag to pan
+    $('lb-img-wrap').addEventListener('mousedown', e => {
+      if (e.target !== $('lb-img-wrap') && e.target !== $('img-lightbox-img')) return;
+      lbDrag = { active: true, sx: e.clientX, sy: e.clientY, ox: lbPan.x, oy: lbPan.y };
+      $('lb-img-wrap').classList.add('grabbing');
+    });
+    window.addEventListener('mousemove', e => {
+      if (!lbDrag.active) return;
+      lbPan.x = lbDrag.ox + (e.clientX - lbDrag.sx);
+      lbPan.y = lbDrag.oy + (e.clientY - lbDrag.sy);
+      lbApplyTransform();
+    });
+    window.addEventListener('mouseup', () => {
+      lbDrag.active = false;
+      $('lb-img-wrap').classList.remove('grabbing');
+    });
+
+    // Keyboard shortcuts
+    document.addEventListener('keydown', e => {
+      if (!$('img-lightbox').classList.contains('vis')) return;
+      if (e.key === 'Escape') { closeLightbox(); return; }
+      if (e.key === '+' || e.key === '=') lbZoom(0.25);
+      if (e.key === '-') lbZoom(-0.25);
+      if (e.key === '0') lbResetZoom();
+    });
 
     /* ── Code input QoL ── */
     $('cm-join-code').addEventListener('input', function () {
