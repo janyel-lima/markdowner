@@ -1283,7 +1283,11 @@ function joinRoom() {
     // Sync users list
     const usersRef = fbRoom.child('users');
     const usersHandler = usersRef.on('value', snap => {
-        window._peerUsers = snap.val() || {};
+        const users = snap.val() || {};
+        const count = Object.keys(users).length;
+        if (count > _prevPeerCount && _prevPeerCount > 0) soundUserJoined();
+        _prevPeerCount = count;
+        window._peerUsers = users;
         renderPresenceBar();
         renderModalParticipants();
         updateCollabBtnLabel();
@@ -1635,6 +1639,7 @@ function subscribeToDm(peerId) {
                 channelUnread[chKey] = (channelUnread[chKey] || 0) + 1;
                 renderChannelBadge(chKey);
                 updateUnreadBadges();
+                soundDmReceived();
             }
         });
 
@@ -1732,6 +1737,7 @@ function sendChatMessage() {
 
     input.value = '';
     autoResizeChatInput();
+    soundMessageSent();
     targetRef.push({ ...msgBase, text }).catch(() => { });
 }
 
@@ -1834,6 +1840,7 @@ function appendChatMessage(msg) {
             channelUnread['session'] = (channelUnread['session'] || 0) + 1;
             renderChannelBadge('session');
             updateUnreadBadges();
+            soundMessageReceived();
         }
     }
 }
