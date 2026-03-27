@@ -2048,15 +2048,22 @@ function autoResizeChatInput() {
     el.style.height = 'auto';
     el.style.height = Math.min(el.scrollHeight, 88) + 'px';
 }
-
 /* ── Emoji picker ── */
 
 let emojiPickerOpen = false;
 
+// PT-BR: seta locale antes do primeiro uso
+const _picker = $('emoji-picker');
+if (_picker) {
+    _picker.setAttribute('locale', 'pt');
+    _picker.setAttribute('data-source',
+        'https://cdn.jsdelivr.net/npm/emoji-picker-element-data@1/pt/cldr/data.json');
+}
+
 function toggleEmojiPicker() {
     emojiPickerOpen = !emojiPickerOpen;
     $('emoji-picker-wrap').classList.toggle('open', emojiPickerOpen);
-    $('emoji-btn').classList.toggle('on', emojiPickerOpen);
+    $('emoji-btn').setAttribute('aria-expanded', emojiPickerOpen);
 }
 
 document.addEventListener('emoji-click', e => {
@@ -2064,7 +2071,7 @@ document.addEventListener('emoji-click', e => {
     if (!emoji) return;
 
     const ta = $('chat-input');
-    const pos = ta.selectionStart || ta.value.length;
+    const pos = ta.selectionStart ?? ta.value.length;
     ta.value = ta.value.slice(0, pos) + emoji + ta.value.slice(pos);
     ta.selectionStart = ta.selectionEnd = pos + emoji.length;
     ta.focus();
@@ -2072,16 +2079,20 @@ document.addEventListener('emoji-click', e => {
 
     emojiPickerOpen = false;
     $('emoji-picker-wrap').classList.remove('open');
-    $('emoji-btn').classList.remove('on');
+    $('emoji-btn').setAttribute('aria-expanded', 'false');
 });
 
 document.addEventListener('click', e => {
-    if (emojiPickerOpen &&
-        !$('emoji-picker-wrap').contains(e.target) &&
-        e.target !== $('emoji-btn')) {
+    if (!emojiPickerOpen) return;
+
+    // FIX: usa .contains() no wrap E no btn — cobre SVG e qualquer filho
+    const insidePicker = $('emoji-picker-wrap').contains(e.target);
+    const insideBtn = $('emoji-btn').contains(e.target);
+
+    if (!insidePicker && !insideBtn) {
         emojiPickerOpen = false;
         $('emoji-picker-wrap').classList.remove('open');
-        $('emoji-btn').classList.remove('on');
+        $('emoji-btn').setAttribute('aria-expanded', 'false');
     }
 });
 
