@@ -205,7 +205,6 @@ body {
     scrollbar-color: var(--bd2) transparent;
 }
 
-
 /* ═══════════════════════════════════════════════════════
    6. HEADER
 ═══════════════════════════════════════════════════════ */
@@ -216,79 +215,56 @@ body {
     border-bottom: 1px solid var(--bd);
     display: flex;
     align-items: center;
-    padding: 0 clamp(8px, 1.5vw, 16px);
+    padding: 0 clamp(10px, 1.5vw, 18px);
+    gap: clamp(6px, 0.8vw, 12px);
     position: relative;
     z-index: 100;
     box-shadow: var(--sh);
     transition: background var(--tw), border-color var(--tw);
     user-select: none;
     flex-shrink: 0;
-    gap: clamp(4px, 0.8vw, 10px);
-    /* overflow intentionally not hidden — clips absolute dropdowns otherwise */
 }
 
-@media (max-width: 700px) {
-    #header {
-        padding: 0 8px;
-        gap: 4px;
-    }
+/* Three zones */
+.h-left {
+    display: flex;
+    align-items: center;
+    gap: clamp(5px, 0.7vw, 10px);
+    flex-shrink: 0;
+}
 
-    /* Brand encolhe mas não some */
-    #header .brand {
-        flex-shrink: 0;
-        min-width: 0;
-    }
+.h-center {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none;
+    min-width: 0;
+}
 
-    .brand-sub {
-        display: none;
-    }
+.h-right {
+    display: flex;
+    align-items: center;
+    gap: clamp(4px, 0.6vw, 8px);
+    flex-shrink: 0;
+    margin-left: auto;
+}
 
-    /* Save status some no mobile — economiza espaço */
-    #save-status {
-        display: none;
-    }
+/* Elegant thin separator */
+.h-div {
+    width: 1px;
+    height: 16px;
+    background: var(--bd);
+    flex-shrink: 0;
+    transition: background var(--tw);
+}
 
-    /* View buttons: só ícones */
-    .toolbar-group .vbtn .lbl {
-        display: none;
-    }
-
-    /* Separadores verticais somem dentro do .hr no mobile */
-    .hr>.vd {
-        display: none;
-    }
-
-    /* .hr vira scroll horizontal */
-    .hr {
-        overflow-x: auto;
-        overflow-y: visible;
-        -webkit-overflow-scrolling: touch;
-        scrollbar-width: none;
-        flex: 1;
-        min-width: 0;
-        display: flex;
-        align-items: center;
-        gap: 2px;
-        padding-right: 8px;
-        /* respiro no final do scroll */
-    }
-
-    .hr::-webkit-scrollbar {
-        display: none;
-    }
-
-    /* Todos os filhos diretos do .hr não encolhem */
-    .hr>* {
-        flex-shrink: 0;
-    }
-
-    /* Labels somem nos botões de ação dentro do .hr */
-    .hr .lbl,
-    .hr .abtn .lbl,
-    .hr .color-trigger-label,
-    .hr .theme-pill-label {
-        display: none;
-    }
+/* Chevron used in dropdowns */
+.h-chev {
+    width: 7px;
+    height: 7px;
+    opacity: 0.35;
+    flex-shrink: 0;
 }
 
 
@@ -299,13 +275,9 @@ body {
 .brand {
     display: flex;
     align-items: center;
-    gap: clamp(6px, 1vw, 10px);
-    padding-right: clamp(8px, 1.2vw, 16px);
-    border-right: 1px solid var(--bd);
-    margin-right: clamp(6px, 1vw, 14px);
+    gap: clamp(6px, 0.8vw, 9px);
     flex-shrink: 0;
-    height: 100%;
-    transition: border-color var(--tw);
+    cursor: default;
 }
 
 .brand-mark {
@@ -326,117 +298,145 @@ body {
     fill: var(--inv);
 }
 
+.brand-text {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+}
+
 .brand-name {
-    font-size: clamp(11px, 1.1vw, 13px);
-    font-weight: 600;
+    font-size: clamp(11px, 1.05vw, 13px);
+    font-weight: 700;
     color: var(--txh);
-    letter-spacing: .02em;
+    letter-spacing: .01em;
     line-height: 1;
     white-space: nowrap;
     transition: color var(--tw);
 }
 
 .brand-sub {
-    font-size: clamp(8px, 0.75vw, 10px);
+    font-size: clamp(8px, 0.7vw, 9.5px);
     font-weight: 400;
     color: var(--tx3);
-    letter-spacing: .06em;
+    letter-spacing: .07em;
     text-transform: uppercase;
     font-family: var(--fm);
     white-space: nowrap;
     transition: color var(--tw);
+    line-height: 1;
 }
 
 
 /* ═══════════════════════════════════════════════════════
-   8. VIEW-MODE BUTTONS (.vbtn)
+   8. SEGMENTED GROUP (.h-group)
+   Shared border container for related buttons
 ═══════════════════════════════════════════════════════ */
 
-.toolbar-group {
+.h-group {
     display: flex;
-    align-items: center;
-    gap: 1px;
+    align-items: stretch;
+    background: var(--s2);
+    border: 1px solid var(--bd);
+    border-radius: calc(var(--rr) + 1px);
+    overflow: visible;
+    /* dropdowns must escape */
     flex-shrink: 0;
+    transition: border-color var(--tw), background var(--tw);
 }
 
-.vbtn {
+/* Internal divider between siblings inside a group */
+.h-group>.hbtn+.hbtn,
+.h-group>.hbtn-wrap+.hbtn,
+.h-group>.hbtn+.hbtn-wrap,
+.h-group>.hbtn-wrap+.hbtn-wrap {
+    border-left: 1px solid var(--bd);
+}
+
+
+/* ═══════════════════════════════════════════════════════
+   9. HEADER BUTTON (.hbtn)
+   Borderless — lives inside .h-group
+═══════════════════════════════════════════════════════ */
+
+.hbtn {
     font-family: var(--ff);
-    font-size: clamp(10px, 0.9vw, 11.5px);
+    font-size: clamp(10px, 0.85vw, 11.5px);
     font-weight: 500;
-    padding: 5px clamp(6px, 0.8vw, 10px);
-    border-radius: var(--rr);
-    border: 1px solid transparent;
+    padding: 0 clamp(7px, 0.9vw, 12px);
+    height: 30px;
+    min-height: 30px;
     background: transparent;
+    border: none;
     color: var(--tx2);
     cursor: pointer;
-    letter-spacing: .02em;
-    transition: all var(--tw);
     display: flex;
     align-items: center;
-    gap: clamp(3px, 0.5vw, 6px);
-    white-space: nowrap;
-    min-height: 30px;
-    touch-action: manipulation;
-}
-
-.vbtn:hover {
-    background: var(--s2);
-    color: var(--tx);
-    border-color: var(--bd);
-}
-
-.vbtn.on {
-    background: var(--ta1);
-    color: var(--a1);
-    border-color: rgba(var(--a1r), .3);
-}
-
-
-/* ═══════════════════════════════════════════════════════
-   9. ACTION BUTTONS (.abtn)
-═══════════════════════════════════════════════════════ */
-
-.abtn {
-    font-family: var(--ff);
-    font-size: clamp(10px, 0.9vw, 11.5px);
-    font-weight: 500;
-    padding: 5px clamp(6px, 0.8vw, 11px);
-    border-radius: var(--rr);
-    border: 1px solid var(--bd);
-    background: var(--s2);
-    color: var(--tx);
-    cursor: pointer;
-    letter-spacing: .02em;
-    transition: all var(--tw);
-    display: flex;
-    align-items: center;
-    gap: clamp(3px, 0.5vw, 6px);
+    gap: clamp(3px, 0.4vw, 6px);
     white-space: nowrap;
     flex-shrink: 0;
-    min-height: 28px;
+    transition: all var(--tw);
     touch-action: manipulation;
+    letter-spacing: .01em;
+    position: relative;
 }
 
-.abtn:hover {
-    border-color: var(--a1);
-    color: var(--a1);
-    background: var(--ta1);
+.hbtn:hover {
+    background: var(--s3);
+    color: var(--tx);
 }
 
-.abtn svg {
+.hbtn svg {
     width: 11px;
     height: 11px;
     flex-shrink: 0;
 }
 
+/* .hbtn-wrap: for divs (exp-wrap, color-wrap) that wrap a .hbtn */
+.hbtn-wrap {
+    display: flex;
+    align-items: stretch;
+    position: relative;
+}
+
+.hbtn-wrap>.hbtn {
+    height: 100%;
+}
+
 
 /* ═══════════════════════════════════════════════════════
-   10. EXPORT DROPDOWN
+   10. VIEW MODE BUTTONS
+   Override: vbtn inside h-group uses hbtn base,
+   active state uses accent highlight
+═══════════════════════════════════════════════════════ */
+
+/* Keep .toolbar-group for JS targeting — layout is now .h-group */
+.h-group#t-views {
+    gap: 0;
+}
+
+.vbtn {
+    /* inherits .hbtn */
+}
+
+.vbtn.on {
+    background: rgba(var(--a1r), .13);
+    color: var(--a1);
+}
+
+.vbtn.on:hover {
+    background: rgba(var(--a1r), .18);
+}
+
+
+/* ═══════════════════════════════════════════════════════
+   11. EXPORT DROPDOWN
 ═══════════════════════════════════════════════════════ */
 
 .exp-wrap {
     position: relative;
     flex-shrink: 0;
+    display: flex;
+    align-items: stretch;
 }
 
 .exp-drop {
@@ -494,31 +494,19 @@ body {
 
 
 /* ═══════════════════════════════════════════════════════
-   11. COLOR TRIGGER & COLOR PANEL
+   12. COLOR TRIGGER & COLOR PANEL
 ═══════════════════════════════════════════════════════ */
 
 .color-wrap {
     position: relative;
     flex-shrink: 0;
-}
-
-.color-trigger {
     display: flex;
-    align-items: center;
-    gap: 7px;
-    background: var(--s2);
-    border: 1px solid var(--bd);
-    border-radius: var(--rr);
-    padding: 4px 10px 4px 6px;
-    cursor: pointer;
-    transition: all var(--tw);
-    flex-shrink: 0;
-    min-height: 30px;
-    touch-action: manipulation;
+    align-items: stretch;
 }
 
-.color-trigger:hover {
-    border-color: var(--bd2);
+/* color-trigger uses .hbtn — only override specifics */
+.color-trigger {
+    gap: 7px;
 }
 
 .swatch-pair {
@@ -527,8 +515,8 @@ body {
 }
 
 .swatch {
-    width: 14px;
-    height: 14px;
+    width: 12px;
+    height: 12px;
     border-radius: 3px;
     border: 1px solid rgba(255, 255, 255, .12);
     flex-shrink: 0;
@@ -539,10 +527,9 @@ body {
 }
 
 .color-trigger-label {
-    font-size: var(--fs-xs);
+    font-size: clamp(10px, 0.85vw, 11.5px);
     font-weight: 500;
     color: var(--tx2);
-    letter-spacing: .02em;
     line-height: 1;
 }
 
@@ -678,31 +665,16 @@ input[type="color"]::-webkit-color-swatch {
 
 
 /* ═══════════════════════════════════════════════════════
-   12. THEME PILL
+   13. THEME PILL (inside .h-group)
 ═══════════════════════════════════════════════════════ */
 
 .theme-pill {
-    display: flex;
-    align-items: center;
-    gap: clamp(4px, 0.6vw, 8px);
-    background: var(--s2);
-    border: 1px solid var(--bd);
-    border-radius: 99px;
-    padding: 3px 3px 3px clamp(6px, 0.8vw, 10px);
-    cursor: pointer;
-    transition: all var(--tw);
-    flex-shrink: 0;
-    min-height: 28px;
-    touch-action: manipulation;
-}
-
-.theme-pill:hover {
-    border-color: var(--bd2);
+    gap: clamp(4px, 0.5vw, 7px);
 }
 
 .theme-pill-label {
     font-family: var(--fm);
-    font-size: clamp(8px, 0.75vw, 10px);
+    font-size: clamp(8px, 0.72vw, 10px);
     font-weight: 500;
     color: var(--tx2);
     letter-spacing: .08em;
@@ -711,19 +683,21 @@ input[type="color"]::-webkit-color-swatch {
 }
 
 .theme-knob {
-    width: 20px;
-    height: 20px;
+    width: 18px;
+    height: 18px;
     border-radius: 50%;
     background: var(--s3);
     border: 1px solid var(--bd);
     display: flex;
     align-items: center;
     justify-content: center;
+    flex-shrink: 0;
+    transition: background var(--tw), border-color var(--tw);
 }
 
 .theme-knob svg {
-    width: 10px;
-    height: 10px;
+    width: 9px;
+    height: 9px;
 }
 
 [data-theme="dark"] .ico-moon {
@@ -746,147 +720,17 @@ input[type="color"]::-webkit-color-swatch {
 
 
 /* ═══════════════════════════════════════════════════════
-   13. TOUR BUTTON
+   14. SOUND BUTTON (inside .h-group)
 ═══════════════════════════════════════════════════════ */
-
-#tour-btn {
-    font-family: var(--ff);
-    font-size: clamp(10px, 0.9vw, 11.5px);
-    font-weight: 500;
-    padding: 5px clamp(6px, 0.8vw, 11px);
-    border-radius: var(--rr);
-    border: 1px solid var(--bd);
-    background: var(--s2);
-    color: var(--tx2);
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    gap: clamp(3px, 0.5vw, 6px);
-    transition: all var(--tw);
-    white-space: nowrap;
-    flex-shrink: 0;
-    min-height: 28px;
-    touch-action: manipulation;
-}
-
-#tour-btn:hover {
-    border-color: var(--a2);
-    color: var(--a2);
-    background: var(--ta2);
-}
-
-#tour-btn svg {
-    width: 11px;
-    height: 11px;
-}
-
-
-/* ═══════════════════════════════════════════════════════
-   14. COLLABORATE BUTTON
-═══════════════════════════════════════════════════════ */
-
-#collab-btn {
-    font-family: var(--ff);
-    font-size: clamp(10px, 0.9vw, 11.5px);
-    font-weight: 500;
-    padding: 5px clamp(6px, 0.8vw, 11px);
-    border-radius: var(--rr);
-    border: 1px solid var(--bd);
-    background: var(--s2);
-    color: var(--tx2);
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    gap: clamp(3px, 0.5vw, 6px);
-    transition: all var(--tw);
-    white-space: nowrap;
-    flex-shrink: 0;
-    min-height: 28px;
-    touch-action: manipulation;
-    position: relative;
-}
-
-#collab-btn:hover {
-    border-color: var(--a1);
-    color: var(--a1);
-    background: var(--ta1);
-}
-
-#collab-btn.active {
-    background: rgba(var(--a2r), .14);
-    border-color: var(--a2);
-    color: var(--a2);
-}
-
-#collab-btn svg {
-    width: 11px;
-    height: 11px;
-}
-
-#collab-pulse {
-    position: absolute;
-    top: 3px;
-    right: 3px;
-    width: 6px;
-    height: 6px;
-    border-radius: 50%;
-    background: var(--a2);
-    display: none;
-    animation: pulse-ring 1.6s ease-out infinite;
-}
-
-#collab-btn.active #collab-pulse {
-    display: block;
-}
-
-/* ═══════════════════════════════════════════════════════
-   14.5. SOUND BUTTON
-═══════════════════════════════════════════════════════ */
-
-
-#sound-btn {
-    font-family: var(--ff);
-    font-size: clamp(10px, 0.9vw, 11.5px);
-    font-weight: 500;
-    padding: 5px clamp(6px, 0.8vw, 11px);
-    border-radius: var(--rr);
-    border: 1px solid var(--bd);
-    background: var(--s2);
-    color: var(--tx2);
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    gap: clamp(3px, 0.5vw, 6px);
-    transition: all var(--tw);
-    white-space: nowrap;
-    flex-shrink: 0;
-    min-height: 28px;
-    touch-action: manipulation;
-}
-
-#sound-btn:hover {
-    border-color: var(--a1);
-    color: var(--a1);
-    background: var(--ta1);
-}
-
-#sound-btn svg {
-    width: 11px;
-    height: 11px;
-}
 
 #sound-btn.muted {
     color: var(--tx3);
-    border-color: var(--bd);
-    background: var(--s2);
-    opacity: 0.55;
+    opacity: 0.5;
 }
 
 #sound-btn.muted:hover {
     opacity: 1;
-    border-color: var(--a1);
-    color: var(--a1);
-    background: var(--ta1);
+    color: var(--tx);
 }
 
 #sound-btn.muted .snd-on {
@@ -901,20 +745,88 @@ input[type="color"]::-webkit-color-swatch {
     display: block;
 }
 
-@media (max-width: 700px) {
-    #sound-btn .lbl {
-        display: none;
-    }
-
-    #sound-btn {
-        padding: 5px clamp(5px, 1.5vw, 8px);
-    }
-}
 
 /* ═══════════════════════════════════════════════════════
-   15. CHAT TOGGLE BUTTON
+   15. TOUR BUTTON (inside .h-group) — no overrides needed
 ═══════════════════════════════════════════════════════ */
-/* ── Chat FAB ───────────────────────────────────────── */
+
+
+#tour-btn svg {
+    width: 11px;
+    height: 11px;
+}
+
+
+/* ═══════════════════════════════════════════════════════
+   16. COLLABORATE BUTTON — standalone primary CTA
+═══════════════════════════════════════════════════════ */
+
+#collab-btn {
+    font-family: var(--ff);
+    font-size: clamp(10px, 0.88vw, 11.5px);
+    font-weight: 600;
+    padding: 0 clamp(10px, 1vw, 15px);
+    height: 30px;
+    min-height: 30px;
+    border-radius: calc(var(--rr) + 1px);
+    border: 1px solid var(--bd);
+    background: var(--s2);
+    color: var(--tx2);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: clamp(4px, 0.5vw, 7px);
+    transition: all var(--tw);
+    white-space: nowrap;
+    flex-shrink: 0;
+    touch-action: manipulation;
+    position: relative;
+    letter-spacing: .01em;
+}
+
+#collab-btn:hover {
+    border-color: var(--a2);
+    color: var(--a2);
+    background: var(--ta2);
+}
+
+#collab-btn.active {
+    background: var(--a2);
+    border-color: var(--a2);
+    color: #fff;
+}
+
+#collab-btn.active:hover {
+    opacity: .88;
+}
+
+#collab-btn svg {
+    width: 11px;
+    height: 11px;
+    flex-shrink: 0;
+}
+
+#collab-pulse {
+    position: absolute;
+    top: 2px;
+    right: 2px;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #fff;
+    display: none;
+    animation: pulse-ring 1.6s ease-out infinite;
+}
+
+#collab-btn.active #collab-pulse {
+    display: block;
+}
+
+
+/* ═══════════════════════════════════════════════════════
+   17. CHAT FAB — floating action button
+═══════════════════════════════════════════════════════ */
+
 #chat-toggle-btn {
     position: fixed;
     bottom: 24px;
@@ -930,7 +842,7 @@ input[type="color"]::-webkit-color-swatch {
     display: none;
     align-items: center;
     justify-content: center;
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.28);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, .28);
     transition: background var(--tw), transform 0.15s, box-shadow 0.15s;
     flex-shrink: 0;
     touch-action: manipulation;
@@ -940,35 +852,32 @@ input[type="color"]::-webkit-color-swatch {
     display: flex;
 }
 
+#chat-toggle-btn.on {
+    display: none;
+}
+
 #chat-toggle-btn:hover {
     background: var(--a1);
     transform: scale(1.08);
-    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.34);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, .34);
 }
 
 #chat-toggle-btn:active {
     transform: scale(0.96);
 }
 
-/* Ícone de chat — visível por padrão */
 #chat-toggle-btn .fab-ico-chat {
     width: 22px;
     height: 22px;
     display: block;
 }
 
-/* Ícone de fechar — só quando painel aberto */
 #chat-toggle-btn .fab-ico-close {
     width: 20px;
     height: 20px;
     display: none;
 }
 
-#chat-toggle-btn.on {
-    display: none;
-}
-
-/* Badge de não lidas */
 .chat-badge {
     position: absolute;
     top: -4px;
@@ -993,7 +902,6 @@ input[type="color"]::-webkit-color-swatch {
     display: flex;
 }
 
-/* Mobile — sobe um pouco para não cobrir a barra de sistema */
 @media (max-width: 700px) {
     #chat-toggle-btn {
         bottom: 16px;
@@ -1008,33 +916,6 @@ input[type="color"]::-webkit-color-swatch {
     }
 }
 
-/* ═══════════════════════════════════════════════════════
-   16. VERTICAL DIVIDERS (.vd)
-═══════════════════════════════════════════════════════ */
-
-.vd {
-    width: 1px;
-    height: 20px;
-    background: var(--bd);
-    flex-shrink: 0;
-    margin: 0 clamp(4px, 0.7vw, 10px);
-    transition: background var(--tw);
-}
-
-
-/* ═══════════════════════════════════════════════════════
-   17. RIGHT ACTION GROUP (.hr)
-═══════════════════════════════════════════════════════ */
-
-.hr {
-    margin-left: auto;
-    display: flex;
-    align-items: center;
-    gap: clamp(3px, 0.5vw, 6px);
-    flex-shrink: 1;
-    min-width: 0;
-}
-
 
 /* ═══════════════════════════════════════════════════════
    18. SAVE STATUS
@@ -1044,9 +925,10 @@ input[type="color"]::-webkit-color-swatch {
     font-family: var(--fm);
     font-size: var(--fs-mono-xs);
     color: var(--tx3);
-    letter-spacing: .04em;
+    letter-spacing: .05em;
     white-space: nowrap;
     transition: color .3s;
+    pointer-events: none;
 }
 
 #save-status.saving {
@@ -1057,6 +939,265 @@ input[type="color"]::-webkit-color-swatch {
     color: var(--a2);
 }
 
+
+/* ═══════════════════════════════════════════════════════
+   LEGACY COMPAT — .abtn still used in some places
+═══════════════════════════════════════════════════════ */
+
+.abtn {
+    font-family: var(--ff);
+    font-size: clamp(10px, 0.9vw, 11.5px);
+    font-weight: 500;
+    padding: 5px clamp(6px, 0.8vw, 11px);
+    border-radius: var(--rr);
+    border: 1px solid var(--bd);
+    background: var(--s2);
+    color: var(--tx);
+    cursor: pointer;
+    letter-spacing: .02em;
+    transition: all var(--tw);
+    display: flex;
+    align-items: center;
+    gap: clamp(3px, 0.5vw, 6px);
+    white-space: nowrap;
+    flex-shrink: 0;
+    min-height: 28px;
+    touch-action: manipulation;
+}
+
+.abtn:hover {
+    border-color: var(--a1);
+    color: var(--a1);
+    background: var(--ta1);
+}
+
+.abtn svg {
+    width: 11px;
+    height: 11px;
+    flex-shrink: 0;
+}
+
+/* ─── Hidden file inputs ─── */
+#file-input,
+#chat-file-input {
+    display: none;
+}
+
+
+/* ═══════════════════════════════════════════════════════
+   RESPONSIVE — 1100 px (compact desktop)
+═══════════════════════════════════════════════════════ */
+
+@media (max-width: 1100px) {
+    .brand-sub {
+        display: none;
+    }
+
+    #tour-btn .lbl {
+        display: none;
+    }
+
+    #sound-btn .lbl {
+        display: none;
+    }
+
+    .h-div {
+        margin: 0;
+    }
+}
+
+
+/* ═══════════════════════════════════════════════════════
+   RESPONSIVE — 900 px (tight desktop)
+═══════════════════════════════════════════════════════ */
+
+@media (max-width: 900px) {
+
+    .color-trigger-label,
+    .theme-pill-label,
+    #t-copy .lbl,
+    #t-import .lbl,
+    #t-export .lbl {
+        display: none;
+    }
+}
+
+
+/* ═══════════════════════════════════════════════════════
+   RESPONSIVE — 700 px (mobile)
+   Header collapses into two rows:
+   Row 1 (44px): brand | h-div | view buttons | save status
+   Row 2 (40px): scrollable h-right strip
+═══════════════════════════════════════════════════════ */
+
+@media (max-width: 700px) {
+    #header {
+        height: var(--hh-mob);
+        flex-wrap: wrap;
+        padding: 0;
+        align-content: flex-start;
+        gap: 0;
+        overflow: visible;
+    }
+
+    /* ── Row 1 ── */
+    .h-left {
+        height: 44px;
+        padding: 0 8px;
+        gap: 6px;
+        flex: 1;
+        min-width: 0;
+    }
+
+    .brand {
+        gap: 6px;
+    }
+
+    .brand-sub {
+        display: none;
+    }
+
+    .brand-name {
+        font-size: 12px;
+    }
+
+    .h-left>.h-div {
+        height: 14px;
+        flex-shrink: 0;
+    }
+
+    /* view buttons: compact icon-only */
+    .h-group#t-views {
+        height: 28px;
+        border-radius: 99px;
+        /* pill shape */
+    }
+
+    .h-group#t-views .hbtn {
+        padding: 0 9px;
+        height: 100%;
+    }
+
+    .vbtn .lbl {
+        display: none;
+    }
+
+    .h-center {
+        height: 44px;
+        padding: 0 8px;
+        flex: 0 0 auto;
+    }
+
+    #save-status {
+        display: flex;
+        align-items: center;
+    }
+
+    /* ── Row 2: scrollable action strip ── */
+    .h-right {
+        width: 100%;
+        height: 40px;
+        border-top: 1px solid var(--bd);
+        background: var(--bg2);
+        padding: 0 8px;
+        gap: 4px;
+        margin-left: 0;
+        overflow-x: auto;
+        overflow-y: hidden;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+        flex-wrap: nowrap;
+        justify-content: flex-start;
+    }
+
+    .h-right::-webkit-scrollbar {
+        display: none;
+    }
+
+    /* All groups fill the row height */
+    .h-group {
+        height: 28px;
+        align-self: center;
+        flex-shrink: 0;
+    }
+
+    .hbtn {
+        height: 28px;
+        padding: 0 8px;
+    }
+
+    /* Hide all labels in the strip */
+    .h-right .lbl,
+    .h-right .color-trigger-label,
+    .h-right .theme-pill-label {
+        display: none;
+    }
+
+    /* Hide dividers in the strip (groups already have borders) */
+    .h-right>.h-div {
+        display: none;
+    }
+
+    /* Collab button fits row */
+    #collab-btn {
+        height: 28px;
+        padding: 0 10px;
+        align-self: center;
+        flex-shrink: 0;
+        border-radius: 99px;
+        font-size: 11px;
+    }
+
+    #collab-btn .lbl {
+        display: none;
+    }
+
+    /* Collab active: show icon only but keep pill feel */
+    #collab-btn.active {
+        padding: 0 10px;
+    }
+}
+
+
+/* ═══════════════════════════════════════════════════════
+   RESPONSIVE — 520 px
+═══════════════════════════════════════════════════════ */
+
+@media (max-width: 520px) {
+    .hbtn {
+        padding: 0 7px;
+    }
+
+    #collab-btn {
+        padding: 0 8px;
+    }
+
+    .brand-name {
+        font-size: clamp(10px, 3.2vw, 12px);
+    }
+}
+
+
+/* ═══════════════════════════════════════════════════════
+   RESPONSIVE — 400 px
+═══════════════════════════════════════════════════════ */
+
+@media (max-width: 400px) {
+    .brand-mark {
+        width: 22px;
+        height: 22px;
+    }
+
+    .brand-mark svg {
+        width: 11px;
+        height: 11px;
+    }
+
+    .hbtn svg {
+        width: 10px;
+        height: 10px;
+    }
+}
 
 /* ═══════════════════════════════════════════════════════
    19. WORKSPACE & PANELS
