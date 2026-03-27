@@ -34,10 +34,10 @@ const PEER_COLORS = [
 ];
 
 const FIREBASE_CONFIG = {
-    apiKey: '__FIREBASE_API_KEY__',
-    authDomain: '__FIREBASE_PROJECT_ID__.firebaseapp.com',
-    databaseURL: '__FIREBASE_DB_URL__',
-    projectId: '__FIREBASE_PROJECT_ID__',
+    apiKey: window._FB_API_KEY || '',
+    authDomain: `${window._FB_PROJECT_ID}.firebaseapp.com`,
+    databaseURL: window._FB_DB_URL || '',
+    projectId: window._FB_PROJECT_ID || '',
 };
 
 const IMG = {
