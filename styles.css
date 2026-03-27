@@ -775,7 +775,7 @@ input[type="color"]::-webkit-color-swatch {
 }
 
 /* ═══════════════════════════════════════════════════════
-   14.5. COLLABORATE BUTTON
+   14.5. SOUND BUTTON
 ═══════════════════════════════════════════════════════ */
 
 
@@ -834,6 +834,16 @@ input[type="color"]::-webkit-color-swatch {
 
 #sound-btn.muted .snd-mute {
     display: block;
+}
+
+@media (max-width: 700px) {
+    #sound-btn .lbl {
+        display: none;
+    }
+
+    #sound-btn {
+        padding: 5px clamp(5px, 1.5vw, 8px);
+    }
 }
 
 /* ═══════════════════════════════════════════════════════
