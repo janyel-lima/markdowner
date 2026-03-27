@@ -223,7 +223,72 @@ body {
     transition: background var(--tw), border-color var(--tw);
     user-select: none;
     flex-shrink: 0;
+    gap: clamp(4px, 0.8vw, 10px);
     /* overflow intentionally not hidden — clips absolute dropdowns otherwise */
+}
+
+@media (max-width: 700px) {
+    #header {
+        padding: 0 8px;
+        gap: 4px;
+    }
+
+    /* Brand encolhe mas não some */
+    #header .brand {
+        flex-shrink: 0;
+        min-width: 0;
+    }
+
+    .brand-sub {
+        display: none;
+    }
+
+    /* Save status some no mobile — economiza espaço */
+    #save-status {
+        display: none;
+    }
+
+    /* View buttons: só ícones */
+    .toolbar-group .vbtn .lbl {
+        display: none;
+    }
+
+    /* Separadores verticais somem dentro do .hr no mobile */
+    .hr>.vd {
+        display: none;
+    }
+
+    /* .hr vira scroll horizontal */
+    .hr {
+        overflow-x: auto;
+        overflow-y: visible;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+        flex: 1;
+        min-width: 0;
+        display: flex;
+        align-items: center;
+        gap: 2px;
+        padding-right: 8px;
+        /* respiro no final do scroll */
+    }
+
+    .hr::-webkit-scrollbar {
+        display: none;
+    }
+
+    /* Todos os filhos diretos do .hr não encolhem */
+    .hr>* {
+        flex-shrink: 0;
+    }
+
+    /* Labels somem nos botões de ação dentro do .hr */
+    .hr .lbl,
+    .hr .abtn .lbl,
+    .hr .color-trigger-label,
+    .hr .theme-pill-label {
+        display: none;
+    }
 }
 
 
@@ -3708,7 +3773,8 @@ emoji-picker {
     #chat-toggle-btn .lbl,
     .color-trigger-label,
     .theme-pill-label,
-    .brand-sub {
+    .brand-sub,
+    #sound-btn .lbl {
         display: none;
     }
 
@@ -3823,7 +3889,8 @@ emoji-picker {
 
     #tour-btn,
     #collab-btn,
-    #chat-toggle-btn {
+    #chat-toggle-btn,
+    #sound-btn {
         padding: 5px 7px;
     }
 
