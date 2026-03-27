@@ -17,6 +17,7 @@ const STORAGE_KEYS = {
     toured: 'lp_toured',
     profile: 'mkd_profile',
     collab: 'mkd_collab_name',
+    lastSession: 'mkd_last_session',
 };
 
 const ACCENT_PRESETS_1 = [
@@ -1268,6 +1269,8 @@ function hostSession() {
             $('cm-code-val').textContent = roomCode;
             $('pb-room-code').textContent = roomCode;
             activateSessionUI();
+            history.pushState({}, '', `?r=${roomCode}`);
+            $('cm-share-url').textContent = `${location.origin}${location.pathname}?r=${roomCode}`;
             renderModalParticipants();
             addSystemMessage('Sessão criada. Aguardando participantes...');
             showToast(`✓ Sessão criada! Código: ${roomCode}`);
@@ -1348,6 +1351,7 @@ function showJoinStatus(message, type) {
 /* ── Room listeners ── */
 
 function joinRoom() {
+    saveLastSession(roomCode);
     const userRef = fbRoom.child(`users/${myId}`);
     userRef.set({
         name: myName,
@@ -1396,6 +1400,8 @@ function joinRoom() {
 /* ── Leave session ── */
 
 function leaveSession(silent = false) {
+    history.pushState({}, '', location.pathname);
+    clearLastSession();
     if (!roomCode) return;
 
     sessionListeners.forEach(off => { try { off(); } catch { /* noop */ } });
@@ -1446,6 +1452,72 @@ function leaveSession(silent = false) {
 
     if (!silent) showToast('Você saiu da sessão.');
 }
+
+/* ═══════════════════════════════════════════════════════
+   LINK / REJOIN
+═══════════════════════════════════════════════════════ */
+
+function saveLastSession(code) {
+    lsSet(STORAGE_KEYS.lastSession, JSON.stringify({ code, ts: Date.now() }));
+}
+
+function clearLastSession() {
+    try { localStorage.removeItem(STORAGE_KEYS.lastSession); } catch { /* noop */ }
+}
+
+/** Detecta ?r=CODE na URL e entra automaticamente */
+function checkUrlSession() {
+    const code = new URLSearchParams(location.search).get('r');
+    if (!code) return;
+    const clean = code.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 6);
+    if (clean.length !== 6) return;
+
+    $('cm-join-code').value = clean;
+    $('cm-join-name').value = myName !== 'Anônimo' ? myName : '';
+    openCollabModal();
+    switchCollabTab('join');
+
+    if (myName && myName !== 'Anônimo') {
+        setTimeout(joinSession, 420);   // nome já conhecido → entra direto
+    } else {
+        setTimeout(() => $('cm-join-name').focus(), 80); // pede nome
+    }
+}
+
+/** Verifica se há sessão recente salva e exibe barra de rejoin */
+function checkRejoin() {
+    if (new URLSearchParams(location.search).get('r')) return; // já sendo tratado
+    try {
+        const stored = JSON.parse(lsGet(STORAGE_KEYS.lastSession, 'null'));
+        if (!stored) return;
+        if (Date.now() - stored.ts > 30 * 60 * 1000) { clearLastSession(); return; }
+        showRejoinBar(stored.code);
+    } catch { clearLastSession(); }
+}
+
+function showRejoinBar(code) {
+    $('rejoin-code-lbl').textContent = code;
+    $('rejoin-bar').dataset.code = code;
+    $('rejoin-bar').classList.add('active');
+}
+
+function dismissRejoin() {
+    $('rejoin-bar').classList.remove('active');
+    clearLastSession();
+}
+
+function rejoinSession() {
+    const code = $('rejoin-bar').dataset.code;
+    dismissRejoin();
+    $('cm-join-code').value = code;
+    $('cm-join-name').value = myName !== 'Anônimo' ? myName : '';
+    openCollabModal();
+    switchCollabTab('join');
+    if (myName && myName !== 'Anônimo') setTimeout(joinSession, 300);
+}
+
+window.dismissRejoin = dismissRejoin;
+window.rejoinSession = rejoinSession;
 
 /* ── Page unload cleanup via fetch keepalive ── */
 
@@ -1558,9 +1630,12 @@ function activateSessionUI() {
 
 function copyRoomCode() {
     if (!roomCode) return;
-    navigator.clipboard.writeText(roomCode)
-        .then(() => showToast(`✓ Código ${roomCode} copiado!`));
+    const url = `${location.origin}${location.pathname}?r=${roomCode}`;
+    navigator.clipboard.writeText(url)
+        .then(() => showToast('✓ Link da sessão copiado!'));
 }
+
+
 
 // Expose to HTML
 window.openCollabModal = openCollabModal;
@@ -2271,4 +2346,6 @@ $('cm-join-code').addEventListener('keydown', e => { if (e.key === 'Enter') join
 
     // Show welcome modal on first visit
     if (!lsGet(STORAGE_KEYS.toured)) setTimeout(showWelcomeModal, 600);
+    checkUrlSession(); // ← novo
+    checkRejoin();     // ← novo
 })();

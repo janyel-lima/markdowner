@@ -26,6 +26,7 @@
 <body>
 
     <!-- ═══════════════════════════════════════════ HEADER -->
+
     <header id="header">
 
         <!-- ── Left zone: brand + view switcher ── -->
@@ -230,6 +231,16 @@
     </header>
 
 
+    <!-- ═══════════════════════════════════════════ REJOIN BAR -->
+    <div id="rejoin-bar" role="alert">
+        <div class="rejoin-dot" aria-hidden="true"></div>
+        <span class="rejoin-label">
+            Você estava na sessão <strong id="rejoin-code-lbl">···</strong>
+        </span>
+        <button class="rejoin-btn-primary" onclick="rejoinSession()">Reconectar</button>
+        <button class="rejoin-btn-dismiss" onclick="dismissRejoin()" aria-label="Dispensar">✕</button>
+    </div>
+
     <!-- ═══════════════════════════════════════════ PRESENCE BAR -->
     <div id="presence-bar" role="status" aria-label="Sessão ativa">
         <div class="pb-dot" aria-hidden="true"></div>
@@ -428,10 +439,13 @@
                 </div>
                 <div id="cm-create-step2" style="display:none;flex-direction:column;gap:12px;">
                     <div>
-                        <div class="cm-label">Código da sessão — compartilhe com seus colegas</div>
-                        <div class="cm-code-display">
-                            <span class="cm-code-val" id="cm-code-val" aria-live="polite">······</span>
+                        <div class="cm-label">Link da sessão — compartilhe com seus colegas</div>
+                        <div class="cm-link-display">
+                            <span class="cm-share-url" id="cm-share-url">···</span>
                             <button class="cm-copy-code" onclick="copyRoomCode()">Copiar</button>
+                        </div>
+                        <div class="cm-code-hint">
+                            Código: <span class="cm-code-val" id="cm-code-val">···</span>
                         </div>
                     </div>
                     <div id="cm-participants-area">

@@ -718,6 +718,125 @@ input[type="color"]::-webkit-color-swatch {
     display: none;
 }
 
+/* ═══════════════════════════════════════════════════════
+   REJOIN BAR
+═══════════════════════════════════════════════════════ */
+
+#rejoin-bar {
+    height: 0;
+    overflow: hidden;
+    background: rgba(var(--a2r), .08);
+    border-bottom: 1px solid transparent;
+    display: flex;
+    align-items: center;
+    padding: 0;
+    gap: 10px;
+    flex-shrink: 0;
+    transition: height .25s ease, padding .25s ease, border-color var(--tw);
+    z-index: 50;
+}
+
+#rejoin-bar.active {
+    height: 36px;
+    padding: 0 16px;
+    border-color: rgba(var(--a2r), .25);
+}
+
+.rejoin-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--a2);
+    flex-shrink: 0;
+}
+
+.rejoin-label {
+    font-size: var(--fs-xs);
+    color: var(--tx2);
+    flex: 1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.rejoin-label strong {
+    font-family: var(--fm);
+    letter-spacing: .06em;
+    color: var(--a2);
+}
+
+.rejoin-btn-primary {
+    font-family: var(--ff);
+    font-size: var(--fs-xs);
+    font-weight: 600;
+    padding: 4px 12px;
+    background: var(--a2);
+    color: #fff;
+    border: none;
+    border-radius: var(--rr);
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: opacity .15s;
+    white-space: nowrap;
+}
+
+.rejoin-btn-primary:hover {
+    opacity: .85;
+}
+
+.rejoin-btn-dismiss {
+    background: none;
+    border: none;
+    color: var(--tx3);
+    cursor: pointer;
+    font-size: 13px;
+    padding: 4px;
+    border-radius: var(--rr);
+    transition: color var(--tw);
+    flex-shrink: 0;
+    line-height: 1;
+}
+
+.rejoin-btn-dismiss:hover {
+    color: var(--tx);
+}
+
+
+/* Link display inside collab modal */
+.cm-link-display {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--bg2);
+    border: 1px solid var(--bd);
+    border-radius: var(--rr);
+    padding: 9px 12px;
+}
+
+.cm-share-url {
+    font-family: var(--fm);
+    font-size: 11px;
+    color: var(--a2);
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    letter-spacing: .01em;
+}
+
+.cm-code-hint {
+    font-family: var(--fm);
+    font-size: var(--fs-xs);
+    color: var(--tx3);
+    letter-spacing: .04em;
+    margin-top: 4px;
+}
+
+.cm-code-hint .cm-code-val {
+    color: var(--tx2);
+    font-weight: 600;
+    letter-spacing: .12em;
+}
 
 /* ═══════════════════════════════════════════════════════
    14. SOUND BUTTON (inside .h-group)
