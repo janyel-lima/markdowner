@@ -774,6 +774,67 @@ input[type="color"]::-webkit-color-swatch {
     display: block;
 }
 
+/* ═══════════════════════════════════════════════════════
+   14.5. COLLABORATE BUTTON
+═══════════════════════════════════════════════════════ */
+
+
+#sound-btn {
+    font-family: var(--ff);
+    font-size: clamp(10px, 0.9vw, 11.5px);
+    font-weight: 500;
+    padding: 5px clamp(6px, 0.8vw, 11px);
+    border-radius: var(--rr);
+    border: 1px solid var(--bd);
+    background: var(--s2);
+    color: var(--tx2);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: clamp(3px, 0.5vw, 6px);
+    transition: all var(--tw);
+    white-space: nowrap;
+    flex-shrink: 0;
+    min-height: 28px;
+    touch-action: manipulation;
+}
+
+#sound-btn:hover {
+    border-color: var(--a1);
+    color: var(--a1);
+    background: var(--ta1);
+}
+
+#sound-btn svg {
+    width: 11px;
+    height: 11px;
+}
+
+#sound-btn.muted {
+    color: var(--tx3);
+    border-color: var(--bd);
+    background: var(--s2);
+    opacity: 0.55;
+}
+
+#sound-btn.muted:hover {
+    opacity: 1;
+    border-color: var(--a1);
+    color: var(--a1);
+    background: var(--ta1);
+}
+
+#sound-btn.muted .snd-on {
+    display: none;
+}
+
+.snd-mute {
+    display: none;
+}
+
+#sound-btn.muted .snd-mute {
+    display: block;
+}
 
 /* ═══════════════════════════════════════════════════════
    15. CHAT TOGGLE BUTTON
@@ -3793,70 +3854,5 @@ emoji-picker {
 
     #editor {
         padding: 10px;
-    }
-}
-
-
-/* ── Sound button ────────────────────────────────────── */
-#sound-btn {
-    display: flex;
-    align-items: center;
-    gap: 5px;
-    padding: 4px 8px;
-    border: none;
-    border-radius: 6px;
-    background: transparent;
-    color: var(--tx2);
-    cursor: pointer;
-    font-size: 11px;
-    font-family: var(--fs);
-    transition: background 0.15s, color 0.15s;
-    white-space: nowrap;
-}
-
-#sound-btn:hover {
-    background: var(--s3);
-    color: var(--tx);
-}
-
-#sound-btn svg {
-    width: 14px;
-    height: 14px;
-    flex-shrink: 0;
-}
-
-/* Estado mudo — atenua o botão inteiro */
-#sound-btn.muted {
-    color: var(--tx3);
-    opacity: 0.6;
-}
-
-#sound-btn.muted:hover {
-    opacity: 1;
-    color: var(--tx);
-}
-
-/* Esconde a onda quando mutado */
-#sound-btn.muted .snd-on {
-    display: none;
-}
-
-/* Mostra o X de mute só quando mutado */
-.snd-mute {
-    display: none;
-}
-
-#sound-btn.muted .snd-mute {
-    display: block;
-}
-
-/* Esconde label em telas pequenas (mesmo padrão dos outros botões) */
-@media (max-width: 700px) {
-    #sound-btn .lbl {
-        display: none;
-    }
-
-    #sound-btn {
-        padding: 4px 6px;
     }
 }
