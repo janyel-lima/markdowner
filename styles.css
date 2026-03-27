@@ -914,27 +914,26 @@ input[type="color"]::-webkit-color-swatch {
 /* ═══════════════════════════════════════════════════════
    15. CHAT TOGGLE BUTTON
 ═══════════════════════════════════════════════════════ */
-
+/* ── Chat FAB ───────────────────────────────────────── */
 #chat-toggle-btn {
-    font-family: var(--ff);
-    font-size: clamp(10px, 0.9vw, 11.5px);
-    font-weight: 500;
-    padding: 5px clamp(6px, 0.8vw, 11px);
-    border-radius: var(--rr);
-    border: 1px solid var(--bd);
-    background: var(--s2);
-    color: var(--tx2);
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    z-index: 300;
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    border: none;
+    background: var(--a2);
+    color: #fff;
     cursor: pointer;
     display: none;
-    /* shown via JS when in a session */
     align-items: center;
-    gap: clamp(3px, 0.5vw, 6px);
-    transition: all var(--tw);
-    white-space: nowrap;
+    justify-content: center;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.28);
+    transition: background var(--tw), transform 0.15s, box-shadow 0.15s;
     flex-shrink: 0;
-    min-height: 28px;
     touch-action: manipulation;
-    position: relative;
 }
 
 #chat-toggle-btn.vis {
@@ -942,28 +941,47 @@ input[type="color"]::-webkit-color-swatch {
 }
 
 #chat-toggle-btn:hover {
-    border-color: var(--a2);
-    color: var(--a2);
-    background: var(--ta2);
+    background: var(--a1);
+    transform: scale(1.08);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.34);
 }
 
-#chat-toggle-btn.on {
-    background: rgba(var(--a2r), .14);
-    border-color: var(--a2);
-    color: var(--a2);
+#chat-toggle-btn:active {
+    transform: scale(0.96);
 }
 
-#chat-toggle-btn svg {
-    width: 11px;
-    height: 11px;
+/* Ícone de chat — visível por padrão */
+#chat-toggle-btn .fab-ico-chat {
+    width: 22px;
+    height: 22px;
+    display: block;
 }
 
+/* Ícone de fechar — só quando painel aberto */
+#chat-toggle-btn .fab-ico-close {
+    width: 20px;
+    height: 20px;
+    display: none;
+}
+
+#chat-toggle-btn.on .fab-ico-chat {
+    display: none;
+}
+
+#chat-toggle-btn.on .fab-ico-close {
+    display: block;
+}
+
+/* Badge de não lidas */
 .chat-badge {
+    position: absolute;
+    top: -4px;
+    right: -4px;
     font-family: var(--fm);
     font-size: 9px;
     font-weight: 700;
-    min-width: 16px;
-    height: 16px;
+    min-width: 18px;
+    height: 18px;
     background: #e85050;
     color: #fff;
     border-radius: 99px;
@@ -971,13 +989,28 @@ input[type="color"]::-webkit-color-swatch {
     display: none;
     align-items: center;
     justify-content: center;
-    flex-shrink: 0;
+    border: 2px solid var(--s1);
+    pointer-events: none;
 }
 
 .chat-badge.vis {
     display: flex;
 }
 
+/* Mobile — sobe um pouco para não cobrir a barra de sistema */
+@media (max-width: 700px) {
+    #chat-toggle-btn {
+        bottom: 16px;
+        right: 16px;
+        width: 44px;
+        height: 44px;
+    }
+
+    #chat-toggle-btn .fab-ico-chat {
+        width: 20px;
+        height: 20px;
+    }
+}
 
 /* ═══════════════════════════════════════════════════════
    16. VERTICAL DIVIDERS (.vd)
