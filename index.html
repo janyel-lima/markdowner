@@ -484,6 +484,8 @@
 
         <!-- Sidebar -->
         <div id="chat-sidebar">
+            <div class="chat-sidebar-noise" aria-hidden="true"></div>
+
             <div id="chat-sidebar-head">
                 <div class="cp-profile-pill" onclick="openProfileModal()" role="button" tabindex="0"
                     title="Editar perfil">
@@ -491,15 +493,17 @@
                     <span class="cp-profile-pill-label">Editar perfil</span>
                 </div>
                 <button class="cp-close" onclick="toggleChat()" aria-label="Fechar chat">
-                    <svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2"
+                    <svg width="12" height="12" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2.2"
                         stroke-linecap="round" aria-hidden="true">
                         <path d="M2 2l10 10M12 2L2 12" />
                     </svg>
                 </button>
             </div>
 
-            <div class="chat-sidebar-section-label">Canais</div>
+            <div class="chat-sidebar-section-label"><span>Canais</span></div>
+
             <button class="chat-channel-btn active" id="ch-session" onclick="switchChannel('session')">
+                <div class="ch-btn-indicator" aria-hidden="true"></div>
                 <svg width="13" height="13" viewBox="0 0 14 14" fill="currentColor" aria-hidden="true">
                     <path d="M2 2h10a1 1 0 011 1v6a1 1 0 01-1 1H8l-2 2-2-2H2a1 1 0 01-1-1V3a1 1 0 011-1z" />
                 </svg>
@@ -507,8 +511,9 @@
                 <span class="ch-badge" id="ch-badge-session" aria-live="polite"></span>
             </button>
 
-            <div class="chat-sidebar-section-label">Mensagens diretas</div>
+            <div class="chat-sidebar-section-label"><span>Mensagens diretas</span></div>
             <div id="dm-list" aria-label="Mensagens diretas"></div>
+            <div class="chat-sidebar-footer" aria-hidden="true"></div>
         </div>
 
         <!-- Main chat area -->
@@ -566,10 +571,9 @@
                     </div>
                 </div>
             </div>
-        </div><!-- /#chat-main -->
+        </div>
 
-    </aside><!-- /#chat-panel -->
-
+    </aside>
 
     <!-- ═══════════════════════════════════════════ IMAGE LIGHTBOX -->
     <div id="img-lightbox" role="dialog" aria-modal="true" aria-label="Visualizador de imagem">
