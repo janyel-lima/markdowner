@@ -109,7 +109,6 @@
                             </svg>
                             Exportar .txt
                         </button>
-                        <!-- ★ NEW: Export HTML -->
                         <button class="exp-item" role="menuitem" onclick="exportHtml()">
                             <svg viewBox="0 0 14 14" fill="currentColor" aria-hidden="true">
                                 <path d="M2 1h7l3 3v9H2V1zm7 0v3h3" />
@@ -252,14 +251,16 @@
 
         <!-- ── Editor panel ── -->
         <section class="panel" id="ep" aria-label="Editor Markdown">
+
             <div class="pbar" id="t-epbar">
                 <div class="pbar-dot pbar-dot-a1" aria-hidden="true"></div>
                 <span class="pbar-tag">Markdown</span>
 
-                <!-- ★ Stats trigger + panel -->
+                <!-- Stats counter (clickable) + stats popover -->
                 <div class="pbar-meta-wrap">
                     <span class="pbar-meta" id="cc" role="button" tabindex="0" aria-haspopup="true"
                         title="Ver estatísticas detalhadas" onclick="toggleStats()" aria-live="polite">— chars</span>
+
                     <div id="stats-panel" role="dialog" aria-label="Estatísticas do documento">
                         <div class="stats-header">
                             <span class="stats-title">Estatísticas</span>
@@ -302,9 +303,9 @@
                     </div>
                 </div>
 
-                <!-- ★ Find trigger -->
+                <!-- Find trigger button -->
                 <button class="pbar-find-btn" id="find-trigger-btn" onclick="openFind(false)"
-                    title="Buscar no editor (Ctrl+F)" aria-label="Abrir busca">
+                    title="Buscar no editor (Ctrl+F)" aria-label="Abrir busca no editor">
                     <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"
                         aria-hidden="true">
                         <circle cx="6" cy="6" r="4" />
@@ -313,7 +314,7 @@
                 </button>
             </div>
 
-            <!-- ★ Find & Replace panel (editor) -->
+            <!-- Find & Replace panel -->
             <div id="find-panel" role="search" aria-label="Buscar e substituir">
                 <div class="find-row">
                     <div class="find-input-group">
@@ -329,7 +330,7 @@
                     </div>
                     <div class="find-actions">
                         <button class="find-btn" id="find-case" onclick="toggleFindCase()"
-                            title="Diferenciar maiúsculas (Alt+C)">Aa</button>
+                            title="Maiúsculas/minúsculas">Aa</button>
                         <button class="find-btn find-nav" onclick="findPrev()" title="Anterior (Shift+Enter)">
                             <svg viewBox="0 0 10 10" fill="currentColor" aria-hidden="true">
                                 <path d="M5 8V2M2 5l3-3 3 3" />
@@ -369,8 +370,23 @@
                 </div>
             </div>
 
-            <textarea id="editor" spellcheck="false" autocorrect="off" autocapitalize="off"
-                aria-label="Editor de Markdown" aria-multiline="true"></textarea>
+            <!--
+              ★ EDITOR WRAP: positions the highlight backdrop
+                 behind the textarea. Both must be children of this div.
+            -->
+            <div class="editor-wrap">
+                <!--
+                  ★ BACKDROP: invisible text + colored <mark> spans.
+                     Synced in position, font, padding and scroll to #editor.
+                     When #editor has .find-active, its bg = transparent
+                     so these marks show through.
+                -->
+                <div id="find-hl-backdrop" aria-hidden="true"></div>
+
+                <textarea id="editor" spellcheck="false" autocorrect="off" autocapitalize="off"
+                    aria-label="Editor de Markdown" aria-multiline="true"></textarea>
+            </div>
+
         </section>
 
         <!-- Drag divider -->
@@ -383,13 +399,14 @@
 
         <!-- ── Preview panel ── -->
         <section class="panel" id="pp" aria-label="Preview renderizado">
+
             <div class="pbar" id="t-ppbar">
                 <div class="pbar-dot pbar-dot-a2" aria-hidden="true"></div>
                 <span class="pbar-tag">Preview</span>
 
-                <!-- ★ NEW: preview find trigger -->
+                <!-- Preview find trigger -->
                 <button class="pbar-find-btn pbar-find-btn-preview" id="pv-find-trigger-btn" onclick="openPreviewFind()"
-                    title="Buscar no preview (Ctrl+F no modo Preview)" aria-label="Buscar no preview">
+                    title="Buscar no preview (Ctrl+F)" aria-label="Buscar no preview">
                     <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"
                         aria-hidden="true">
                         <circle cx="6" cy="6" r="4" />
@@ -398,7 +415,7 @@
                 </button>
             </div>
 
-            <!-- ★ NEW: Preview find panel -->
+            <!-- Preview find panel -->
             <div id="pv-find-panel" role="search" aria-label="Buscar no preview">
                 <div class="find-row">
                     <div class="find-input-group">
@@ -414,7 +431,7 @@
                     </div>
                     <div class="find-actions">
                         <button class="find-btn" id="pv-find-case" onclick="togglePvFindCase()"
-                            title="Diferenciar maiúsculas">Aa</button>
+                            title="Maiúsculas/minúsculas">Aa</button>
                         <button class="find-btn find-nav" onclick="pvFindPrev()" title="Anterior (Shift+Enter)">
                             <svg viewBox="0 0 10 10" fill="currentColor" aria-hidden="true">
                                 <path d="M5 8V2M2 5l3-3 3 3" />
@@ -436,7 +453,7 @@
 
     </main>
 
-    <!-- ═══════════════ TOAST ═══════════════════════════ -->
+    <!-- ═══════════════ TOAST ════════════════════════════ -->
     <div class="toast" id="toast" role="status" aria-live="polite" aria-atomic="true"></div>
     <div class="sheet-overlay" id="sheetOverlay" onclick="closeAllDropdowns()" aria-hidden="true"></div>
 
@@ -511,10 +528,8 @@
     <div id="tour-blocker" aria-hidden="true"></div>
     <div id="tour-spot" aria-hidden="true"></div>
     <div id="tour-card" role="dialog" aria-modal="true" aria-labelledby="tc-title">
-        <div class="tc-head">
-            <span class="tc-phase" id="tc-phase">Interface</span>
-            <span class="tc-count" id="tc-count" aria-live="polite">1 / 25</span>
-        </div>
+        <div class="tc-head"><span class="tc-phase" id="tc-phase">Interface</span><span class="tc-count" id="tc-count"
+                aria-live="polite">1 / 25</span></div>
         <div class="tc-bar" aria-hidden="true">
             <div class="tc-fill" id="tc-fill"></div>
         </div>
@@ -556,12 +571,10 @@
             <div id="cm-create-body" class="cm-body" role="tabpanel" aria-labelledby="cm-tab-create">
                 <div><label class="cm-label" for="cm-host-name">Seu nome</label><input class="cm-input"
                         id="cm-host-name" placeholder="Ex: Ana" maxlength="24" autocomplete="off"></div>
-                <div id="cm-create-step1">
-                    <button class="cm-btn a2" id="cm-create-btn" onclick="hostSession()"><svg viewBox="0 0 14 14"
-                            fill="currentColor" width="13" height="13" aria-hidden="true">
+                <div id="cm-create-step1"><button class="cm-btn a2" id="cm-create-btn" onclick="hostSession()"><svg
+                            viewBox="0 0 14 14" fill="currentColor" width="13" height="13" aria-hidden="true">
                             <path d="M7 1v12M1 7h12" />
-                        </svg>Criar sessão</button>
-                </div>
+                        </svg>Criar sessão</button></div>
                 <div id="cm-create-step2" style="display:none;flex-direction:column;gap:12px;">
                     <div>
                         <div class="cm-label">Link da sessão — compartilhe com seus colegas</div>
@@ -753,14 +766,15 @@
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
     <script type="module" src="https://cdn.jsdelivr.net/npm/emoji-picker-element@1/index.js"></script>
+
     <script>
         window._FB_API_KEY = '__FIREBASE_API_KEY__';
         window._FB_DB_URL = '__FIREBASE_DB_URL__';
         window._FB_PROJECT_ID = '__FIREBASE_PROJECT_ID__';
     </script>
     <script src="app.js" defer></script>
-    <!-- ★ Append AFTER app.js -->
-    <script src="app-additions.js" defer></script>
+    <!-- app_additions.js must load AFTER app.js (defer preserves order) -->
+    <script src="app_additions.js" defer></script>
 
 </body>
 

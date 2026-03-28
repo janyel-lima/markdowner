@@ -5018,3 +5018,1059 @@ mark.pv-mark-active {
         justify-content: flex-end;
     }
 }
+
+/* ═══════════════════════════════════════════════════════
+   styles_additions.css — append to bottom of styles.css
+   Covers: editor backdrop · find panels · stats panel
+           preview search marks
+═══════════════════════════════════════════════════════ */
+
+
+/* ── Editor wrapper + highlight backdrop ─────────────
+   The textarea sits in a relative wrapper.
+   #find-hl-backdrop is positioned absolute behind it,
+   same font/padding, renders invisible text + colored marks.
+   When #editor.find-active, textarea bg = transparent
+   so backdrop marks show through.
+─────────────────────────────────────────────────────── */
+
+.editor-wrap {
+    flex: 1;
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+}
+
+#find-hl-backdrop {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+
+    /* Must exactly mirror #editor's text rendering */
+    font-family: var(--fm);
+    font-size: var(--fs-editor);
+    line-height: 1.85;
+    padding: clamp(16px, 4vw, 24px) clamp(16px, 5vw, 28px);
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    tab-size: 2;
+    box-sizing: border-box;
+
+    /* Text invisible — only the mark backgrounds are visible */
+    color: transparent;
+    background: transparent;
+
+    /* Scroll is set programmatically to match the textarea */
+    overflow: hidden;
+}
+
+/* Editor becomes transparent when find is active so backdrop shows through */
+#editor {
+    position: relative;
+    z-index: 1;
+}
+
+#editor.find-active {
+    background: transparent !important;
+}
+
+/* All match highlights in the editor backdrop */
+.find-hl {
+    background: rgba(var(--a1r), .22);
+    border-radius: 2px;
+    /* color stays transparent — we only want the bg rectangle */
+    color: transparent;
+}
+
+/* Active / current match */
+.find-hl-active {
+    background: rgba(var(--a1r), .55);
+    border-radius: 3px;
+    outline: 1.5px solid var(--a1);
+    outline-offset: 0px;
+}
+
+[data-theme="light"] .find-hl {
+    background: rgba(var(--a1r), .18);
+}
+
+[data-theme="light"] .find-hl-active {
+    background: rgba(var(--a1r), .42);
+}
+
+
+/* ── Pbar meta wrap + find trigger ───────────────── */
+
+.pbar-meta-wrap {
+    margin-left: auto;
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+/* Override the standalone margin-left on .pbar-meta */
+#t-epbar .pbar-meta {
+    margin-left: 0;
+    cursor: pointer;
+    padding: 2px 6px;
+    border-radius: var(--rr);
+    transition: color var(--tw), background var(--tw);
+}
+
+#t-epbar .pbar-meta:hover {
+    color: var(--a2);
+    background: rgba(var(--a2r), .09);
+}
+
+.pbar-find-btn {
+    background: transparent;
+    border: none;
+    color: var(--tx3);
+    cursor: pointer;
+    padding: 3px 6px;
+    border-radius: var(--rr);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: color var(--tw), background var(--tw);
+    margin-left: 3px;
+    flex-shrink: 0;
+}
+
+.pbar-find-btn svg {
+    width: 12px;
+    height: 12px;
+    flex-shrink: 0;
+}
+
+.pbar-find-btn:hover {
+    color: var(--a1);
+    background: rgba(var(--a1r), .1);
+}
+
+/* Preview pbar find button — uses a2 colour */
+.pbar-find-btn-preview {
+    margin-left: auto;
+}
+
+.pbar-find-btn-preview:hover {
+    color: var(--a2);
+    background: rgba(var(--a2r), .1);
+}
+
+
+/* ── Stats panel ─────────────────────────────────── */
+
+#stats-panel {
+    position: absolute;
+    top: calc(100% + 8px);
+    right: 0;
+    width: 246px;
+    background: var(--s1);
+    border: 1px solid var(--bd);
+    border-radius: 10px;
+    box-shadow: var(--sh2);
+    z-index: 400;
+    display: none;
+    flex-direction: column;
+    overflow: hidden;
+    animation: modal-in .18s cubic-bezier(.34, 1.3, .64, 1);
+}
+
+#stats-panel.vis {
+    display: flex;
+}
+
+.stats-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 12px 8px;
+    border-bottom: 1px solid var(--bd);
+    background: var(--s2);
+}
+
+.stats-title {
+    font-family: var(--fm);
+    font-size: var(--fs-2xs);
+    font-weight: 700;
+    color: var(--txh);
+    letter-spacing: .1em;
+    text-transform: uppercase;
+}
+
+.stats-close {
+    background: none;
+    border: none;
+    color: var(--tx3);
+    cursor: pointer;
+    font-size: 13px;
+    padding: 2px 5px;
+    border-radius: 4px;
+    line-height: 1;
+    transition: color var(--tw), background var(--tw);
+}
+
+.stats-close:hover {
+    color: var(--tx);
+    background: var(--s3);
+}
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 1px;
+    background: var(--bd);
+    border-bottom: 1px solid var(--bd);
+}
+
+.stats-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 11px 6px 9px;
+    background: var(--s1);
+    gap: 4px;
+    transition: background var(--tw);
+}
+
+.stats-item:hover {
+    background: var(--s2);
+}
+
+.stats-value {
+    font-family: var(--fm);
+    font-size: clamp(14px, 3vw, 17px);
+    font-weight: 700;
+    color: var(--a1);
+    line-height: 1;
+    letter-spacing: -.02em;
+}
+
+.stats-label {
+    font-family: var(--fm);
+    font-size: 9px;
+    font-weight: 600;
+    color: var(--tx3);
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    text-align: center;
+}
+
+.stats-reading {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    padding: 9px 12px;
+    font-size: var(--fs-xs);
+    color: var(--tx2);
+    background: rgba(var(--a2r), .05);
+}
+
+.stats-reading svg {
+    width: 13px;
+    height: 13px;
+    flex-shrink: 0;
+    color: var(--a2);
+}
+
+.stats-reading strong {
+    color: var(--a2);
+    font-weight: 700;
+}
+
+
+/* ── Find panels (shared base for editor + preview) ─ */
+
+#find-panel,
+#pv-find-panel {
+    height: 0;
+    overflow: hidden;
+    background: var(--s1);
+    border-bottom: 1px solid transparent;
+    display: flex;
+    flex-direction: column;
+    flex-shrink: 0;
+    transition: height .22s cubic-bezier(.4, 0, .2, 1),
+        border-color var(--tw), background var(--tw);
+}
+
+#find-panel.open,
+#pv-find-panel.open {
+    height: auto;
+    border-bottom-color: var(--bd);
+}
+
+/* Preview panel: focus ring + hover in a2 instead of a1 */
+#pv-find-panel .find-input-group:focus-within {
+    border-color: var(--a2);
+    box-shadow: 0 0 0 2px rgba(var(--a2r), .12);
+}
+
+#pv-find-panel .find-btn:hover {
+    color: var(--a2);
+    border-color: var(--a2);
+    background: var(--s2);
+}
+
+#pv-find-panel .find-btn.on {
+    background: rgba(var(--a2r), .13);
+    color: var(--a2);
+    border-color: rgba(var(--a2r), .3);
+}
+
+.find-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 7px 10px;
+}
+
+.find-replace-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 0 10px 7px;
+    animation: find-row-in .15s ease;
+}
+
+@keyframes find-row-in {
+    from {
+        opacity: 0;
+        transform: translateY(-4px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.find-input-group {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--bg2);
+    border: 1px solid var(--bd);
+    border-radius: 6px;
+    padding: 0 8px;
+    transition: border-color .18s, box-shadow .18s;
+}
+
+.find-input-group:focus-within {
+    border-color: var(--a1);
+    box-shadow: 0 0 0 2px rgba(var(--a1r), .12);
+}
+
+.find-ico {
+    width: 12px;
+    height: 12px;
+    flex-shrink: 0;
+    color: var(--tx3);
+    pointer-events: none;
+}
+
+.find-input {
+    font-family: var(--fm);
+    font-size: var(--fs-mono-sm);
+    background: transparent;
+    border: none;
+    outline: none;
+    color: var(--tx);
+    padding: 5px 0;
+    flex: 1;
+    min-width: 0;
+    caret-color: var(--a1);
+}
+
+.find-input::placeholder {
+    color: var(--tx3);
+    font-style: italic;
+}
+
+.find-status {
+    font-family: var(--fm);
+    font-size: var(--fs-mono-xs);
+    color: var(--tx3);
+    white-space: nowrap;
+    flex-shrink: 0;
+    min-width: 52px;
+    text-align: right;
+    transition: color .15s;
+}
+
+.find-status.no-match {
+    color: #e85050;
+}
+
+.find-actions {
+    display: flex;
+    align-items: center;
+    gap: 3px;
+    flex-shrink: 0;
+}
+
+.find-btn {
+    font-family: var(--fm);
+    font-size: var(--fs-mono-xs);
+    font-weight: 600;
+    background: transparent;
+    border: 1px solid var(--bd);
+    border-radius: 5px;
+    color: var(--tx2);
+    cursor: pointer;
+    padding: 4px 7px;
+    min-height: 26px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    transition: all .13s;
+    white-space: nowrap;
+    touch-action: manipulation;
+}
+
+.find-btn svg {
+    width: 10px;
+    height: 10px;
+    flex-shrink: 0;
+}
+
+.find-btn:hover {
+    background: var(--s2);
+    color: var(--a1);
+    border-color: var(--a1);
+}
+
+.find-btn.on {
+    background: rgba(var(--a1r), .13);
+    color: var(--a1);
+    border-color: rgba(var(--a1r), .3);
+}
+
+.find-nav {
+    padding: 4px 6px;
+}
+
+.find-close {
+    font-size: 12px;
+    border-color: transparent;
+    color: var(--tx3);
+}
+
+.find-close:hover {
+    border-color: var(--bd);
+    background: var(--s2);
+    color: var(--tx);
+}
+
+.find-replace-toggle {
+    padding: 4px 6px;
+}
+
+.find-replace-toggle.on {
+    background: rgba(var(--a2r), .12);
+    color: var(--a2);
+    border-color: rgba(var(--a2r), .28);
+}
+
+.find-replace-btn {
+    background: var(--s2);
+}
+
+.find-replace-all {
+    background: rgba(var(--a1r), .1);
+    color: var(--a1);
+    border-color: rgba(var(--a1r), .25);
+}
+
+.find-replace-all:hover {
+    background: rgba(var(--a1r), .2);
+    color: var(--a1);
+}
+
+
+/* ── Preview search mark highlights ─────────────────
+   All match occurrences: subtle background tint.
+   Active match: filled with --a2, white text, ring.
+─────────────────────────────────────────────────────── */
+
+mark.pv-mark {
+    background: rgba(var(--a2r), .28);
+    color: inherit;
+    /* keep surrounding text colour */
+    border-radius: 2px;
+    padding: 0 1px;
+}
+
+[data-theme="light"] mark.pv-mark {
+    background: rgba(var(--a2r), .2);
+}
+
+mark.pv-mark-active {
+    background: var(--a2);
+    color: #fff;
+    border-radius: 3px;
+    padding: 0 2px;
+    box-shadow: 0 0 0 2px rgba(var(--a2r), .45);
+}
+
+
+/* ── Mobile ──────────────────────────────────────── */
+
+@media (max-width: 700px) {
+
+    .find-row,
+    .find-replace-row {
+        flex-wrap: wrap;
+        gap: 5px;
+    }
+
+    .find-input-group {
+        flex: 1 1 100%;
+    }
+
+    .find-actions {
+        width: 100%;
+        justify-content: flex-end;
+    }
+
+    #find-hl-backdrop {
+        padding: 12px;
+        /* match mobile #editor padding */
+    }
+}
+
+/* ═══════════════════════════════════════════════════════
+   styles_additions.css — append to bottom of styles.css
+   Covers: editor backdrop · find panels · stats panel
+           preview search marks
+═══════════════════════════════════════════════════════ */
+
+
+/* ── Editor wrapper + highlight backdrop ─────────────
+   The textarea sits in a relative wrapper.
+   #find-hl-backdrop is positioned absolute behind it,
+   same font/padding, renders invisible text + colored marks.
+   When #editor.find-active, textarea bg = transparent
+   so backdrop marks show through.
+─────────────────────────────────────────────────────── */
+
+.editor-wrap {
+    flex: 1;
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+}
+
+#find-hl-backdrop {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+
+    /* Must exactly mirror #editor's text rendering */
+    font-family: var(--fm);
+    font-size: var(--fs-editor);
+    line-height: 1.85;
+    padding: clamp(16px, 4vw, 24px) clamp(16px, 5vw, 28px);
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    tab-size: 2;
+    box-sizing: border-box;
+
+    /* Text invisible — only the mark backgrounds are visible */
+    color: transparent;
+    background: transparent;
+
+    /* Scroll is set programmatically to match the textarea */
+    overflow: hidden;
+}
+
+/* Editor becomes transparent when find is active so backdrop shows through */
+#editor {
+    position: relative;
+    z-index: 1;
+}
+
+#editor.find-active {
+    background: transparent !important;
+}
+
+/* All match highlights in the editor backdrop */
+.find-hl {
+    background: rgba(var(--a1r), .22);
+    border-radius: 2px;
+    /* color stays transparent — we only want the bg rectangle */
+    color: transparent;
+}
+
+/* Active / current match */
+.find-hl-active {
+    background: rgba(var(--a1r), .55);
+    border-radius: 3px;
+    outline: 1.5px solid var(--a1);
+    outline-offset: 0px;
+}
+
+[data-theme="light"] .find-hl {
+    background: rgba(var(--a1r), .18);
+}
+
+[data-theme="light"] .find-hl-active {
+    background: rgba(var(--a1r), .42);
+}
+
+
+/* ── Pbar meta wrap + find trigger ───────────────── */
+
+.pbar-meta-wrap {
+    margin-left: auto;
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+/* Override the standalone margin-left on .pbar-meta */
+#t-epbar .pbar-meta {
+    margin-left: 0;
+    cursor: pointer;
+    padding: 2px 6px;
+    border-radius: var(--rr);
+    transition: color var(--tw), background var(--tw);
+}
+
+#t-epbar .pbar-meta:hover {
+    color: var(--a2);
+    background: rgba(var(--a2r), .09);
+}
+
+.pbar-find-btn {
+    background: transparent;
+    border: none;
+    color: var(--tx3);
+    cursor: pointer;
+    padding: 3px 6px;
+    border-radius: var(--rr);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: color var(--tw), background var(--tw);
+    margin-left: 3px;
+    flex-shrink: 0;
+}
+
+.pbar-find-btn svg {
+    width: 12px;
+    height: 12px;
+    flex-shrink: 0;
+}
+
+.pbar-find-btn:hover {
+    color: var(--a1);
+    background: rgba(var(--a1r), .1);
+}
+
+/* Preview pbar find button — uses a2 colour */
+.pbar-find-btn-preview {
+    margin-left: auto;
+}
+
+.pbar-find-btn-preview:hover {
+    color: var(--a2);
+    background: rgba(var(--a2r), .1);
+}
+
+
+/* ── Stats panel ─────────────────────────────────── */
+
+#stats-panel {
+    position: absolute;
+    top: calc(100% + 8px);
+    right: 0;
+    width: 246px;
+    background: var(--s1);
+    border: 1px solid var(--bd);
+    border-radius: 10px;
+    box-shadow: var(--sh2);
+    z-index: 400;
+    display: none;
+    flex-direction: column;
+    overflow: hidden;
+    animation: modal-in .18s cubic-bezier(.34, 1.3, .64, 1);
+}
+
+#stats-panel.vis {
+    display: flex;
+}
+
+.stats-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 12px 8px;
+    border-bottom: 1px solid var(--bd);
+    background: var(--s2);
+}
+
+.stats-title {
+    font-family: var(--fm);
+    font-size: var(--fs-2xs);
+    font-weight: 700;
+    color: var(--txh);
+    letter-spacing: .1em;
+    text-transform: uppercase;
+}
+
+.stats-close {
+    background: none;
+    border: none;
+    color: var(--tx3);
+    cursor: pointer;
+    font-size: 13px;
+    padding: 2px 5px;
+    border-radius: 4px;
+    line-height: 1;
+    transition: color var(--tw), background var(--tw);
+}
+
+.stats-close:hover {
+    color: var(--tx);
+    background: var(--s3);
+}
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 1px;
+    background: var(--bd);
+    border-bottom: 1px solid var(--bd);
+}
+
+.stats-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 11px 6px 9px;
+    background: var(--s1);
+    gap: 4px;
+    transition: background var(--tw);
+}
+
+.stats-item:hover {
+    background: var(--s2);
+}
+
+.stats-value {
+    font-family: var(--fm);
+    font-size: clamp(14px, 3vw, 17px);
+    font-weight: 700;
+    color: var(--a1);
+    line-height: 1;
+    letter-spacing: -.02em;
+}
+
+.stats-label {
+    font-family: var(--fm);
+    font-size: 9px;
+    font-weight: 600;
+    color: var(--tx3);
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    text-align: center;
+}
+
+.stats-reading {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    padding: 9px 12px;
+    font-size: var(--fs-xs);
+    color: var(--tx2);
+    background: rgba(var(--a2r), .05);
+}
+
+.stats-reading svg {
+    width: 13px;
+    height: 13px;
+    flex-shrink: 0;
+    color: var(--a2);
+}
+
+.stats-reading strong {
+    color: var(--a2);
+    font-weight: 700;
+}
+
+
+/* ── Find panels (shared base for editor + preview) ─ */
+
+#find-panel,
+#pv-find-panel {
+    height: 0;
+    overflow: hidden;
+    background: var(--s1);
+    border-bottom: 1px solid transparent;
+    display: flex;
+    flex-direction: column;
+    flex-shrink: 0;
+    transition: height .22s cubic-bezier(.4, 0, .2, 1),
+        border-color var(--tw), background var(--tw);
+}
+
+#find-panel.open,
+#pv-find-panel.open {
+    height: auto;
+    border-bottom-color: var(--bd);
+}
+
+/* Preview panel: focus ring + hover in a2 instead of a1 */
+#pv-find-panel .find-input-group:focus-within {
+    border-color: var(--a2);
+    box-shadow: 0 0 0 2px rgba(var(--a2r), .12);
+}
+
+#pv-find-panel .find-btn:hover {
+    color: var(--a2);
+    border-color: var(--a2);
+    background: var(--s2);
+}
+
+#pv-find-panel .find-btn.on {
+    background: rgba(var(--a2r), .13);
+    color: var(--a2);
+    border-color: rgba(var(--a2r), .3);
+}
+
+.find-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 7px 10px;
+}
+
+.find-replace-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 0 10px 7px;
+    animation: find-row-in .15s ease;
+}
+
+@keyframes find-row-in {
+    from {
+        opacity: 0;
+        transform: translateY(-4px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.find-input-group {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--bg2);
+    border: 1px solid var(--bd);
+    border-radius: 6px;
+    padding: 0 8px;
+    transition: border-color .18s, box-shadow .18s;
+}
+
+.find-input-group:focus-within {
+    border-color: var(--a1);
+    box-shadow: 0 0 0 2px rgba(var(--a1r), .12);
+}
+
+.find-ico {
+    width: 12px;
+    height: 12px;
+    flex-shrink: 0;
+    color: var(--tx3);
+    pointer-events: none;
+}
+
+.find-input {
+    font-family: var(--fm);
+    font-size: var(--fs-mono-sm);
+    background: transparent;
+    border: none;
+    outline: none;
+    color: var(--tx);
+    padding: 5px 0;
+    flex: 1;
+    min-width: 0;
+    caret-color: var(--a1);
+}
+
+.find-input::placeholder {
+    color: var(--tx3);
+    font-style: italic;
+}
+
+.find-status {
+    font-family: var(--fm);
+    font-size: var(--fs-mono-xs);
+    color: var(--tx3);
+    white-space: nowrap;
+    flex-shrink: 0;
+    min-width: 52px;
+    text-align: right;
+    transition: color .15s;
+}
+
+.find-status.no-match {
+    color: #e85050;
+}
+
+.find-actions {
+    display: flex;
+    align-items: center;
+    gap: 3px;
+    flex-shrink: 0;
+}
+
+.find-btn {
+    font-family: var(--fm);
+    font-size: var(--fs-mono-xs);
+    font-weight: 600;
+    background: transparent;
+    border: 1px solid var(--bd);
+    border-radius: 5px;
+    color: var(--tx2);
+    cursor: pointer;
+    padding: 4px 7px;
+    min-height: 26px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    transition: all .13s;
+    white-space: nowrap;
+    touch-action: manipulation;
+}
+
+.find-btn svg {
+    width: 10px;
+    height: 10px;
+    flex-shrink: 0;
+}
+
+.find-btn:hover {
+    background: var(--s2);
+    color: var(--a1);
+    border-color: var(--a1);
+}
+
+.find-btn.on {
+    background: rgba(var(--a1r), .13);
+    color: var(--a1);
+    border-color: rgba(var(--a1r), .3);
+}
+
+.find-nav {
+    padding: 4px 6px;
+}
+
+.find-close {
+    font-size: 12px;
+    border-color: transparent;
+    color: var(--tx3);
+}
+
+.find-close:hover {
+    border-color: var(--bd);
+    background: var(--s2);
+    color: var(--tx);
+}
+
+.find-replace-toggle {
+    padding: 4px 6px;
+}
+
+.find-replace-toggle.on {
+    background: rgba(var(--a2r), .12);
+    color: var(--a2);
+    border-color: rgba(var(--a2r), .28);
+}
+
+.find-replace-btn {
+    background: var(--s2);
+}
+
+.find-replace-all {
+    background: rgba(var(--a1r), .1);
+    color: var(--a1);
+    border-color: rgba(var(--a1r), .25);
+}
+
+.find-replace-all:hover {
+    background: rgba(var(--a1r), .2);
+    color: var(--a1);
+}
+
+
+/* ── Preview search mark highlights ─────────────────
+   All match occurrences: subtle background tint.
+   Active match: filled with --a2, white text, ring.
+─────────────────────────────────────────────────────── */
+
+mark.pv-mark {
+    background: rgba(var(--a2r), .28);
+    color: inherit;
+    /* keep surrounding text colour */
+    border-radius: 2px;
+    padding: 0 1px;
+}
+
+[data-theme="light"] mark.pv-mark {
+    background: rgba(var(--a2r), .2);
+}
+
+mark.pv-mark-active {
+    background: var(--a2);
+    color: #fff;
+    border-radius: 3px;
+    padding: 0 2px;
+    box-shadow: 0 0 0 2px rgba(var(--a2r), .45);
+}
+
+
+/* ── Mobile ──────────────────────────────────────── */
+
+@media (max-width: 700px) {
+
+    .find-row,
+    .find-replace-row {
+        flex-wrap: wrap;
+        gap: 5px;
+    }
+
+    .find-input-group {
+        flex: 1 1 100%;
+    }
+
+    .find-actions {
+        width: 100%;
+        justify-content: flex-end;
+    }
+
+    #find-hl-backdrop {
+        padding: 12px;
+        /* match mobile #editor padding */
+    }
+}

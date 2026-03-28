@@ -1,13 +1,16 @@
 /* ═══════════════════════════════════════════════════════
-   ★ FEATURE 1 — FIND & REPLACE (Editor)
-   Keyboard: Ctrl+F = find · Ctrl+H = find+replace · Esc = close
-   Behaviour:
-     - Typing only recomputes matches + updates counter.
-       The editor selection / focus is NEVER touched while
-       the user is still typing.
-     - Enter / ↑ / ↓ buttons move to the next/prev match,
-       scroll the editor line into view, select the text
-       and return focus to the find input immediately.
+   ★ FEATURE 1 — FIND & REPLACE  (Editor)
+   ─────────────────────────────────────────────────────
+   Typing  → recomputes matches, renders backdrop highlight.
+             Cursor/selection in the editor is NEVER touched.
+   Enter/↑↓ → navigates to a match, scrolls it to center,
+              keeps focus in the find input.
+   ─────────────────────────────────────────────────────
+   Backdrop technique:
+     A div positioned absolute behind the textarea, with the
+     same font/padding, renders invisible text + colored <mark>
+     elements.  The textarea sits on top with a transparent bg
+     when find is active, so highlights show through.
 ═══════════════════════════════════════════════════════ */
 
 let findMatches = [];
@@ -15,12 +18,35 @@ let findCurrentIdx = 0;
 let findPanelOpen = false;
 let findReplaceVisible = false;
 
-/** Regex-escape a literal string */
+/* ── Regex helper ── */
 function escapeRegex(str) {
     return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
 
-/** Open (or focus) the find panel */
+/* ── Backdrop setup (run once) ── */
+(function setupBackdropSync() {
+    // Sync backdrop scroll whenever the editor scrolls
+    editorEl.addEventListener('scroll', () => {
+        const bd = $('find-hl-backdrop');
+        if (bd) { bd.scrollTop = editorEl.scrollTop; bd.scrollLeft = editorEl.scrollLeft; }
+    });
+    // Keep backdrop in sync when user keeps typing while find is open
+    editorEl.addEventListener('input', () => {
+        if (!findPanelOpen) return;
+        recomputeMatches();
+        // Update current-index heuristic from scroll position (no cursor move)
+        if (findMatches.length) {
+            const c = getApproxCaretFromScroll();
+            const i = findMatches.findIndex(m => m.start >= c);
+            findCurrentIdx = i >= 0 ? i : 0;
+        } else { findCurrentIdx = 0; }
+        updateEditorBackdrop();
+        updateFindStatus();
+    });
+})();
+
+/* ── Open / close ── */
+
 function openFind(withReplace = false) {
     findPanelOpen = true;
     $('find-panel').classList.add('open');
@@ -32,28 +58,21 @@ function openFind(withReplace = false) {
     }
 
     const input = $('find-input');
-    // Pre-fill with current editor selection (single-line only)
     const sel = editorEl.value.substring(editorEl.selectionStart, editorEl.selectionEnd);
     if (sel && !sel.includes('\n')) input.value = sel;
 
-    // Focus stays in the find input — always
     input.focus();
     input.select();
     recomputeMatches();
+    if (findMatches.length) {
+        const c = getApproxCaretFromScroll();
+        const i = findMatches.findIndex(m => m.start >= c);
+        findCurrentIdx = i >= 0 ? i : 0;
+    }
+    updateEditorBackdrop();
     updateFindStatus();
 }
 
-/** Toggle the replace row */
-function toggleFindReplace() {
-    if (!findPanelOpen) { openFind(true); return; }
-    findReplaceVisible = !findReplaceVisible;
-    $('find-replace-row').style.display = findReplaceVisible ? 'flex' : 'none';
-    $('find-toggle-replace').classList.toggle('on', findReplaceVisible);
-    if (findReplaceVisible) $('replace-input').focus();
-    else $('find-input').focus();
-}
-
-/** Close panel and restore editor */
 function closeFind() {
     findPanelOpen = false;
     findReplaceVisible = false;
@@ -62,149 +81,163 @@ function closeFind() {
     $('find-panel').classList.remove('open');
     $('find-replace-row').style.display = 'none';
     $('find-toggle-replace').classList.remove('on');
+    updateEditorBackdrop(); // clears backdrop + removes find-active class
     updateFindStatus();
     editorEl.focus();
 }
 
-/**
- * Called on every keystroke in the find input.
- * ONLY recomputes the match list + updates the counter.
- * Does NOT touch editor focus or selection.
- */
-function updateFindMatches() {
-    recomputeMatches();
-    // Pick a reasonable "current" index based on scroll position,
-    // without touching the editor selection at all.
-    if (findMatches.length) {
-        const approxChar = getApproxCaretFromScroll();
-        const idx = findMatches.findIndex(mt => mt.start >= approxChar);
-        findCurrentIdx = idx >= 0 ? idx : 0;
-    } else {
-        findCurrentIdx = 0;
-    }
-    updateFindStatus();
+function toggleFindReplace() {
+    if (!findPanelOpen) { openFind(true); return; }
+    findReplaceVisible = !findReplaceVisible;
+    $('find-replace-row').style.display = findReplaceVisible ? 'flex' : 'none';
+    $('find-toggle-replace').classList.toggle('on', findReplaceVisible);
+    (findReplaceVisible ? $('replace-input') : $('find-input')).focus();
 }
 
-/** Recompute findMatches from the query — pure, no side effects */
+/* ── Match computation (NO side-effects on editor) ── */
+
 function recomputeMatches() {
-    const query = $('find-input').value;
-    const caseSen = $('find-case').classList.contains('on');
+    const q = $('find-input').value;
+    const cs = $('find-case').classList.contains('on');
     findMatches = [];
-    if (!query) return;
-    const rx = new RegExp(escapeRegex(query), caseSen ? 'g' : 'gi');
+    if (!q) return;
+    const rx = new RegExp(escapeRegex(q), cs ? 'g' : 'gi');
     let m;
     while ((m = rx.exec(editorEl.value)) !== null) {
         findMatches.push({ start: m.index, end: m.index + m[0].length });
     }
 }
 
-/**
- * Estimate the character offset at the top of the editor's
- * visible area — used only to set the initial match index
- * when typing, without ever moving the cursor.
- */
+/** Called by oninput on the find field — never touches editor selection */
+function updateFindMatches() {
+    recomputeMatches();
+    if (findMatches.length) {
+        const c = getApproxCaretFromScroll();
+        const i = findMatches.findIndex(mt => mt.start >= c);
+        findCurrentIdx = i >= 0 ? i : 0;
+    } else { findCurrentIdx = 0; }
+    updateEditorBackdrop();
+    updateFindStatus();
+}
+
+/** Visible line top ≈ character offset, used to pick starting index */
 function getApproxCaretFromScroll() {
     const lineH = parseFloat(getComputedStyle(editorEl).lineHeight) || 20;
-    const pad = parseFloat(getComputedStyle(editorEl).paddingTop) || 0;
-    const topLine = Math.floor((editorEl.scrollTop + pad) / lineH);
+    const padTop = parseFloat(getComputedStyle(editorEl).paddingTop) || 0;
+    const topLine = Math.floor((editorEl.scrollTop + padTop) / lineH);
     const lines = editorEl.value.split('\n');
     let offset = 0;
-    for (let i = 0; i < Math.min(topLine, lines.length); i++) {
-        offset += lines[i].length + 1;
-    }
+    for (let i = 0; i < Math.min(topLine, lines.length); i++) offset += lines[i].length + 1;
     return offset;
 }
 
-/**
- * Navigate to match at index idx.
- * Scrolls the editor line into view + selects the match text,
- * then immediately returns focus to the find input.
- */
+/* ── Navigate (DOES touch editor, then returns focus) ── */
+
 function navigateFind(idx) {
     if (!findMatches.length) return;
     findCurrentIdx = ((idx % findMatches.length) + findMatches.length) % findMatches.length;
     const match = findMatches[findCurrentIdx];
 
-    // Focus editor briefly to set the selection, then return
+    // Select in editor so the OS shows it, scroll to center
     editorEl.focus();
     editorEl.setSelectionRange(match.start, match.end);
-
-    // Scroll matched line to vertical center of the textarea
     const lines = editorEl.value.substr(0, match.start).split('\n');
     const lineH = parseFloat(getComputedStyle(editorEl).lineHeight) || 20;
     const padTop = parseFloat(getComputedStyle(editorEl).paddingTop) || 0;
-    const targetY = (lines.length - 1) * lineH + padTop;
-    editorEl.scrollTop = Math.max(0, targetY - editorEl.clientHeight / 2 + lineH / 2);
+    editorEl.scrollTop = Math.max(0,
+        (lines.length - 1) * lineH + padTop - editorEl.clientHeight / 2 + lineH / 2);
 
-    // Return focus so the user can keep typing
-    $('find-input').focus();
+    // Update active highlight in backdrop, then return focus
+    updateEditorBackdrop();
     updateFindStatus();
+    $('find-input').focus();
 }
 
 function findNext() { navigateFind(findCurrentIdx + 1); }
 function findPrev() { navigateFind(findCurrentIdx - 1); }
+function toggleFindCase() { $('find-case').classList.toggle('on'); updateFindMatches(); }
 
-function toggleFindCase() {
-    $('find-case').classList.toggle('on');
-    updateFindMatches();
+/* ── Backdrop renderer ── */
+
+function updateEditorBackdrop() {
+    const bd = $('find-hl-backdrop');
+    if (!bd) return;
+
+    if (!findPanelOpen || !findMatches.length) {
+        // Clear backdrop, restore editor opaque background
+        bd.innerHTML = '';
+        editorEl.classList.remove('find-active');
+        return;
+    }
+
+    editorEl.classList.add('find-active');
+
+    const text = editorEl.value;
+    let html = '';
+    let last = 0;
+
+    findMatches.forEach((match, i) => {
+        // Plain text segment before this match
+        html += escHtml(text.slice(last, match.start));
+        const cls = i === findCurrentIdx ? 'find-hl find-hl-active' : 'find-hl';
+        html += `<mark class="${cls}">${escHtml(text.slice(match.start, match.end))}</mark>`;
+        last = match.end;
+    });
+
+    html += escHtml(text.slice(last));
+    // Zero-width space at end forces correct height for the last line
+    html += '\u200b';
+
+    bd.innerHTML = html;
+    // Keep scroll in sync
+    bd.scrollTop = editorEl.scrollTop;
+    bd.scrollLeft = editorEl.scrollLeft;
 }
+
+/* ── Replace ── */
 
 function doReplace() {
     if (!findMatches.length) return;
     const match = findMatches[findCurrentIdx];
-    const replacement = $('replace-input').value;
-    editorEl.value =
-        editorEl.value.slice(0, match.start) + replacement + editorEl.value.slice(match.end);
+    const rep = $('replace-input').value;
+    editorEl.value = editorEl.value.slice(0, match.start) + rep + editorEl.value.slice(match.end);
     editorEl.focus();
-    editorEl.setSelectionRange(match.start, match.start + replacement.length);
-    renderPreview();
-    updateCharCount();
-    scheduleSave();
-    scheduleRemoteDocWrite();
-    recomputeMatches();
-    updateFindStatus();
+    editorEl.setSelectionRange(match.start, match.start + rep.length);
+    renderPreview(); updateCharCount(); scheduleSave(); scheduleRemoteDocWrite();
+    recomputeMatches(); updateEditorBackdrop(); updateFindStatus();
     $('replace-input').focus();
 }
 
 function doReplaceAll() {
-    const query = $('find-input').value;
-    if (!query || !findMatches.length) return;
-    const caseSen = $('find-case').classList.contains('on');
-    const rx = new RegExp(escapeRegex(query), caseSen ? 'g' : 'gi');
-    const count = (editorEl.value.match(rx) || []).length;
+    const q = $('find-input').value;
+    if (!q || !findMatches.length) return;
+    const cs = $('find-case').classList.contains('on');
+    const rx = new RegExp(escapeRegex(q), cs ? 'g' : 'gi');
+    const cnt = (editorEl.value.match(rx) || []).length;
     editorEl.value = editorEl.value.replace(rx, $('replace-input').value);
-    renderPreview();
-    updateCharCount();
-    scheduleSave();
-    scheduleRemoteDocWrite();
-    recomputeMatches();
-    findCurrentIdx = 0;
-    updateFindStatus();
-    showToast(`✓ ${count} substituição${count !== 1 ? 'ões' : ''} feita${count !== 1 ? 's' : ''}`);
+    renderPreview(); updateCharCount(); scheduleSave(); scheduleRemoteDocWrite();
+    recomputeMatches(); findCurrentIdx = 0;
+    updateEditorBackdrop(); updateFindStatus();
+    showToast(`✓ ${cnt} substituição${cnt !== 1 ? 'ões' : ''} feita${cnt !== 1 ? 's' : ''}`);
     $('find-input').focus();
 }
 
+/* ── Status badge ── */
+
 function updateFindStatus() {
-    const status = $('find-status');
-    const query = $('find-input').value;
-    if (!query) {
-        status.textContent = '';
-        status.className = 'find-status';
-    } else if (!findMatches.length) {
-        status.textContent = 'Sem resultados';
-        status.className = 'find-status no-match';
-    } else {
-        status.textContent = `${findCurrentIdx + 1} / ${findMatches.length}`;
-        status.className = 'find-status';
-    }
+    const el = $('find-status');
+    const q = $('find-input').value;
+    if (!q) { el.textContent = ''; el.className = 'find-status'; }
+    else if (!findMatches.length) { el.textContent = 'Sem resultados'; el.className = 'find-status no-match'; }
+    else { el.textContent = `${findCurrentIdx + 1} / ${findMatches.length}`; el.className = 'find-status'; }
 }
+
+/* ── Key handlers ── */
 
 function handleFindKey(e) {
     if (e.key === 'Enter') { e.preventDefault(); e.shiftKey ? findPrev() : findNext(); }
     if (e.key === 'Escape') { e.preventDefault(); closeFind(); }
-    if (e.key === 'Tab' && !e.shiftKey && findReplaceVisible) {
-        e.preventDefault(); $('replace-input').focus();
-    }
+    if (e.key === 'Tab' && !e.shiftKey && findReplaceVisible) { e.preventDefault(); $('replace-input').focus(); }
 }
 
 function handleReplaceKey(e) {
@@ -213,24 +246,25 @@ function handleReplaceKey(e) {
     if (e.key === 'Tab' && e.shiftKey) { e.preventDefault(); $('find-input').focus(); }
 }
 
-window.openFind = openFind;
-window.closeFind = closeFind;
-window.toggleFindReplace = toggleFindReplace;
-window.updateFindMatches = updateFindMatches;
-window.findNext = findNext;
-window.findPrev = findPrev;
-window.toggleFindCase = toggleFindCase;
-window.doReplace = doReplace;
-window.doReplaceAll = doReplaceAll;
-window.handleFindKey = handleFindKey;
-window.handleReplaceKey = handleReplaceKey;
+window.openFind = openFind; window.closeFind = closeFind;
+window.toggleFindReplace = toggleFindReplace; window.updateFindMatches = updateFindMatches;
+window.findNext = findNext; window.findPrev = findPrev; window.toggleFindCase = toggleFindCase;
+window.doReplace = doReplace; window.doReplaceAll = doReplaceAll;
+window.handleFindKey = handleFindKey; window.handleReplaceKey = handleReplaceKey;
 
 
 /* ═══════════════════════════════════════════════════════
    ★ FEATURE 2 — PREVIEW SEARCH
-   Searches the rendered HTML preview by walking text nodes
-   and wrapping matches in <mark class="pv-mark">.
-   The active match gets "pv-mark-active" + scrolls into view.
+   ─────────────────────────────────────────────────────
+   THE BUG that caused "only first letter works":
+     clearPreviewMarks called mark.replaceWith(newNode),
+     then immediately checked mark.parentNode — which is
+     already null after replaceWith removes the mark.
+     normalize() never ran → adjacent text nodes stayed
+     fragmented → regex couldn't find multi-char strings.
+
+   FIX: save parent BEFORE replacing, normalize parents
+   AFTER all marks in the document have been removed.
 ═══════════════════════════════════════════════════════ */
 
 let pvMarks = [];
@@ -240,9 +274,8 @@ let pvPanelOpen = false;
 function openPreviewFind() {
     pvPanelOpen = true;
     $('pv-find-panel').classList.add('open');
-    const input = $('pv-find-input');
-    input.focus();
-    input.select();
+    $('pv-find-input').focus();
+    $('pv-find-input').select();
     updatePreviewFind();
 }
 
@@ -254,41 +287,60 @@ function closePreviewFind() {
     updatePvStatus();
 }
 
-/** Strip all <mark> wrappers, rejoining text nodes */
+/**
+ * ★ THE FIX: collect parents BEFORE any DOM change,
+ *   normalize ALL of them AFTER all marks are removed.
+ *   This merges fragmented text nodes so the next search
+ *   sees whole words in single text nodes.
+ */
 function clearPreviewMarks() {
+    const parents = new Set();
+
     previewEl.querySelectorAll('mark.pv-mark').forEach(mark => {
-        mark.replaceWith(document.createTextNode(mark.textContent));
-        mark.parentNode && mark.parentNode.normalize();
+        const parent = mark.parentNode; // grab BEFORE removal
+        if (parent) {
+            // replaceChild is safer/faster than replaceWith for older browsers too
+            parent.replaceChild(document.createTextNode(mark.textContent), mark);
+            parents.add(parent);
+        }
     });
+
+    // Normalize every affected parent AFTER the full querySelectorAll loop,
+    // so no parent is normalized while siblings are still being processed.
+    parents.forEach(p => p.normalize());
+
     pvMarks = [];
 }
 
 /**
- * Walk the preview DOM, split text nodes and wrap every
- * occurrence of query in a <mark class="pv-mark"> element.
+ * Walk text nodes under root and wrap every occurrence of
+ * query in <mark class="pv-mark">.  Returns array of marks.
  */
-function markTextInNode(root, query, caseSen) {
+function markTextInPreview(root, query, caseSen) {
     const marks = [];
-    const flags = caseSen ? 'g' : 'gi';
-    const rx = new RegExp(escapeRegex(query), flags);
+    const rx = new RegExp(escapeRegex(query), caseSen ? 'g' : 'gi');
 
     const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, {
         acceptNode(node) {
             const tag = node.parentElement?.tagName?.toLowerCase();
+            // Skip scripts, styles, and marks we already created (prevent double-wrap)
             if (tag === 'script' || tag === 'style' || tag === 'mark') {
-                return NodeFilter.FILTER_REJECT;
+                return NodeFilter.FILTER_SKIP;
             }
             return NodeFilter.FILTER_ACCEPT;
         }
     });
 
+    // Collect first — mutating DOM while walking invalidates the walker
     const textNodes = [];
     let n;
     while ((n = walker.nextNode())) textNodes.push(n);
 
     textNodes.forEach(node => {
         const text = node.nodeValue;
-        rx.lastIndex = 0;
+        if (!text) return;
+
+        rx.lastIndex = 0; // reset for every new text node
         const parts = [];
         let lastEnd = 0;
         let m;
@@ -305,7 +357,7 @@ function markTextInNode(root, query, caseSen) {
             lastEnd = m.index + m[0].length;
         }
 
-        if (!parts.length) return;
+        if (!parts.length) return; // no match in this node
         if (lastEnd < text.length) parts.push(document.createTextNode(text.slice(lastEnd)));
 
         const frag = document.createDocumentFragment();
@@ -320,9 +372,10 @@ function updatePreviewFind() {
     clearPreviewMarks();
     const query = $('pv-find-input').value;
     const caseSen = $('pv-find-case').classList.contains('on');
+
     if (!query) { updatePvStatus(); return; }
 
-    pvMarks = markTextInNode(previewEl, query, caseSen);
+    pvMarks = markTextInPreview(previewEl, query, caseSen);
     pvCurrentIdx = 0;
     if (pvMarks.length) activatePvMark(0);
     updatePvStatus();
@@ -346,18 +399,11 @@ function togglePvFindCase() {
 }
 
 function updatePvStatus() {
-    const status = $('pv-find-status');
-    const query = $('pv-find-input').value;
-    if (!query) {
-        status.textContent = '';
-        status.className = 'find-status';
-    } else if (!pvMarks.length) {
-        status.textContent = 'Sem resultados';
-        status.className = 'find-status no-match';
-    } else {
-        status.textContent = `${pvCurrentIdx + 1} / ${pvMarks.length}`;
-        status.className = 'find-status';
-    }
+    const el = $('pv-find-status');
+    const q = $('pv-find-input').value;
+    if (!q) { el.textContent = ''; el.className = 'find-status'; }
+    else if (!pvMarks.length) { el.textContent = 'Sem resultados'; el.className = 'find-status no-match'; }
+    else { el.textContent = `${pvCurrentIdx + 1} / ${pvMarks.length}`; el.className = 'find-status'; }
 }
 
 function handlePvFindKey(e) {
@@ -365,28 +411,23 @@ function handlePvFindKey(e) {
     if (e.key === 'Escape') { e.preventDefault(); closePreviewFind(); }
 }
 
-// Patch renderPreview so preview marks survive re-renders
+// Re-run preview search after re-render (marks are wiped by innerHTML replace)
 (function patchRenderPreview() {
-    const _orig = window.renderPreview || renderPreview;
-    const patched = function () {
+    const _orig = renderPreview;
+    renderPreview = function () {
         _orig();
-        if (pvPanelOpen && $('pv-find-input') && $('pv-find-input').value) {
+        if (pvPanelOpen && $('pv-find-input').value) {
             setTimeout(updatePreviewFind, 30);
         }
     };
-    // Assign to both the global and the module-scoped variable used by editorEl.oninput
-    window.renderPreview = patched;
-    // If editorEl already has its listener wired before this script runs,
-    // this patch will still work because renderPreview() is called by reference.
+    window.renderPreview = renderPreview;
 })();
 
 window.openPreviewFind = openPreviewFind;
 window.closePreviewFind = closePreviewFind;
 window.updatePreviewFind = updatePreviewFind;
-window.pvFindNext = pvFindNext;
-window.pvFindPrev = pvFindPrev;
-window.togglePvFindCase = togglePvFindCase;
-window.handlePvFindKey = handlePvFindKey;
+window.pvFindNext = pvFindNext; window.pvFindPrev = pvFindPrev;
+window.togglePvFindCase = togglePvFindCase; window.handlePvFindKey = handlePvFindKey;
 
 
 /* ═══════════════════════════════════════════════════════
@@ -394,37 +435,36 @@ window.handlePvFindKey = handlePvFindKey;
 ═══════════════════════════════════════════════════════ */
 
 function exportHtml() {
-    const a1 = currentAcc1;
-    const a2 = currentAcc2;
-    const dark = isDark;
-
-    const tokens = dark
+    const a1 = currentAcc1, a2 = currentAcc2, dark = isDark;
+    const tk = dark
         ? {
-            bg: '#12141a', s1: '#1a1d25', s2: '#20232d', s3: '#272b37',
-            bd: '#2c3040', tx: '#c8cfdf', tx2: '#7a849e', tx3: '#4a5368', txh: '#e8ecf5',
+            bg: '#12141a', s1: '#1a1d25', s2: '#20232d', s3: '#272b37', bd: '#2c3040',
+            tx: '#c8cfdf', tx2: '#7a849e', tx3: '#4a5368', txh: '#e8ecf5',
             ta1: `rgba(${hexToRgbString(a1)},.10)`, ta2: `rgba(${hexToRgbString(a2)},.10)`
         }
         : {
-            bg: '#f5f6fa', s1: '#ffffff', s2: '#f0f2f8', s3: '#e8eaf2',
-            bd: '#d4d8e8', tx: '#2a2e3e', tx2: '#606680', tx3: '#9099b0', txh: '#12141a',
+            bg: '#f5f6fa', s1: '#ffffff', s2: '#f0f2f8', s3: '#e8eaf2', bd: '#d4d8e8',
+            tx: '#2a2e3e', tx2: '#606680', tx3: '#9099b0', txh: '#12141a',
             ta1: `rgba(${hexToRgbString(a1)},.07)`, ta2: `rgba(${hexToRgbString(a2)},.07)`
         };
 
-    const docTitle = (editorEl.value.match(/^#\s+(.+)/m) || [])[1] || 'Markdowner Export';
+    const title = (editorEl.value.match(/^#\s+(.+)/m) || [])[1] || 'Markdowner Export';
 
-    // Clone preview without any pv-mark leaking into the export
+    // Clone preview without any search marks leaking in
     const clone = previewEl.cloneNode(true);
-    clone.querySelectorAll('mark.pv-mark').forEach(m => m.replaceWith(document.createTextNode(m.textContent)));
+    clone.querySelectorAll('mark.pv-mark').forEach(m => {
+        m.parentNode.replaceChild(document.createTextNode(m.textContent), m);
+    });
 
     const html = `<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>${escHtml(docTitle)}</title>
+<title>${escHtml(title)}</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
-:root{--a1:${a1};--a2:${a2};--bg:${tokens.bg};--s1:${tokens.s1};--s2:${tokens.s2};--s3:${tokens.s3};--bd:${tokens.bd};--tx:${tokens.tx};--tx2:${tokens.tx2};--tx3:${tokens.tx3};--txh:${tokens.txh};--ta1:${tokens.ta1};--ta2:${tokens.ta2};--ff:'IBM Plex Sans',sans-serif;--fm:'IBM Plex Mono',monospace}
+:root{--a1:${a1};--a2:${a2};--bg:${tk.bg};--s1:${tk.s1};--s2:${tk.s2};--s3:${tk.s3};--bd:${tk.bd};--tx:${tk.tx};--tx2:${tk.tx2};--tx3:${tk.tx3};--txh:${tk.txh};--ta1:${tk.ta1};--ta2:${tk.ta2};--ff:'IBM Plex Sans',sans-serif;--fm:'IBM Plex Mono',monospace}
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 body{font-family:var(--ff);background:var(--bg);color:var(--tx);padding:clamp(24px,6vw,56px) clamp(20px,8vw,80px);max-width:860px;margin:0 auto;line-height:1.8;-webkit-font-smoothing:antialiased}
 h1,h2,h3,h4{line-height:1.25;font-weight:600}
@@ -434,20 +474,16 @@ h2{font-size:clamp(15px,3vw,19px);color:var(--a2);margin:32px 0 12px;padding:6px
 h3{font-size:clamp(13px,2.4vw,16px);color:var(--tx);margin:24px 0 8px;display:flex;align-items:center;gap:8px}
 h3::before{content:'';display:inline-block;width:3px;height:14px;background:var(--a1);border-radius:2px;flex-shrink:0}
 h4{font-size:14px;font-weight:600;color:var(--tx2);margin:18px 0 6px}
-p{font-size:15px;margin:8px 0}
-ul,ol{padding-left:22px;margin:8px 0}li{font-size:15px;margin:3px 0}li::marker{color:var(--a1);font-weight:600}
+p{font-size:15px;margin:8px 0}ul,ol{padding-left:22px;margin:8px 0}li{font-size:15px;margin:3px 0}li::marker{color:var(--a1);font-weight:600}
 strong{font-weight:700;color:var(--txh)}em{font-style:italic;color:var(--a2)}
-blockquote{margin:12px 0;padding:10px 16px;background:var(--ta1);border-left:3px solid var(--a1);border-radius:0 4px 4px 0}
-blockquote p{color:var(--tx2);margin:0}
+blockquote{margin:12px 0;padding:10px 16px;background:var(--ta1);border-left:3px solid var(--a1);border-radius:0 4px 4px 0}blockquote p{color:var(--tx2);margin:0}
 code{font-family:var(--fm);font-size:13px;background:var(--s3);border:1px solid var(--bd);padding:2px 6px;border-radius:3px;color:var(--a2)}
-pre{margin:14px 0;border-radius:6px;border:1px solid var(--bd);background:var(--s2);overflow-x:auto}
-pre code{display:block;padding:16px;background:transparent;border:none;color:var(--tx);font-size:13px;line-height:1.7}
+pre{margin:14px 0;border-radius:6px;border:1px solid var(--bd);background:var(--s2);overflow-x:auto}pre code{display:block;padding:16px;background:transparent;border:none;color:var(--tx);font-size:13px;line-height:1.7}
 a{color:var(--a1);text-decoration:none;border-bottom:1px solid rgba(${hexToRgbString(a1)},.35)}
 hr{border:none;height:1px;background:var(--bd);margin:28px 0}
 table{width:100%;border-collapse:collapse;margin:14px 0;border:1px solid var(--bd);border-radius:6px;overflow:hidden;display:block;overflow-x:auto}
 th{background:var(--s2);font-weight:600;font-size:12px;letter-spacing:.06em;text-transform:uppercase;padding:10px 14px;text-align:left;color:var(--tx2);border-bottom:1px solid var(--bd)}
-td{padding:10px 14px;border-bottom:1px solid var(--bd);color:var(--tx)}
-tr:last-child td{border-bottom:none}tbody tr:hover td{background:var(--ta1)}
+td{padding:10px 14px;border-bottom:1px solid var(--bd);color:var(--tx)}tr:last-child td{border-bottom:none}tbody tr:hover td{background:var(--ta1)}
 img{max-width:100%;border-radius:6px}
 .mkd-footer{margin-top:48px;padding-top:16px;border-top:1px solid var(--bd);font-size:11px;color:var(--tx3);font-family:var(--fm);display:flex;justify-content:space-between;flex-wrap:wrap;gap:6px}
 </style></head>
@@ -460,14 +496,13 @@ ${clone.innerHTML}
     const url = URL.createObjectURL(blob);
     Object.assign(document.createElement('a'), {
         href: url,
-        download: `${docTitle.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'markdowner'}.html`,
+        download: `${title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'markdowner'}.html`,
     }).click();
     URL.revokeObjectURL(url);
     $('expDrop').classList.remove('open');
     $('sheetOverlay').classList.remove('vis');
     showToast('Exportado como .html ✓');
 }
-
 window.exportHtml = exportHtml;
 
 
@@ -491,20 +526,14 @@ function closeStats() {
 function computeStats() {
     const text = editorEl.value;
     const words = text.trim() ? text.trim().split(/\s+/).filter(Boolean).length : 0;
-    const chars = text.length;
-    const charsNoSp = text.replace(/\s/g, '').length;
-    const lines = text ? text.split('\n').length : 0;
-    const paragraphs = text.split(/\n\s*\n/).filter(p => p.trim()).length;
-    const headings = (text.match(/^#{1,6}\s/gm) || []).length;
-    const minutes = Math.max(1, Math.ceil(words / 200));
-
     $('stat-words').textContent = words.toLocaleString('pt-BR');
-    $('stat-chars').textContent = chars.toLocaleString('pt-BR');
-    $('stat-chars-ns').textContent = charsNoSp.toLocaleString('pt-BR');
-    $('stat-lines').textContent = lines.toLocaleString('pt-BR');
-    $('stat-paragraphs').textContent = paragraphs.toLocaleString('pt-BR');
-    $('stat-headings').textContent = headings.toLocaleString('pt-BR');
-    $('stat-reading').textContent = minutes === 1 ? '~1 min' : `~${minutes} min`;
+    $('stat-chars').textContent = text.length.toLocaleString('pt-BR');
+    $('stat-chars-ns').textContent = text.replace(/\s/g, '').length.toLocaleString('pt-BR');
+    $('stat-lines').textContent = (text ? text.split('\n').length : 0).toLocaleString('pt-BR');
+    $('stat-paragraphs').textContent = text.split(/\n\s*\n/).filter(p => p.trim()).length.toLocaleString('pt-BR');
+    $('stat-headings').textContent = (text.match(/^#{1,6}\s/gm) || []).length.toLocaleString('pt-BR');
+    const mins = Math.max(1, Math.ceil(words / 200));
+    $('stat-reading').textContent = mins === 1 ? '~1 min' : `~${mins} min`;
 }
 
 document.addEventListener('click', e => {
@@ -517,16 +546,14 @@ window.closeStats = closeStats;
 
 
 /* ═══════════════════════════════════════════════════════
-   ★ GLOBAL KEYBOARD SHORTCUTS
-   Capture phase ensures Ctrl+F intercepts before the
-   browser's native find dialog fires.
+   ★ GLOBAL KEYBOARD SHORTCUTS  (capture phase)
 ═══════════════════════════════════════════════════════ */
 
 document.addEventListener('keydown', e => {
     const mod = e.ctrlKey || e.metaKey;
 
-    // Ctrl+F — editor find if editor visible, preview find if preview-only
     if (mod && e.key === 'f' && !e.shiftKey) {
+        // Ctrl+F: open editor find if editor is visible, else preview find
         if (!$('ep').classList.contains('gone')) {
             e.preventDefault(); openFind(false);
         } else if (!$('pp').classList.contains('gone')) {
@@ -535,18 +562,14 @@ document.addEventListener('keydown', e => {
         return;
     }
 
-    // Ctrl+H — find + replace (editor only)
     if (mod && e.key === 'h') {
-        if (!$('ep').classList.contains('gone')) {
-            e.preventDefault(); openFind(true);
-        }
+        if (!$('ep').classList.contains('gone')) { e.preventDefault(); openFind(true); }
         return;
     }
 
-    // Escape priority chain
     if (e.key === 'Escape') {
         if (findPanelOpen) { closeFind(); return; }
         if (pvPanelOpen) { closePreviewFind(); return; }
         if (statsVisible) { closeStats(); return; }
     }
-}, true); // capture phase
+}, true);
