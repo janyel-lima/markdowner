@@ -77,7 +77,8 @@
                     </svg>
                     <span class="lbl">Copiar</span>
                 </button>
-                <input type="file" id="file-input" accept=".md,.txt,text/plain,text/markdown" aria-hidden="true">
+                <input class="hbtn" type="file" id="file-input" accept=".md,.txt,text/plain,text/markdown"
+                    aria-hidden="true">
                 <button class="hbtn" id="t-import" onclick="triggerImport()" title="Importar .md ou .txt">
                     <svg viewBox="0 0 14 14" fill="currentColor" aria-hidden="true">
                         <path d="M7 9V1M4 6l3 3 3-3M2 11h10v2H2z" stroke="currentColor" stroke-width="1.3"
@@ -774,7 +775,7 @@
     </script>
     <script src="app.js" defer></script>
     <!-- app_additions.js must load AFTER app.js (defer preserves order) -->
-    <script src="app_additions.js" defer></script>
+    <script src="app-additions.js" defer></script>
 
 </body>
 
