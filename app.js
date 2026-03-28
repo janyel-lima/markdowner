@@ -2360,3 +2360,439 @@ $('cm-join-code').addEventListener('keydown', e => { if (e.key === 'Enter') join
     checkUrlSession(); // ← novo
     checkRejoin();     // ← novo
 })();
+
+/* ═══════════════════════════════════════════════════════
+   ★ NEW FEATURE 1 — FIND & REPLACE
+   Append this block to the bottom of app.js
+   Keyboard: Ctrl+F = find · Ctrl+H = find+replace · Esc = close
+═══════════════════════════════════════════════════════ */
+
+let findMatches = [];
+let findCurrentIdx = 0;
+let findPanelOpen = false;
+let findReplaceVisible = false;
+
+/** Regex-escape a literal string for use in RegExp */
+function escapeRegex(str) {
+    return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+/** Open (or focus) the find panel. pass withReplace=true to also show the replace row. */
+function openFind(withReplace = false) {
+    findPanelOpen = true;
+    $('find-panel').classList.add('open');
+
+    if (withReplace && !findReplaceVisible) {
+        findReplaceVisible = true;
+        $('find-replace-row').style.display = 'flex';
+        $('find-toggle-replace').classList.add('on');
+    }
+
+    const input = $('find-input');
+    // Pre-fill with selected text if any
+    const sel = editorEl.value.substring(editorEl.selectionStart, editorEl.selectionEnd);
+    if (sel && !sel.includes('\n')) input.value = sel;
+
+    input.focus();
+    input.select();
+    updateFindMatches();
+}
+
+/** Toggle the replace row inside the find panel */
+function toggleFindReplace() {
+    if (!findPanelOpen) { openFind(true); return; }
+    findReplaceVisible = !findReplaceVisible;
+    $('find-replace-row').style.display = findReplaceVisible ? 'flex' : 'none';
+    $('find-toggle-replace').classList.toggle('on', findReplaceVisible);
+    if (findReplaceVisible) $('replace-input').focus();
+}
+
+/** Close the find panel and clear state */
+function closeFind() {
+    findPanelOpen = false;
+    findReplaceVisible = false;
+    $('find-panel').classList.remove('open');
+    $('find-replace-row').style.display = 'none';
+    $('find-toggle-replace').classList.remove('on');
+    findMatches = [];
+    findCurrentIdx = 0;
+    updateFindStatus();
+    editorEl.focus();
+}
+
+/** Recompute match list based on current query and case setting */
+function updateFindMatches() {
+    const query = $('find-input').value;
+    const caseSen = $('find-case').classList.contains('on');
+
+    findMatches = [];
+    findCurrentIdx = 0;
+
+    if (!query) { updateFindStatus(); return; }
+
+    const flags = caseSen ? 'g' : 'gi';
+    const rx = new RegExp(escapeRegex(query), flags);
+    let m;
+    while ((m = rx.exec(editorEl.value)) !== null) {
+        findMatches.push({ start: m.index, end: m.index + m[0].length });
+    }
+
+    if (findMatches.length) {
+        // Jump to the first match after the current caret position
+        const caret = editorEl.selectionStart;
+        const idx = findMatches.findIndex(mt => mt.start >= caret);
+        navigateFind(idx >= 0 ? idx : 0, false);
+    }
+    updateFindStatus();
+}
+
+/** Scroll to and select match at index idx */
+function navigateFind(idx, updateStatusNow = true) {
+    if (!findMatches.length) return;
+    findCurrentIdx = ((idx % findMatches.length) + findMatches.length) % findMatches.length;
+    const match = findMatches[findCurrentIdx];
+
+    editorEl.focus();
+    editorEl.setSelectionRange(match.start, match.end);
+
+    // Scroll the line into view
+    const lines = editorEl.value.substr(0, match.start).split('\n');
+    const lineNum = lines.length;
+    const lineH = parseFloat(getComputedStyle(editorEl).lineHeight) || 20;
+    const paddingTop = parseFloat(getComputedStyle(editorEl).paddingTop) || 0;
+    editorEl.scrollTop = Math.max(0, (lineNum - 3) * lineH - paddingTop);
+
+    if (updateStatusNow) updateFindStatus();
+}
+
+function findNext() { navigateFind(findCurrentIdx + 1); }
+function findPrev() { navigateFind(findCurrentIdx - 1); }
+
+/** Toggle case-sensitivity */
+function toggleFindCase() {
+    $('find-case').classList.toggle('on');
+    updateFindMatches();
+}
+
+/** Replace current match */
+function doReplace() {
+    if (!findMatches.length) return;
+    const match = findMatches[findCurrentIdx];
+    const replacement = $('replace-input').value;
+    editorEl.value = editorEl.value.slice(0, match.start) + replacement + editorEl.value.slice(match.end);
+    editorEl.setSelectionRange(match.start, match.start + replacement.length);
+    renderPreview();
+    updateCharCount();
+    scheduleSave();
+    scheduleRemoteDocWrite();
+    updateFindMatches();
+}
+
+/** Replace all matches */
+function doReplaceAll() {
+    const query = $('find-input').value;
+    if (!query || !findMatches.length) return;
+    const caseSen = $('find-case').classList.contains('on');
+    const rx = new RegExp(escapeRegex(query), caseSen ? 'g' : 'gi');
+    const count = (editorEl.value.match(rx) || []).length;
+    const replacement = $('replace-input').value;
+    editorEl.value = editorEl.value.replace(rx, replacement);
+    renderPreview();
+    updateCharCount();
+    scheduleSave();
+    scheduleRemoteDocWrite();
+    updateFindMatches();
+    showToast(`✓ ${count} substituição${count !== 1 ? 'ões' : ''} feita${count !== 1 ? 's' : ''}`);
+}
+
+/** Update the "X / Y" status badge */
+function updateFindStatus() {
+    const status = $('find-status');
+    const query = $('find-input').value;
+    if (!query) {
+        status.textContent = '';
+        status.className = 'find-status';
+    } else if (!findMatches.length) {
+        status.textContent = 'Sem resultados';
+        status.className = 'find-status no-match';
+    } else {
+        status.textContent = `${findCurrentIdx + 1} / ${findMatches.length}`;
+        status.className = 'find-status';
+    }
+}
+
+/** Keyboard handling inside the find input */
+function handleFindKey(e) {
+    if (e.key === 'Enter') { e.preventDefault(); e.shiftKey ? findPrev() : findNext(); }
+    if (e.key === 'Escape') { e.preventDefault(); closeFind(); }
+    if (e.key === 'Tab') { e.preventDefault(); $('replace-input').focus(); }
+}
+
+/** Keyboard handling inside the replace input */
+function handleReplaceKey(e) {
+    if (e.key === 'Enter') { e.preventDefault(); doReplace(); }
+    if (e.key === 'Escape') { e.preventDefault(); closeFind(); }
+    if (e.key === 'Tab' && e.shiftKey) { e.preventDefault(); $('find-input').focus(); }
+}
+
+// Expose to HTML
+window.openFind = openFind;
+window.closeFind = closeFind;
+window.toggleFindReplace = toggleFindReplace;
+window.updateFindMatches = updateFindMatches;
+window.findNext = findNext;
+window.findPrev = findPrev;
+window.toggleFindCase = toggleFindCase;
+window.doReplace = doReplace;
+window.doReplaceAll = doReplaceAll;
+window.handleFindKey = handleFindKey;
+window.handleReplaceKey = handleReplaceKey;
+
+
+/* ═══════════════════════════════════════════════════════
+   ★ NEW FEATURE 2 — EXPORT AS HTML
+   Generates a standalone, fully-styled HTML page from
+   the current rendered preview. Theme + accent colours
+   are baked in — no external dependencies except Google
+   Fonts (optional, included via <link>).
+═══════════════════════════════════════════════════════ */
+
+function exportHtml() {
+    const a1 = currentAcc1;
+    const a2 = currentAcc2;
+    const dark = isDark;
+
+    // Colour tokens baked into the output
+    const tokens = dark
+        ? {
+            bg: '#12141a', s1: '#1a1d25', s2: '#20232d', s3: '#272b37',
+            bd: '#2c3040', tx: '#c8cfdf', tx2: '#7a849e', tx3: '#4a5368',
+            txh: '#e8ecf5',
+            ta1: `rgba(${hexToRgbString(a1)}, .10)`,
+            ta2: `rgba(${hexToRgbString(a2)}, .10)`
+        }
+        : {
+            bg: '#f5f6fa', s1: '#ffffff', s2: '#f0f2f8', s3: '#e8eaf2',
+            bd: '#d4d8e8', tx: '#2a2e3e', tx2: '#606680', tx3: '#9099b0',
+            txh: '#12141a',
+            ta1: `rgba(${hexToRgbString(a1)}, .07)`,
+            ta2: `rgba(${hexToRgbString(a2)}, .07)`
+        };
+
+    const docTitle = (editorEl.value.match(/^#\s+(.+)/m) || [])[1]
+        || 'Markdowner Export';
+
+    const html = `<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>${escHtml(docTitle)}</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --a1: ${a1};
+  --a2: ${a2};
+  --bg: ${tokens.bg};  --s1: ${tokens.s1};  --s2: ${tokens.s2};  --s3: ${tokens.s3};
+  --bd: ${tokens.bd};  --tx: ${tokens.tx};  --tx2: ${tokens.tx2}; --tx3: ${tokens.tx3};
+  --txh: ${tokens.txh}; --ta1: ${tokens.ta1}; --ta2: ${tokens.ta2};
+  --ff: 'IBM Plex Sans', sans-serif;
+  --fm: 'IBM Plex Mono', monospace;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { font-size: 16px; }
+body {
+  font-family: var(--ff);
+  background: var(--bg);
+  color: var(--tx);
+  padding: clamp(24px, 6vw, 56px) clamp(20px, 8vw, 80px);
+  max-width: 860px;
+  margin: 0 auto;
+  line-height: 1.8;
+  -webkit-font-smoothing: antialiased;
+}
+h1,h2,h3,h4 { font-family: var(--ff); line-height: 1.25; font-weight: 600; }
+h1 { font-size: clamp(22px,5vw,32px); font-weight:700; color:var(--a1);
+     padding-bottom:10px; margin:0 0 22px; border-bottom:2px solid var(--a1); }
+h1:not(:first-child) { margin-top:40px; }
+h2 { font-size: clamp(15px,3vw,19px); color:var(--a2); margin:32px 0 12px;
+     padding:6px 14px 6px 16px; background:var(--ta2);
+     border-left:3px solid var(--a2); border-radius:0 4px 4px 0; }
+h3 { font-size:clamp(13px,2.4vw,16px); color:var(--tx); margin:24px 0 8px;
+     display:flex; align-items:center; gap:8px; }
+h3::before { content:''; display:inline-block; width:3px; height:14px;
+             background:var(--a1); border-radius:2px; flex-shrink:0; }
+h4 { font-size:14px; font-weight:600; color:var(--tx2); margin:18px 0 6px; }
+p  { font-size:15px; margin:8px 0; }
+ul,ol { padding-left:22px; margin:8px 0; }
+li { font-size:15px; margin:3px 0; }
+li::marker { color:var(--a1); font-weight:600; }
+strong { font-weight:700; color:var(--txh); }
+em { font-style:italic; color:var(--a2); }
+blockquote { margin:12px 0; padding:10px 16px; background:var(--ta1);
+             border-left:3px solid var(--a1); border-radius:0 4px 4px 0; }
+blockquote p { color:var(--tx2); margin:0; }
+code { font-family:var(--fm); font-size:13px; background:var(--s3);
+       border:1px solid var(--bd); padding:2px 6px; border-radius:3px; color:var(--a2); }
+pre  { margin:14px 0; border-radius:6px; border:1px solid var(--bd);
+       background:var(--s2); overflow-x:auto; }
+pre code { display:block; padding:16px; background:transparent;
+           border:none; color:var(--tx); font-size:13px; line-height:1.7; }
+a { color:var(--a1); text-decoration:none;
+    border-bottom:1px solid rgba(${hexToRgbString(a1)},.35); }
+a:hover { border-bottom-color: var(--a1); }
+hr { border:none; height:1px; background:var(--bd); margin:28px 0; }
+table { width:100%; border-collapse:collapse; margin:14px 0;
+        border:1px solid var(--bd); border-radius:6px; overflow:hidden;
+        display:block; overflow-x:auto; }
+th { background:var(--s2); font-weight:600; font-size:12px; letter-spacing:.06em;
+     text-transform:uppercase; padding:10px 14px; text-align:left;
+     color:var(--tx2); border-bottom:1px solid var(--bd); white-space:nowrap; }
+td { padding:10px 14px; border-bottom:1px solid var(--bd); color:var(--tx); }
+tr:last-child td { border-bottom:none; }
+tbody tr:hover td { background:var(--ta1); }
+img { max-width:100%; border-radius:6px; }
+.hljs { background:var(--s2) !important; color:var(--tx) !important; }
+/* Metadata footer */
+.mkd-footer {
+  margin-top:48px; padding-top:16px; border-top:1px solid var(--bd);
+  font-size:11px; color:var(--tx3); font-family:var(--fm);
+  display:flex; justify-content:space-between; flex-wrap:wrap; gap:6px;
+}
+</style>
+</head>
+<body>
+${previewEl.innerHTML}
+<div class="mkd-footer">
+  <span>Gerado por Markdowner</span>
+  <span>${new Date().toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' })}</span>
+</div>
+</body>
+</html>`;
+
+    const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = Object.assign(document.createElement('a'), {
+        href: url,
+        download: `${docTitle.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'markdowner'}.html`,
+    });
+    a.click();
+    URL.revokeObjectURL(url);
+    $('expDrop').classList.remove('open');
+    $('sheetOverlay').classList.remove('vis');
+    showToast('Exportado como .html ✓');
+}
+
+window.exportHtml = exportHtml;
+
+
+/* ═══════════════════════════════════════════════════════
+   ★ NEW FEATURE 3 — WORD COUNT STATS PANEL
+   Click the char counter (bottom-right of editor pbar)
+   to toggle a detailed statistics popover.
+═══════════════════════════════════════════════════════ */
+
+let statsVisible = false;
+
+function toggleStats() {
+    statsVisible = !statsVisible;
+    const panel = $('stats-panel');
+    if (statsVisible) {
+        computeStats();
+        panel.classList.add('vis');
+    } else {
+        panel.classList.remove('vis');
+    }
+}
+
+function closeStats() {
+    statsVisible = false;
+    $('stats-panel').classList.remove('vis');
+}
+
+function computeStats() {
+    const text = editorEl.value;
+
+    // Word count: split on whitespace, filter empty
+    const words = text.trim() ? text.trim().split(/\s+/).filter(Boolean).length : 0;
+
+    // Character counts
+    const chars = text.length;
+    const charsNoSp = text.replace(/\s/g, '').length;
+
+    // Line & paragraph count
+    const lines = text ? text.split('\n').length : 0;
+    const paragraphs = text.split(/\n\s*\n/).filter(p => p.trim()).length;
+
+    // Heading count (Markdown # syntax)
+    const headings = (text.match(/^#{1,6}\s/gm) || []).length;
+
+    // Reading time at 200 wpm average
+    const minutes = Math.max(1, Math.ceil(words / 200));
+    const readLabel = minutes === 1 ? '~1 min' : `~${minutes} min`;
+
+    $('stat-words').textContent = words.toLocaleString('pt-BR');
+    $('stat-chars').textContent = chars.toLocaleString('pt-BR');
+    $('stat-chars-ns').textContent = charsNoSp.toLocaleString('pt-BR');
+    $('stat-lines').textContent = lines.toLocaleString('pt-BR');
+    $('stat-paragraphs').textContent = paragraphs.toLocaleString('pt-BR');
+    $('stat-headings').textContent = headings.toLocaleString('pt-BR');
+    $('stat-reading').textContent = readLabel;
+}
+
+// Close stats panel when clicking outside
+document.addEventListener('click', e => {
+    if (!statsVisible) return;
+    const panel = $('stats-panel');
+    const trigger = $('cc');
+    if (!panel.contains(e.target) && !trigger.contains(e.target)) {
+        closeStats();
+    }
+});
+
+// Close stats on Escape (added to existing keydown listener — safe to add separately)
+document.addEventListener('keydown', e => {
+    if (e.key === 'Escape' && statsVisible) {
+        closeStats();
+    }
+});
+
+window.toggleStats = toggleStats;
+window.closeStats = closeStats;
+
+
+/* ═══════════════════════════════════════════════════════
+   ★ KEYBOARD SHORTCUT ADDITIONS
+   Patch the global keydown listener with Ctrl+F / Ctrl+H.
+   These shortcuts are intercepted before the editor
+   receives them so we can open our custom find panel
+   instead of the browser's native find dialog.
+═══════════════════════════════════════════════════════ */
+
+document.addEventListener('keydown', e => {
+    // Ctrl+F → open find (without replace row)
+    if ((e.ctrlKey || e.metaKey) && e.key === 'f' && !e.shiftKey) {
+        // Only intercept when editor is in view
+        if (!$('ep').classList.contains('gone')) {
+            e.preventDefault();
+            openFind(false);
+        }
+        return;
+    }
+
+    // Ctrl+H → open find+replace
+    if ((e.ctrlKey || e.metaKey) && e.key === 'h') {
+        if (!$('ep').classList.contains('gone')) {
+            e.preventDefault();
+            openFind(true);
+        }
+        return;
+    }
+
+    // Escape closes find panel (if open, before other modals)
+    if (e.key === 'Escape' && findPanelOpen) {
+        closeFind();
+        return;
+    }
+}, true); // capture phase so we beat the browser's Ctrl+F

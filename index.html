@@ -119,6 +119,15 @@
                             </svg>
                             Exportar .txt
                         </button>
+                        <!-- ★ NEW: Export HTML -->
+                        <button class="exp-item" role="menuitem" onclick="exportHtml()">
+                            <svg viewBox="0 0 14 14" fill="currentColor" aria-hidden="true">
+                                <path d="M2 1h7l3 3v9H2V1zm7 0v3h3" />
+                                <path d="M4.5 6.5L3 8l1.5 1.5M9.5 6.5L11 8l-1.5 1.5M7 6l-1 4" stroke="currentColor"
+                                    stroke-width="1.1" fill="none" stroke-linecap="round" />
+                            </svg>
+                            Exportar .html
+                        </button>
                     </div>
                 </div>
             </div>
@@ -267,8 +276,119 @@
             <div class="pbar" id="t-epbar">
                 <div class="pbar-dot pbar-dot-a1" aria-hidden="true"></div>
                 <span class="pbar-tag">Markdown</span>
-                <span class="pbar-meta" id="cc" aria-live="polite">— chars</span>
+                <!-- ★ NEW: Stats trigger on char counter -->
+                <div class="pbar-meta-wrap">
+                    <span class="pbar-meta" id="cc" role="button" tabindex="0" aria-haspopup="true"
+                        title="Ver estatísticas detalhadas" onclick="toggleStats()" aria-live="polite">— chars</span>
+                    <!-- ★ NEW: Stats panel -->
+                    <div id="stats-panel" role="dialog" aria-label="Estatísticas do documento">
+                        <div class="stats-header">
+                            <span class="stats-title">Estatísticas</span>
+                            <button class="stats-close" onclick="closeStats()" aria-label="Fechar">✕</button>
+                        </div>
+                        <div class="stats-grid">
+                            <div class="stats-item">
+                                <div class="stats-value" id="stat-words">—</div>
+                                <div class="stats-label">Palavras</div>
+                            </div>
+                            <div class="stats-item">
+                                <div class="stats-value" id="stat-chars">—</div>
+                                <div class="stats-label">Caracteres</div>
+                            </div>
+                            <div class="stats-item">
+                                <div class="stats-value" id="stat-chars-ns">—</div>
+                                <div class="stats-label">Sem espaços</div>
+                            </div>
+                            <div class="stats-item">
+                                <div class="stats-value" id="stat-lines">—</div>
+                                <div class="stats-label">Linhas</div>
+                            </div>
+                            <div class="stats-item">
+                                <div class="stats-value" id="stat-paragraphs">—</div>
+                                <div class="stats-label">Parágrafos</div>
+                            </div>
+                            <div class="stats-item">
+                                <div class="stats-value" id="stat-headings">—</div>
+                                <div class="stats-label">Títulos</div>
+                            </div>
+                        </div>
+                        <div class="stats-reading">
+                            <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.3"
+                                stroke-linecap="round" aria-hidden="true">
+                                <circle cx="7" cy="7" r="5.5" />
+                                <path d="M7 4v3l2 1.5" />
+                            </svg>
+                            Leitura estimada: <strong id="stat-reading">—</strong>
+                        </div>
+                    </div>
+                </div>
+                <!-- ★ NEW: Find button in pbar -->
+                <button class="pbar-find-btn" id="find-trigger-btn" onclick="openFind(false)" title="Buscar (Ctrl+F)"
+                    aria-label="Abrir busca">
+                    <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"
+                        aria-hidden="true">
+                        <circle cx="6" cy="6" r="4" />
+                        <path d="M9 9l3 3" />
+                    </svg>
+                </button>
             </div>
+
+            <!-- ★ NEW: Find & Replace panel -->
+            <div id="find-panel" role="search" aria-label="Buscar e substituir">
+                <div class="find-row">
+                    <div class="find-input-group">
+                        <svg class="find-ico" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4"
+                            stroke-linecap="round" aria-hidden="true">
+                            <circle cx="6" cy="6" r="4" />
+                            <path d="M9 9l3 3" />
+                        </svg>
+                        <input id="find-input" class="find-input" type="text" placeholder="Buscar no editor…"
+                            autocomplete="off" spellcheck="false" oninput="updateFindMatches()"
+                            onkeydown="handleFindKey(event)">
+                        <span id="find-status" class="find-status" aria-live="polite"></span>
+                    </div>
+                    <div class="find-actions">
+                        <button class="find-btn" id="find-case" onclick="toggleFindCase()"
+                            title="Diferenciar maiúsculas/minúsculas (Alt+C)">Aa</button>
+                        <button class="find-btn find-nav" onclick="findPrev()" title="Anterior (Shift+Enter)">
+                            <svg viewBox="0 0 10 10" fill="currentColor" aria-hidden="true">
+                                <path d="M5 8V2M2 5l3-3 3 3" />
+                            </svg>
+                        </button>
+                        <button class="find-btn find-nav" onclick="findNext()" title="Próximo (Enter)">
+                            <svg viewBox="0 0 10 10" fill="currentColor" aria-hidden="true">
+                                <path d="M5 2v6M2 5l3 3 3-3" />
+                            </svg>
+                        </button>
+                        <button class="find-btn find-replace-toggle" id="find-toggle-replace"
+                            onclick="toggleFindReplace()" title="Mostrar substituição (Ctrl+H)">
+                            <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4"
+                                stroke-linecap="round" aria-hidden="true">
+                                <path d="M1 4h8M6 2l3 2-3 2M13 10H5M8 12l-3-2 3-2" />
+                            </svg>
+                        </button>
+                        <button class="find-btn find-close" onclick="closeFind()" title="Fechar (Esc)"
+                            aria-label="Fechar busca">✕</button>
+                    </div>
+                </div>
+                <div id="find-replace-row" class="find-replace-row" style="display:none">
+                    <div class="find-input-group">
+                        <svg class="find-ico" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4"
+                            stroke-linecap="round" aria-hidden="true">
+                            <path d="M1 4h8M6 2l3 2-3 2M13 10H5M8 12l-3-2 3-2" />
+                        </svg>
+                        <input id="replace-input" class="find-input" type="text" placeholder="Substituir por…"
+                            autocomplete="off" spellcheck="false" onkeydown="handleReplaceKey(event)">
+                    </div>
+                    <div class="find-actions">
+                        <button class="find-btn find-replace-btn" onclick="doReplace()"
+                            title="Substituir este (Enter)">Substituir</button>
+                        <button class="find-btn find-replace-btn find-replace-all" onclick="doReplaceAll()"
+                            title="Substituir todos">Todos</button>
+                    </div>
+                </div>
+            </div>
+
             <textarea id="editor" spellcheck="false" autocorrect="off" autocapitalize="off"
                 aria-label="Editor de Markdown" aria-multiline="true"></textarea>
         </section>
