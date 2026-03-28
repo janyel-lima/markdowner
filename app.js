@@ -1,6 +1,6 @@
 /**
  * Markdowner — MD Editor & Viewer
- * app.js — Main application logic
+ * app.js — Main application logic  (final / all-working)
  */
 
 'use strict';
@@ -48,6 +48,9 @@ const IMG = {
     qualityScreen: 0.88,
     maxB64: 900_000,
 };
+
+/** Maximum live time for a collaborative session: 7 hours */
+const SESSION_MAX_MS = 7 * 60 * 60 * 1000;
 
 const FIREBASE_READY = !FIREBASE_CONFIG.apiKey.startsWith('__');
 
@@ -246,7 +249,7 @@ const TOUR_STEPS = [
     {
         phase: 'Colaboração', sel: '#collab-btn',
         title: 'Como criar ou entrar numa sessão',
-        desc: '<strong>Criar sessão:</strong> escolha seu nome e clique em "Criar sessão". Um <strong>código de 6 letras</strong> será gerado — envie para seus colegas.<br><br><strong>Entrar:</strong> escolha "Entrar em sessão", coloque seu nome e o código que recebeu.',
+        desc: '<strong>Criar sessão:</strong> escolha seu nome e clique em "Criar sessão". Um <strong>código de 6 letras</strong> será gerado — envie para seus colegas.<br><br><strong>Entrar:</strong> escolha "Entrar em sessão", coloque seu nome e o código que recebeu. Sessões duram no máximo <strong>7 horas</strong>.',
     },
     {
         phase: 'Colaboração', sel: '#chat-toggle-btn',
@@ -281,10 +284,8 @@ const TOUR_STEPS = [
    3. UTILITIES
 ═══════════════════════════════════════════════════════ */
 
-/** Get element by ID */
 const $ = id => document.getElementById(id);
 
-/** localStorage helpers — silent on errors (private mode, etc.) */
 function lsGet(key, fallback = null) {
     try { return localStorage.getItem(key) ?? fallback; } catch { return fallback; }
 }
@@ -292,7 +293,6 @@ function lsSet(key, value) {
     try { localStorage.setItem(key, value); } catch { /* noop */ }
 }
 
-/** Escape HTML entities */
 function escHtml(str) {
     return String(str)
         .replace(/&/g, '&amp;')
@@ -301,48 +301,42 @@ function escHtml(str) {
         .replace(/"/g, '&quot;');
 }
 
-/** Convert #rrggbb → "r,g,b" string for CSS variables */
 function hexToRgbString(hex) {
     const m = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
     if (!m) return null;
     return `${parseInt(m[1], 16)},${parseInt(m[2], 16)},${parseInt(m[3], 16)}`;
 }
 
-/** Check if viewport is mobile (<= 700 px) */
 const isMobile = () => window.innerWidth <= 700;
 
-/** Generate a random 6-character room code */
 function genRoomCode() {
     return Math.random().toString(36).slice(2, 8).toUpperCase();
 }
 
-/** Generate a unique user ID */
 function genUserId() {
     return Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
 }
 
-/** Get initials from a display name (max 2 chars) */
 function getInitials(name) {
-    return String(name || '?')
-        .trim()
-        .split(/\s+/)
-        .map(w => w[0])
-        .join('')
-        .slice(0, 2)
-        .toUpperCase() || '?';
+    return String(name || '?').trim().split(/\s+/).map(w => w[0]).join('').slice(0, 2).toUpperCase() || '?';
 }
 
-/** Pick a peer color by index */
 const getPeerColor = idx => PEER_COLORS[idx % PEER_COLORS.length];
 
-/** Build a DM channel key (sorted so both sides produce the same key) */
 const dmChannelKey = (a, b) => [a, b].sort().join('_');
 
-
+/** Format milliseconds → human readable "6h 23m" or "45m" */
+function fmtDuration(ms) {
+    if (ms <= 0) return '0m';
+    const h = Math.floor(ms / 3_600_000);
+    const m = Math.floor((ms % 3_600_000) / 60_000);
+    if (h > 0) return `${h}h ${m}m`;
+    return `${m}m`;
+}
 
 
 /* ═══════════════════════════════════════════════════════
-   3.5 SOUND SYSTEM (Web Audio API)
+   3.5 SOUND SYSTEM
 ═══════════════════════════════════════════════════════ */
 
 let _audioCtx = null;
@@ -350,68 +344,40 @@ let soundEnabled = true;
 let _prevPeerCount = 0;
 
 function getAudioCtx() {
-    if (!_audioCtx) {
-        _audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    }
+    if (!_audioCtx) _audioCtx = new (window.AudioContext || window.webkitAudioContext)();
     if (_audioCtx.state === 'suspended') _audioCtx.resume();
     return _audioCtx;
 }
 
-function playTone({
-    freq = 660,
-    freq2 = null,
-    type = 'sine',
-    gain = 0.14,
-    attack = 0.006,
-    duration = 0.20,
-} = {}) {
+function playTone({ freq = 660, freq2 = null, type = 'sine', gain = 0.14, attack = 0.006, duration = 0.20 } = {}) {
     if (!soundEnabled) return;
     try {
         const ctx = getAudioCtx();
         const osc = ctx.createOscillator();
         const amp = ctx.createGain();
-
-        osc.connect(amp);
-        amp.connect(ctx.destination);
-
+        osc.connect(amp); amp.connect(ctx.destination);
         osc.type = type;
         osc.frequency.setValueAtTime(freq, ctx.currentTime);
-        if (freq2 !== null) {
-            osc.frequency.linearRampToValueAtTime(freq2, ctx.currentTime + duration * 0.55);
-        }
-
+        if (freq2 !== null) osc.frequency.linearRampToValueAtTime(freq2, ctx.currentTime + duration * 0.55);
         amp.gain.setValueAtTime(0, ctx.currentTime);
         amp.gain.linearRampToValueAtTime(gain, ctx.currentTime + attack);
         amp.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + duration);
-
         osc.start(ctx.currentTime);
         osc.stop(ctx.currentTime + duration + 0.05);
     } catch { /* noop */ }
 }
 
-/** Soft ding — mensagem recebida no canal de sessão */
-function soundMessageReceived() {
-    playTone({ freq: 880, gain: 0.11, duration: 0.22 });
-}
-
-/** Dois pings ascendentes — DM recebida */
+function soundMessageReceived() { playTone({ freq: 880, gain: 0.11, duration: 0.22 }); }
 function soundDmReceived() {
     playTone({ freq: 1047, gain: 0.13, duration: 0.14 });
     setTimeout(() => playTone({ freq: 1319, gain: 0.11, duration: 0.18 }), 115);
 }
-
-/** Dois tons ascendentes suaves — participante entrou */
 function soundUserJoined() {
     playTone({ freq: 528, gain: 0.09, duration: 0.16 });
     setTimeout(() => playTone({ freq: 660, gain: 0.08, duration: 0.20 }), 130);
 }
+function soundMessageSent() { playTone({ freq: 700, type: 'sine', gain: 0.06, duration: 0.09 }); }
 
-/** Click sutil — mensagem enviada */
-function soundMessageSent() {
-    playTone({ freq: 700, type: 'sine', gain: 0.06, duration: 0.09 });
-}
-
-/** Toggle mute */
 function toggleSound() {
     soundEnabled = !soundEnabled;
     const btn = $('sound-btn');
@@ -419,9 +385,7 @@ function toggleSound() {
     btn.classList.toggle('muted', !soundEnabled);
     showToast(soundEnabled ? '🔔 Sons ativados' : '🔕 Sons silenciados');
 }
-
 window.toggleSound = toggleSound;
-
 
 
 /* ═══════════════════════════════════════════════════════
@@ -430,13 +394,11 @@ window.toggleSound = toggleSound;
 
 (function setupMarked() {
     const renderer = new marked.Renderer();
-
     renderer.code = (code, lang) => {
         const language = hljs.getLanguage(lang) ? lang : 'plaintext';
         const highlighted = hljs.highlight(code, { language }).value;
         return `<pre><code class="hljs language-${language}">${highlighted}</code></pre>`;
     };
-
     marked.use({ renderer, breaks: true, gfm: true });
 })();
 
@@ -472,10 +434,7 @@ function scheduleSave() {
         lsSet(STORAGE_KEYS.content, editorEl.value);
         saveStatusEl.textContent = 'Salvo';
         saveStatusEl.className = 'saved';
-        setTimeout(() => {
-            saveStatusEl.textContent = 'Salvo';
-            saveStatusEl.className = '';
-        }, 1800);
+        setTimeout(() => { saveStatusEl.textContent = 'Salvo'; saveStatusEl.className = ''; }, 1800);
     }, 800);
 }
 
@@ -483,17 +442,15 @@ editorEl.addEventListener('input', () => {
     renderPreview();
     updateCharCount();
     scheduleSave();
-    // Sync to Firebase if in a session
     scheduleRemoteDocWrite();
 });
 
 editorEl.addEventListener('keydown', e => {
     if (e.key !== 'Tab') return;
     e.preventDefault();
-    const start = editorEl.selectionStart;
-    const end = editorEl.selectionEnd;
-    editorEl.value = editorEl.value.slice(0, start) + '  ' + editorEl.value.slice(end);
-    editorEl.selectionStart = editorEl.selectionEnd = start + 2;
+    const s = editorEl.selectionStart, end = editorEl.selectionEnd;
+    editorEl.value = editorEl.value.slice(0, s) + '  ' + editorEl.value.slice(end);
+    editorEl.selectionStart = editorEl.selectionEnd = s + 2;
     renderPreview();
 });
 
@@ -512,10 +469,7 @@ function applyTheme(dark) {
     hlLight.disabled = dark;
     lsSet(STORAGE_KEYS.theme, dark ? 'dark' : 'light');
 }
-
-function toggleTheme() {
-    applyTheme(!isDark);
-}
+function toggleTheme() { applyTheme(!isDark); }
 
 
 /* ═══════════════════════════════════════════════════════
@@ -533,11 +487,8 @@ function applyAccent1(hex) {
     const rgb = hexToRgbString(hex);
     if (rgb) root.style.setProperty('--a1r', rgb);
     $('sw1').style.background = hex;
-    $('cp1').value = hex;
-    $('hx1').value = hex;
-    document.querySelectorAll('.ps1').forEach(btn =>
-        btn.classList.toggle('sel', btn.dataset.c === hex)
-    );
+    $('cp1').value = hex; $('hx1').value = hex;
+    document.querySelectorAll('.ps1').forEach(btn => btn.classList.toggle('sel', btn.dataset.c === hex));
     lsSet(STORAGE_KEYS.acc1, hex);
 }
 
@@ -548,11 +499,8 @@ function applyAccent2(hex) {
     const rgb = hexToRgbString(hex);
     if (rgb) root.style.setProperty('--a2r', rgb);
     $('sw2').style.background = hex;
-    $('cp2').value = hex;
-    $('hx2').value = hex;
-    document.querySelectorAll('.ps2').forEach(btn =>
-        btn.classList.toggle('sel', btn.dataset.c === hex)
-    );
+    $('cp2').value = hex; $('hx2').value = hex;
+    document.querySelectorAll('.ps2').forEach(btn => btn.classList.toggle('sel', btn.dataset.c === hex));
     lsSet(STORAGE_KEYS.acc2, hex);
 }
 
@@ -574,23 +522,12 @@ function wireColorInputs(n, applyFn) {
     const hexInput = $(`hx${n}`);
     const getCurrent = () => n === '1' ? currentAcc1 : currentAcc2;
 
-    picker.addEventListener('input', e => {
-        hexInput.value = e.target.value;
-        applyFn(e.target.value);
-    });
-
-    hexInput.addEventListener('input', e => {
-        if (/^#[0-9a-fA-F]{6}$/.test(e.target.value)) applyFn(e.target.value);
-    });
-
+    picker.addEventListener('input', e => { hexInput.value = e.target.value; applyFn(e.target.value); });
+    hexInput.addEventListener('input', e => { if (/^#[0-9a-fA-F]{6}$/.test(e.target.value)) applyFn(e.target.value); });
     hexInput.addEventListener('blur', e => {
         let val = e.target.value.trim();
         if (!val.startsWith('#')) val = '#' + val;
-        if (/^#[0-9a-fA-F]{6}$/.test(val)) {
-            applyFn(val);
-        } else {
-            hexInput.value = getCurrent();
-        }
+        if (/^#[0-9a-fA-F]{6}$/.test(val)) { applyFn(val); } else { hexInput.value = getCurrent(); }
     });
 }
 
@@ -603,7 +540,7 @@ function initColors() {
 
 
 /* ═══════════════════════════════════════════════════════
-   8. DROPDOWNS (color panel & export menu)
+   8. DROPDOWNS
 ═══════════════════════════════════════════════════════ */
 
 function closeAllDropdowns() {
@@ -615,35 +552,21 @@ function closeAllDropdowns() {
 function toggleColorPanel() {
     const willOpen = !$('cpanel').classList.contains('open');
     closeAllDropdowns();
-    if (willOpen) {
-        $('cpanel').classList.add('open');
-        if (isMobile()) $('sheetOverlay').classList.add('vis');
-    }
+    if (willOpen) { $('cpanel').classList.add('open'); if (isMobile()) $('sheetOverlay').classList.add('vis'); }
 }
 
 function toggleExportMenu() {
     const willOpen = !$('expDrop').classList.contains('open');
     closeAllDropdowns();
-    if (willOpen) {
-        $('expDrop').classList.add('open');
-        if (isMobile()) $('sheetOverlay').classList.add('vis');
-    }
+    if (willOpen) { $('expDrop').classList.add('open'); if (isMobile()) $('sheetOverlay').classList.add('vis'); }
 }
 
-// Close dropdowns on outside click
 document.addEventListener('click', e => {
-    if (!$('colorWrap').contains(e.target) && !$('sheetOverlay').contains(e.target)) {
-        $('cpanel').classList.remove('open');
-    }
-    if (!$('expWrap').contains(e.target) && !$('sheetOverlay').contains(e.target)) {
-        $('expDrop').classList.remove('open');
-    }
-    if (!$('cpanel').classList.contains('open') && !$('expDrop').classList.contains('open')) {
-        $('sheetOverlay').classList.remove('vis');
-    }
+    if (!$('colorWrap').contains(e.target) && !$('sheetOverlay').contains(e.target)) $('cpanel').classList.remove('open');
+    if (!$('expWrap').contains(e.target) && !$('sheetOverlay').contains(e.target)) $('expDrop').classList.remove('open');
+    if (!$('cpanel').classList.contains('open') && !$('expDrop').classList.contains('open')) $('sheetOverlay').classList.remove('vis');
 });
 
-// Expose to HTML onclick attributes
 window.toggleColor = toggleColorPanel;
 window.toggleExp = toggleExportMenu;
 window.closeAllDropdowns = closeAllDropdowns;
@@ -658,24 +581,19 @@ const panelPreview = $('pp');
 const divider = $('dv');
 
 function setView(mode) {
-    ['both', 'edit', 'preview'].forEach(v =>
-        $(`b-${v}`).classList.toggle('on', v === mode)
-    );
-
+    ['both', 'edit', 'preview'].forEach(v => $(`b-${v}`).classList.toggle('on', v === mode));
     panelEditor.classList.remove('gone');
     panelPreview.classList.remove('gone');
     divider.classList.remove('gone');
     panelEditor.style.cssText = '';
-
     if (mode === 'edit') { panelPreview.classList.add('gone'); divider.classList.add('gone'); }
     if (mode === 'preview') { panelEditor.classList.add('gone'); divider.classList.add('gone'); }
 }
-
 window.setView = setView;
 
 
 /* ═══════════════════════════════════════════════════════
-   10. DRAG DIVIDER (desktop: column / mobile: row)
+   10. DRAG DIVIDER
 ═══════════════════════════════════════════════════════ */
 
 let isDragging = false;
@@ -707,18 +625,14 @@ function onDragStart(e) {
 function onDragMove(e) {
     if (!isDragging) return;
     e.preventDefault();
-
     const pointer = e.touches?.[0] ?? e;
     const ws = $('workspace').getBoundingClientRect();
-
     if (isMobile()) {
         const h = Math.max(80, Math.min(ws.height - 80, dragStartSz + (pointer.clientY - dragStart)));
-        panelEditor.style.flex = 'none';
-        panelEditor.style.height = h + 'px';
+        panelEditor.style.flex = 'none'; panelEditor.style.height = h + 'px';
     } else {
         const w = Math.max(80, Math.min(ws.width - 80, dragStartSz + (pointer.clientX - dragStart)));
-        panelEditor.style.flex = 'none';
-        panelEditor.style.width = w + 'px';
+        panelEditor.style.flex = 'none'; panelEditor.style.width = w + 'px';
     }
 }
 
@@ -749,8 +663,7 @@ function copyMarkdown() {
 function exportFile(ext) {
     const blob = new Blob([editorEl.value], { type: 'text/plain;charset=utf-8' });
     const url = URL.createObjectURL(blob);
-    const a = Object.assign(document.createElement('a'), { href: url, download: `le-pimpe-n1.${ext}` });
-    a.click();
+    Object.assign(document.createElement('a'), { href: url, download: `le-pimpe-n1.${ext}` }).click();
     URL.revokeObjectURL(url);
     $('expDrop').classList.remove('open');
     $('sheetOverlay').classList.remove('vis');
@@ -760,21 +673,13 @@ function exportFile(ext) {
 let pendingImportContent = null;
 let pendingImportName = '';
 
-function triggerImport() {
-    $('file-input').value = '';
-    $('file-input').click();
-}
+function triggerImport() { $('file-input').value = ''; $('file-input').click(); }
 
 $('file-input').addEventListener('change', e => {
     const file = e.target.files[0];
     if (!file) return;
-
     const ext = file.name.split('.').pop().toLowerCase();
-    if (!['md', 'txt'].includes(ext)) {
-        showToast('Formato inválido — use .md ou .txt');
-        return;
-    }
-
+    if (!['md', 'txt'].includes(ext)) { showToast('Formato inválido — use .md ou .txt'); return; }
     const reader = new FileReader();
     reader.onload = ev => {
         pendingImportContent = ev.target.result;
@@ -791,30 +696,25 @@ $('file-input').addEventListener('change', e => {
 
 $('imp-cancel').addEventListener('click', () => {
     $('imp-backdrop').classList.remove('vis');
-    pendingImportContent = null;
-    pendingImportName = '';
+    pendingImportContent = null; pendingImportName = '';
 });
 
 $('imp-confirm').addEventListener('click', () => {
     if (pendingImportContent === null) return;
     editorEl.value = pendingImportContent;
-    renderPreview();
-    updateCharCount();
-    scheduleSave();
+    renderPreview(); updateCharCount(); scheduleSave();
     $('imp-backdrop').classList.remove('vis');
     showToast(`"${pendingImportName}" importado com sucesso ✓`);
-    pendingImportContent = null;
-    pendingImportName = '';
+    pendingImportContent = null; pendingImportName = '';
 });
 
-// Expose to HTML onclick attributes
 window.copyMd = copyMarkdown;
 window.exportFile = exportFile;
 window.triggerImport = triggerImport;
 
 
 /* ═══════════════════════════════════════════════════════
-   12. TOAST NOTIFICATION
+   12. TOAST
 ═══════════════════════════════════════════════════════ */
 
 let toastTimer = null;
@@ -826,8 +726,7 @@ function showToast(message) {
     clearTimeout(toastTimer);
     toastTimer = setTimeout(() => el.classList.remove('show'), 2400);
 }
-
-window.showToast = showToast; // used by collab functions
+window.showToast = showToast;
 
 
 /* ═══════════════════════════════════════════════════════
@@ -839,27 +738,14 @@ const tourCard = $('tour-card');
 const tourBlocker = $('tour-blocker');
 let currentStep = 0;
 
-function showWelcomeModal() {
-    $('tw-backdrop').classList.add('vis');
-}
+function showWelcomeModal() { $('tw-backdrop').classList.add('vis'); }
+function hideWelcomeModal() { $('tw-backdrop').classList.remove('vis'); }
 
-function hideWelcomeModal() {
-    $('tw-backdrop').classList.remove('vis');
-}
-
-$('tw-skip').addEventListener('click', () => {
-    hideWelcomeModal();
-    lsSet(STORAGE_KEYS.toured, '1');
-});
-
-$('tw-start').addEventListener('click', () => {
-    hideWelcomeModal();
-    tourStart();
-});
+$('tw-skip').addEventListener('click', () => { hideWelcomeModal(); lsSet(STORAGE_KEYS.toured, '1'); });
+$('tw-start').addEventListener('click', () => { hideWelcomeModal(); tourStart(); });
 
 function tourStart() {
-    setView('both');
-    currentStep = 0;
+    setView('both'); currentStep = 0;
     tourBlocker.classList.add('vis');
     tourSpot.classList.add('vis');
     tourCard.classList.add('vis');
@@ -877,26 +763,16 @@ function tourEnd() {
 function renderTourStep(index) {
     const step = TOUR_STEPS[index];
     const total = TOUR_STEPS.length;
-
     $('tc-phase').textContent = step.phase;
     $('tc-count').textContent = `${index + 1} / ${total}`;
     $('tc-fill').style.width = `${((index + 1) / total) * 100}%`;
     $('tc-title').textContent = step.title;
     $('tc-desc').innerHTML = step.desc;
-
     buildTourExtra(step);
-
     $('tc-prev').disabled = (index === 0);
-
     const nextBtn = $('tc-next');
-    if (step.isLast) {
-        nextBtn.textContent = '✓ Fechar tour';
-        nextBtn.onclick = tourEnd;
-    } else {
-        nextBtn.textContent = 'Próximo →';
-        nextBtn.onclick = () => goTourStep(1);
-    }
-
+    if (step.isLast) { nextBtn.textContent = '✓ Fechar tour'; nextBtn.onclick = tourEnd; }
+    else { nextBtn.textContent = 'Próximo →'; nextBtn.onclick = () => goTourStep(1); }
     requestAnimationFrame(() => setTourSpotlight(step.sel));
 }
 
@@ -904,8 +780,6 @@ function buildTourExtra(step) {
     const extra = $('tc-extra');
     extra.innerHTML = '';
     if (!step.md) return;
-
-    // Code example box
     const codeBox = document.createElement('div');
     codeBox.className = 'tc-example';
     codeBox.innerHTML = `
@@ -915,19 +789,14 @@ function buildTourExtra(step) {
     </div>
     <pre class="tc-code-pre">${escHtml(step.md)}</pre>`;
     extra.appendChild(codeBox);
-
     if (step.sample) {
         $('tc-try-btn').addEventListener('click', () => {
             const pos = editorEl.selectionStart || editorEl.value.length;
             editorEl.value = editorEl.value.slice(0, pos) + '\n' + step.sample + editorEl.value.slice(pos);
-            renderPreview();
-            updateCharCount();
-            scheduleSave();
+            renderPreview(); updateCharCount(); scheduleSave();
             showToast('Exemplo inserido! Veja o preview →');
         });
     }
-
-    // Split preview
     if (step.preview) {
         const split = document.createElement('div');
         split.className = 'tc-split';
@@ -947,8 +816,7 @@ function buildTourExtra(step) {
 function goTourStep(direction) {
     const next = currentStep + direction;
     if (next < 0 || next >= TOUR_STEPS.length) return;
-    currentStep = next;
-    renderTourStep(next);
+    currentStep = next; renderTourStep(next);
 }
 
 $('tc-prev').addEventListener('click', () => goTourStep(-1));
@@ -957,47 +825,29 @@ $('tc-close').addEventListener('click', tourEnd);
 function setTourSpotlight(selector) {
     const el = document.querySelector(selector);
     if (!el) return;
-
-    const PAD = 8;
-    const r = el.getBoundingClientRect();
-
+    const PAD = 8, r = el.getBoundingClientRect();
     tourSpot.style.left = (r.left - PAD) + 'px';
     tourSpot.style.top = (r.top - PAD) + 'px';
     tourSpot.style.width = (r.width + PAD * 2) + 'px';
     tourSpot.style.height = (r.height + PAD * 2) + 'px';
-
     placeTourCard(r, PAD);
 }
 
 function placeTourCard(targetRect, pad) {
     const mobile = isMobile();
-    const vw = window.innerWidth;
-    const vh = window.innerHeight;
-    const mg = 12;
-
-    const cardWidth = mobile
-        ? vw - 24
-        : Math.min(Math.max(300, vw * 0.26), 400);
-
+    const vw = window.innerWidth, vh = window.innerHeight, mg = 12;
+    const cardWidth = mobile ? vw - 24 : Math.min(Math.max(300, vw * 0.26), 400);
     tourCard.style.width = cardWidth + 'px';
-
     const cardHeight = Math.min(tourCard.offsetHeight || 300, vh - mg * 2);
     tourCard.style.maxHeight = (vh - mg * 2) + 'px';
-
     const spaceBelow = vh - (targetRect.bottom + pad + mg);
     const spaceAbove = targetRect.top - pad - mg;
-
     let top, left;
-
     if (mobile) {
         left = 12;
-        if (spaceBelow >= cardHeight + 8) {
-            top = targetRect.bottom + pad + mg;
-        } else if (spaceAbove >= cardHeight + 8) {
-            top = targetRect.top - pad - mg - cardHeight;
-        } else {
-            top = Math.max(mg, vh - cardHeight - mg - 16);
-        }
+        if (spaceBelow >= cardHeight + 8) top = targetRect.bottom + pad + mg;
+        else if (spaceAbove >= cardHeight + 8) top = targetRect.top - pad - mg - cardHeight;
+        else top = Math.max(mg, vh - cardHeight - mg - 16);
         top = Math.max(mg, Math.min(top, vh - cardHeight - mg));
     } else {
         if (spaceBelow >= cardHeight + 8) {
@@ -1009,31 +859,20 @@ function placeTourCard(targetRect, pad) {
         } else {
             const spaceRight = vw - (targetRect.right + pad + mg);
             const spaceLeft = targetRect.left - pad - mg;
-            if (spaceRight >= cardWidth + 8) {
-                left = targetRect.right + pad + mg;
-                top = Math.max(mg, Math.min(targetRect.top, vh - cardHeight - mg));
-            } else if (spaceLeft >= cardWidth + 8) {
-                left = targetRect.left - pad - mg - cardWidth;
-                top = Math.max(mg, Math.min(targetRect.top, vh - cardHeight - mg));
-            } else {
-                left = Math.max(mg, vw / 2 - cardWidth / 2);
-                top = Math.max(mg, Math.min(targetRect.bottom + pad + mg, vh - cardHeight - mg));
-            }
+            if (spaceRight >= cardWidth + 8) { left = targetRect.right + pad + mg; top = Math.max(mg, Math.min(targetRect.top, vh - cardHeight - mg)); }
+            else if (spaceLeft >= cardWidth + 8) { left = targetRect.left - pad - mg - cardWidth; top = Math.max(mg, Math.min(targetRect.top, vh - cardHeight - mg)); }
+            else { left = Math.max(mg, vw / 2 - cardWidth / 2); top = Math.max(mg, Math.min(targetRect.bottom + pad + mg, vh - cardHeight - mg)); }
         }
         top = Math.max(mg, Math.min(top, vh - cardHeight - mg));
         left = Math.max(mg, Math.min(left, vw - cardWidth - mg));
     }
-
     tourCard.style.top = top + 'px';
     tourCard.style.left = left + 'px';
 }
 
 window.addEventListener('resize', () => {
-    if (tourCard.classList.contains('vis')) {
-        setTourSpotlight(TOUR_STEPS[currentStep].sel);
-    }
+    if (tourCard.classList.contains('vis')) setTourSpotlight(TOUR_STEPS[currentStep].sel);
 });
-
 window.tourStart = tourStart;
 
 
@@ -1051,30 +890,18 @@ function loadProfile() {
         myName = stored.name || lsGet(STORAGE_KEYS.collab, '') || 'Anônimo';
         myColor = stored.color || getPeerColor(Math.floor(Math.random() * PEER_COLORS.length));
         myAvatarUrl = stored.avatarUrl || '';
-    } catch {
-        myName = 'Anônimo';
-        myColor = getPeerColor(0);
-    }
+    } catch { myName = 'Anônimo'; myColor = getPeerColor(0); }
 }
 
 function saveProfileData(name, color, avatarUrl) {
-    myName = name;
-    myColor = color;
-    myAvatarUrl = avatarUrl;
-    try {
-        localStorage.setItem(STORAGE_KEYS.profile, JSON.stringify({ name, color, avatarUrl }));
-    } catch { /* noop */ }
+    myName = name; myColor = color; myAvatarUrl = avatarUrl;
+    try { localStorage.setItem(STORAGE_KEYS.profile, JSON.stringify({ name, color, avatarUrl })); } catch { /* noop */ }
     lsSet(STORAGE_KEYS.collab, name);
 }
 
-/**
- * Renders an avatar into a DOM element.
- * If avatarUrl is provided, shows a photo; otherwise shows initials.
- */
 function renderAvatar(el, name, color, avatarUrl) {
     if (!el) return;
     el.style.background = color || '#888';
-
     if (avatarUrl) {
         const safeName = escHtml(getInitials(name));
         const safeColor = escHtml(color || '#888');
@@ -1085,9 +912,7 @@ function renderAvatar(el, name, color, avatarUrl) {
     }
 }
 
-function renderMyAvatar() {
-    renderAvatar($('cp-my-avatar'), myName, myColor, myAvatarUrl);
-}
+function renderMyAvatar() { renderAvatar($('cp-my-avatar'), myName, myColor, myAvatarUrl); }
 
 function openProfileModal() {
     $('profile-name-input').value = myName;
@@ -1097,13 +922,9 @@ function openProfileModal() {
     setTimeout(() => $('profile-name-input').focus(), 80);
 }
 
-function closeProfileModal() {
-    $('profile-backdrop').classList.remove('vis');
-}
+function closeProfileModal() { $('profile-backdrop').classList.remove('vis'); }
 
-function closeProfileOnBg(e) {
-    if (e.target === $('profile-backdrop')) closeProfileModal();
-}
+function closeProfileOnBg(e) { if (e.target === $('profile-backdrop')) closeProfileModal(); }
 
 function updateProfilePreview() {
     const name = $('profile-name-input').value.trim() || 'Anônimo';
@@ -1117,12 +938,7 @@ function saveProfile() {
     const url = $('profile-avatar-input').value.trim();
     saveProfileData(name, myColor, url);
     renderMyAvatar();
-
-    // Sync name/avatar to Firebase if in a session
-    if (fbRoom && myId) {
-        fbRoom.child(`users/${myId}`).update({ name, avatarUrl: url || '' }).catch(() => { });
-    }
-
+    if (fbRoom && myId) fbRoom.child(`users/${myId}`).update({ name, avatarUrl: url || '' }).catch(() => { });
     closeProfileModal();
     showToast('✓ Perfil atualizado');
 }
@@ -1146,28 +962,51 @@ let fbRoom = null;
 
 let myId = '';
 let roomCode = '';
+let hostId = '';       // ← tracks who created the room
 
 let sessionListeners = [];
 let writeDocTimer = null;
 let applyingRemote = false;
 
+// ── Session timer (7-hour max) ──────────────────────
+let sessionStartedAt = 0;    // Unix ms from Firebase
+let sessionAutoLeaveTimer = null; // setTimeout handle
+let sessionTimerInterval = null; // setInterval handle for display
+
+function startSessionTimerDisplay() {
+    clearInterval(sessionTimerInterval);
+    _updateSessionTimerLabel();
+    sessionTimerInterval = setInterval(_updateSessionTimerLabel, 60_000);
+}
+
+function _updateSessionTimerLabel() {
+    const lbl = $('pb-label');
+    if (!lbl) return;
+    if (!sessionStartedAt) { lbl.textContent = 'Sessão ativa'; return; }
+    const remaining = SESSION_MAX_MS - (Date.now() - sessionStartedAt);
+    if (remaining <= 0) { lbl.textContent = 'Sessão encerrada'; return; }
+    lbl.textContent = `Sessão · ${fmtDuration(remaining)} restantes`;
+}
+
+function stopSessionTimerDisplay() {
+    clearInterval(sessionTimerInterval);
+    sessionTimerInterval = null;
+    const lbl = $('pb-label');
+    if (lbl) lbl.textContent = 'Sessão ativa';
+}
+
+// ────────────────────────────────────────────────────
+
 function initFirebase() {
     if (fbApp) return true;
-    if (!FIREBASE_READY) {
-        showToast('⚠ Firebase não configurado. Veja o SETUP.md.');
-        return false;
-    }
+    if (!FIREBASE_READY) { showToast('⚠ Firebase não configurado. Veja o SETUP.md.'); return false; }
     try {
         fbApp = firebase.initializeApp(FIREBASE_CONFIG);
         fbDb = firebase.database();
         return true;
-    } catch (err) {
-        showToast(`⚠ Erro Firebase: ${err.message}`);
-        return false;
-    }
+    } catch (err) { showToast(`⚠ Erro Firebase: ${err.message}`); return false; }
 }
 
-/** Schedule a doc write to Firebase (debounced 250 ms) */
 function scheduleRemoteDocWrite() {
     if (applyingRemote || !fbRoom) return;
     clearTimeout(writeDocTimer);
@@ -1176,16 +1015,13 @@ function scheduleRemoteDocWrite() {
     }, 250);
 }
 
-/** Apply content received from Firebase without triggering a remote write */
 function applyRemoteContent(content) {
     if (content === editorEl.value) return;
     applyingRemote = true;
     const cursor = editorEl.selectionStart;
     editorEl.value = content;
     try { editorEl.selectionStart = editorEl.selectionEnd = cursor; } catch { /* noop */ }
-    renderPreview();
-    updateCharCount();
-    scheduleSave();
+    renderPreview(); updateCharCount(); scheduleSave();
     applyingRemote = false;
 }
 
@@ -1193,33 +1029,39 @@ function applyRemoteContent(content) {
 
 function openCollabModal() {
     if (roomCode) {
+        // Already in a session — show active session view
         switchCollabTab('create');
         $('cm-create-step1').style.display = 'none';
         $('cm-create-step2').style.display = 'flex';
         $('cm-code-val').textContent = roomCode;
         $('cm-host-name').value = myName;
+        _updateModalSessionInfo();
         renderModalParticipants();
     } else {
         $('cm-host-name').value = myName;
         $('cm-join-name').value = myName;
-        setTimeout(() => {
-            const activeTab = $('cm-join-body').style.display === 'flex'
-                ? $('cm-join-name')
-                : $('cm-host-name');
-            activeTab.focus();
-            activeTab.select();
-        }, 80);
+        $('cm-create-step1').style.display = 'block';
+        $('cm-create-step2').style.display = 'none';
+        switchCollabTab('create');
+        setTimeout(() => { $('cm-host-name').focus(); $('cm-host-name').select(); }, 80);
     }
     $('collab-backdrop').classList.add('vis');
 }
 
-function closeCollabModal() {
-    $('collab-backdrop').classList.remove('vis');
+/** Show session creation time + remaining time in the modal */
+function _updateModalSessionInfo() {
+    const info = $('cm-session-info');
+    if (!info) return;
+    if (!sessionStartedAt) { info.textContent = ''; return; }
+    const elapsed = Date.now() - sessionStartedAt;
+    const remaining = SESSION_MAX_MS - elapsed;
+    info.textContent = remaining > 0
+        ? `Ativa há ${fmtDuration(elapsed)} · expira em ${fmtDuration(remaining)}`
+        : 'Sessão expirada';
 }
 
-function closeCollabOnBg(e) {
-    if (e.target === $('collab-backdrop')) closeCollabModal();
-}
+function closeCollabModal() { $('collab-backdrop').classList.remove('vis'); }
+function closeCollabOnBg(e) { if (e.target === $('collab-backdrop')) closeCollabModal(); }
 
 function switchCollabTab(tab) {
     $('cm-tab-create').classList.toggle('on', tab === 'create');
@@ -1236,7 +1078,6 @@ function switchCollabTab(tab) {
 
 function hostSession() {
     if (!initFirebase()) return;
-
     const nameInput = $('cm-host-name').value.trim();
     if (nameInput) saveProfileData(nameInput, myColor, myAvatarUrl);
 
@@ -1251,11 +1092,7 @@ function hostSession() {
 
     fbRoom.once('value')
         .then(snap => {
-            // Avoid collision with an existing room
-            if (snap.exists()) {
-                roomCode = genRoomCode();
-                fbRoom = fbDb.ref(`rooms/${roomCode}`);
-            }
+            if (snap.exists()) { roomCode = genRoomCode(); fbRoom = fbDb.ref(`rooms/${roomCode}`); }
             return fbRoom.set({
                 doc: editorEl.value,
                 createdAt: firebase.database.ServerValue.TIMESTAMP,
@@ -1268,11 +1105,11 @@ function hostSession() {
             $('cm-create-step2').style.display = 'flex';
             $('cm-code-val').textContent = roomCode;
             $('pb-room-code').textContent = roomCode;
+            $('cm-share-url').textContent = `${location.origin}${location.pathname}?r=${roomCode}`;
             activateSessionUI();
             history.pushState({}, '', `?r=${roomCode}`);
-            $('cm-share-url').textContent = `${location.origin}${location.pathname}?r=${roomCode}`;
             renderModalParticipants();
-            addSystemMessage('Sessão criada. Aguardando participantes...');
+            addSystemMessage('✦ Sessão criada — aguardando participantes...');
             showToast(`✓ Sessão criada! Código: ${roomCode}`);
         })
         .catch(err => {
@@ -1287,15 +1124,11 @@ function hostSession() {
 
 function joinSession() {
     if (!initFirebase()) return;
-
     const nameInput = $('cm-join-name').value.trim();
     if (nameInput) saveProfileData(nameInput, myColor, myAvatarUrl);
 
     const code = $('cm-join-code').value.trim().toUpperCase().replace(/[^A-Z0-9]/g, '');
-    if (code.length !== 6) {
-        showJoinStatus('Digite o código de 6 caracteres.', 'err');
-        return;
-    }
+    if (code.length !== 6) { showJoinStatus('Digite o código de 6 caracteres.', 'err'); return; }
 
     myId = genUserId();
     roomCode = code;
@@ -1312,13 +1145,25 @@ function joinSession() {
             if (!snap.exists()) {
                 roomCode = '';
                 showJoinStatus(`❌ Sessão "${code}" não encontrada.`, 'err');
-                btn.disabled = false;
-                btn.innerHTML = 'Entrar na sessão →';
+                btn.disabled = false; btn.innerHTML = 'Entrar na sessão →';
                 return;
             }
 
             const data = snap.val();
+            const created = data.createdAt || 0;
+
+            // ── 7-hour expiry check ──
+            if (created && (Date.now() - created) >= SESSION_MAX_MS) {
+                roomCode = '';
+                showJoinStatus('⚠ Esta sessão expirou (limite de 7 horas).', 'err');
+                btn.disabled = false; btn.innerHTML = 'Entrar na sessão →';
+                // Clean up orphan room
+                fbDb.ref(`rooms/${code}`).remove().catch(() => { });
+                return;
+            }
+
             if (data.doc !== undefined) applyRemoteContent(data.doc);
+            hostId = data.hostId || '';
 
             showJoinStatus('✓ Conectado com sucesso!', 'ok');
             joinRoom();
@@ -1352,6 +1197,7 @@ function showJoinStatus(message, type) {
 
 function joinRoom() {
     saveLastSession(roomCode);
+
     const userRef = fbRoom.child(`users/${myId}`);
     userRef.set({
         name: myName,
@@ -1361,7 +1207,33 @@ function joinRoom() {
     });
     userRef.onDisconnect().remove();
 
-    // Sync document
+    // ── Session expiry timer ──────────────────────────
+    fbRoom.child('createdAt').once('value', snap => {
+        const created = snap.val();
+        if (!created) { sessionStartedAt = Date.now(); startSessionTimerDisplay(); return; }
+
+        sessionStartedAt = created;
+        const elapsed = Date.now() - created;
+        const remaining = SESSION_MAX_MS - elapsed;
+
+        if (remaining <= 0) {
+            showToast('⚠ Sessão expirada (limite de 7 horas). Saindo...');
+            setTimeout(() => leaveSession(false), 1200);
+            return;
+        }
+
+        startSessionTimerDisplay();
+        clearTimeout(sessionAutoLeaveTimer);
+        sessionAutoLeaveTimer = setTimeout(() => {
+            showToast('⏰ Sessão encerrada — limite de 7 horas atingido.');
+            leaveSession(false);
+        }, remaining);
+    });
+
+    // ── Sync hostId ──────────────────────────────────
+    fbRoom.child('hostId').once('value', snap => { hostId = snap.val() || ''; });
+
+    // ── Sync document ────────────────────────────────
     const docRef = fbRoom.child('doc');
     const docHandler = docRef.on('value', snap => {
         const val = snap.val();
@@ -1369,27 +1241,35 @@ function joinRoom() {
     });
     sessionListeners.push(() => docRef.off('value', docHandler));
 
-    // Sync users list
+    // ── Sync users list (real-time participant list) ──
     const usersRef = fbRoom.child('users');
     const usersHandler = usersRef.on('value', snap => {
         const users = snap.val() || {};
         const count = Object.keys(users).length;
+
+        // Sound cue when someone new joins (not on initial load)
         if (count > _prevPeerCount && _prevPeerCount > 0) soundUserJoined();
         _prevPeerCount = count;
+
         window._peerUsers = users;
+
         renderPresenceBar();
         renderModalParticipants();
         updateCollabBtnLabel();
 
-        // Room is empty — clean up
+        // Auto-clean room when everyone has left
         if (!snap.exists() && fbRoom) {
-            fbRoom.remove().catch(() => { });
-            fbRoom = null;
+            const ref = fbRoom;
+            setTimeout(() => {
+                ref.child('users').once('value', s => {
+                    if (!s.exists()) ref.remove().catch(() => { });
+                });
+            }, 4000);
         }
     });
     sessionListeners.push(() => usersRef.off('value', usersHandler));
 
-    // Sync session chat (only messages after join)
+    // ── Sync session chat ────────────────────────────
     const chatRef = fbRoom.child('chat');
     const joinedAt = Date.now();
     const chatHandler = chatRef.orderByChild('ts').startAt(joinedAt)
@@ -1402,6 +1282,13 @@ function joinRoom() {
 function leaveSession(silent = false) {
     history.pushState({}, '', location.pathname);
     clearLastSession();
+
+    // Clear session timers
+    clearTimeout(sessionAutoLeaveTimer);
+    sessionAutoLeaveTimer = null;
+    stopSessionTimerDisplay();
+    sessionStartedAt = 0;
+
     if (!roomCode) return;
 
     sessionListeners.forEach(off => { try { off(); } catch { /* noop */ } });
@@ -1424,7 +1311,9 @@ function leaveSession(silent = false) {
     fbRoom = null;
     roomCode = '';
     myId = '';
+    hostId = '';
     window._peerUsers = {};
+    _prevPeerCount = 0;
 
     lastChatSenderId = null;
     clearTimeout(writeDocTimer);
@@ -1443,10 +1332,12 @@ function leaveSession(silent = false) {
     updateCollabBtnLabel();
     closeCollabModal();
 
+    // Reset collab modal back to create-step1
     $('cm-create-step1').style.display = 'block';
     $('cm-create-step2').style.display = 'none';
     $('cm-create-btn').disabled = false;
-    $('cm-create-btn').innerHTML = '<svg viewBox="0 0 14 14" fill="currentColor" width="13" height="13"><path d="M7 1v12M1 7h12"/></svg> Criar sessão';
+    $('cm-create-btn').innerHTML =
+        '<svg viewBox="0 0 14 14" fill="currentColor" width="13" height="13"><path d="M7 1v12M1 7h12"/></svg> Criar sessão';
     $('cm-join-status').className = 'cm-status';
     $('cm-join-code').value = '';
 
@@ -1460,36 +1351,29 @@ function leaveSession(silent = false) {
 function saveLastSession(code) {
     lsSet(STORAGE_KEYS.lastSession, JSON.stringify({ code, ts: Date.now() }));
 }
-
 function clearLastSession() {
     try { localStorage.removeItem(STORAGE_KEYS.lastSession); } catch { /* noop */ }
 }
 
-/** Detecta ?r=CODE na URL e entra automaticamente */
 function checkUrlSession() {
     const code = new URLSearchParams(location.search).get('r');
     if (!code) return;
     const clean = code.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 6);
     if (clean.length !== 6) return;
-
     $('cm-join-code').value = clean;
     $('cm-join-name').value = myName !== 'Anônimo' ? myName : '';
     openCollabModal();
     switchCollabTab('join');
-
-    if (myName && myName !== 'Anônimo') {
-        setTimeout(joinSession, 420);   // nome já conhecido → entra direto
-    } else {
-        setTimeout(() => $('cm-join-name').focus(), 80); // pede nome
-    }
+    if (myName && myName !== 'Anônimo') setTimeout(joinSession, 420);
+    else setTimeout(() => $('cm-join-name').focus(), 80);
 }
 
-/** Verifica se há sessão recente salva e exibe barra de rejoin */
 function checkRejoin() {
-    if (new URLSearchParams(location.search).get('r')) return; // já sendo tratado
+    if (new URLSearchParams(location.search).get('r')) return;
     try {
         const stored = JSON.parse(lsGet(STORAGE_KEYS.lastSession, 'null'));
         if (!stored) return;
+        // Show rejoin bar if within 30 min of last session
         if (Date.now() - stored.ts > 30 * 60 * 1000) { clearLastSession(); return; }
         showRejoinBar(stored.code);
     } catch { clearLastSession(); }
@@ -1501,10 +1385,7 @@ function showRejoinBar(code) {
     $('rejoin-bar').classList.add('active');
 }
 
-function dismissRejoin() {
-    $('rejoin-bar').classList.remove('active');
-    clearLastSession();
-}
+function dismissRejoin() { $('rejoin-bar').classList.remove('active'); clearLastSession(); }
 
 function rejoinSession() {
     const code = $('rejoin-bar').dataset.code;
@@ -1519,51 +1400,54 @@ function rejoinSession() {
 window.dismissRejoin = dismissRejoin;
 window.rejoinSession = rejoinSession;
 
-/* ── Page unload cleanup via fetch keepalive ── */
+/* ── Page unload cleanup ── */
 
 function unloadCleanup() {
     if (!fbDb || !myId || !roomCode) return;
     const base = FIREBASE_CONFIG.databaseURL;
     const key = FIREBASE_CONFIG.apiKey;
-
-    fetch(`${base}/rooms/${roomCode}/users/${myId}.json?auth=${key}`, {
-        method: 'DELETE', keepalive: true,
-    }).then(() => {
-        fetch(`${base}/rooms/${roomCode}/users.json?auth=${key}`)
-            .then(r => r.json())
-            .then(data => {
-                if (!data) {
-                    fetch(`${base}/rooms/${roomCode}.json?auth=${key}`, {
-                        method: 'DELETE', keepalive: true,
-                    });
-                }
-            })
-            .catch(() => { });
-    }).catch(() => { });
+    fetch(`${base}/rooms/${roomCode}/users/${myId}.json?auth=${key}`, { method: 'DELETE', keepalive: true })
+        .then(() => fetch(`${base}/rooms/${roomCode}/users.json?auth=${key}`))
+        .then(r => r.json())
+        .then(data => {
+            if (!data) fetch(`${base}/rooms/${roomCode}.json?auth=${key}`, { method: 'DELETE', keepalive: true });
+        })
+        .catch(() => { });
 }
-
 window.addEventListener('beforeunload', unloadCleanup);
 
 /* ── Presence bar ── */
 
-function getPeerUsers() {
-    return window._peerUsers || {};
-}
+function getPeerUsers() { return window._peerUsers || {}; }
 
 function renderPresenceBar() {
     const list = $('presence-list');
+    const users = getPeerUsers();
     list.innerHTML = '';
 
-    Object.entries(getPeerUsers()).forEach(([id, user]) => {
+    Object.entries(users).forEach(([id, user]) => {
+        const isMe = id === myId;
+        const isHost = id === hostId;
+
         const chip = document.createElement('div');
-        chip.className = `presence-chip${id === myId ? ' presence-me' : ''}`;
+        chip.className = `presence-chip${isMe ? ' presence-me' : ''}`;
+        chip.title = user.name + (isMe ? ' (você)' : '') + (isHost ? ' · host' : '');
 
         const av = document.createElement('div');
         av.className = 'presence-avatar';
         renderAvatar(av, user.name, user.color, user.avatarUrl);
 
+        // Host crown indicator
+        if (isHost) {
+            const crown = document.createElement('span');
+            crown.className = 'presence-crown';
+            crown.textContent = '★';
+            crown.title = 'Host da sessão';
+            chip.appendChild(crown);
+        }
+
         const label = document.createElement('span');
-        label.textContent = user.name + (id === myId ? ' (você)' : '');
+        label.textContent = user.name + (isMe ? ' (você)' : '');
 
         chip.appendChild(av);
         chip.appendChild(label);
@@ -1582,6 +1466,9 @@ function renderModalParticipants() {
     if (!users.length) return;
 
     users.forEach(([id, user]) => {
+        const isMe = id === myId;
+        const isHost = id === hostId;
+
         const row = document.createElement('div');
         row.className = 'cm-peer-row';
 
@@ -1590,23 +1477,43 @@ function renderModalParticipants() {
         renderAvatar(av, user.name, user.color, user.avatarUrl);
         row.appendChild(av);
 
-        row.innerHTML += `<span class="cm-peer-name">${escHtml(user.name)}</span>` +
-            (id === myId ? '<span class="cm-peer-you">você</span>' : '');
+        const namePart = document.createElement('span');
+        namePart.className = 'cm-peer-name';
+        namePart.textContent = user.name;
+        row.appendChild(namePart);
+
+        if (isHost) {
+            const hostTag = document.createElement('span');
+            hostTag.className = 'cm-peer-host';
+            hostTag.textContent = 'host';
+            row.appendChild(hostTag);
+        }
+        if (isMe) {
+            const youTag = document.createElement('span');
+            youTag.className = 'cm-peer-you';
+            youTag.textContent = 'você';
+            row.appendChild(youTag);
+        }
+
         list.appendChild(row);
     });
 
+    // Show waiting message when only 1 participant
     if (users.length === 1) {
         const wait = document.createElement('div');
         wait.className = 'cm-waiting-row';
         wait.innerHTML = '<span class="cm-spinner"></span><span>Aguardando participantes...</span>';
         list.appendChild(wait);
     }
+
+    // Update session info (time remaining)
+    _updateModalSessionInfo();
 }
 
 function updateCollabBtnLabel() {
     const count = Object.keys(getPeerUsers()).length;
-    $('collab-btn').querySelector('.lbl').textContent =
-        count > 0 ? `Colaborar (${count})` : 'Colaborar';
+    const lbl = $('collab-btn').querySelector('.lbl');
+    if (lbl) lbl.textContent = count > 0 ? `Colaborar (${count})` : 'Colaborar';
 }
 
 function activateSessionUI() {
@@ -1631,13 +1538,9 @@ function activateSessionUI() {
 function copyRoomCode() {
     if (!roomCode) return;
     const url = `${location.origin}${location.pathname}?r=${roomCode}`;
-    navigator.clipboard.writeText(url)
-        .then(() => showToast('✓ Link da sessão copiado!'));
+    navigator.clipboard.writeText(url).then(() => showToast('✓ Link da sessão copiado!'));
 }
 
-
-
-// Expose to HTML
 window.openCollabModal = openCollabModal;
 window.closeCollabModal = closeCollabModal;
 window.closeCollabOnBg = closeCollabOnBg;
@@ -1686,15 +1589,13 @@ function switchChannel(channel) {
     } else {
         const peerId = channel.replace('dm:', '');
         const user = getPeerUsers()[peerId] || {};
-
         $('chat-channel-icon').innerHTML = '';
         const miniAvatar = document.createElement('div');
         miniAvatar.style.cssText =
             'width:18px;height:18px;border-radius:50%;overflow:hidden;display:flex;align-items:center;justify-content:center;font-size:7px;font-weight:700;color:#fff;flex-shrink:0;';
         miniAvatar.style.background = user.color || '#888';
         if (user.avatarUrl) {
-            miniAvatar.innerHTML =
-                `<img src="${escHtml(user.avatarUrl)}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`;
+            miniAvatar.innerHTML = `<img src="${escHtml(user.avatarUrl)}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`;
         } else {
             miniAvatar.textContent = getInitials(user.name || '?');
         }
@@ -1711,7 +1612,6 @@ function switchChannel(channel) {
 
 function loadChannelHistory(channel) {
     if (!fbRoom) return;
-
     const ref = channel === 'session'
         ? fbRoom.child('chat')
         : fbRoom.child(`dm/${dmChannelKey(myId, channel.replace('dm:', ''))}`);
@@ -1726,7 +1626,6 @@ function loadChannelHistory(channel) {
 
         const container = $('chat-messages');
         container.scrollTop = container.scrollHeight;
-
         if (!messages.length) renderChatEmptyState(channel);
 
         channelUnread[channel] = 0;
@@ -1744,8 +1643,8 @@ function renderDmList() {
 
     Object.entries(getPeerUsers()).forEach(([id, user]) => {
         if (id === myId) return;
-
         const chKey = `dm:${id}`;
+
         const btn = document.createElement('button');
         btn.className = `dm-btn${activeChannel === chKey ? ' active' : ''}`;
         btn.id = `dm-btn-${id}`;
@@ -1767,10 +1666,7 @@ function renderDmList() {
         badge.className = 'dm-ch-badge';
         badge.id = `dm-badge-${id}`;
         const count = channelUnread[chKey] || 0;
-        if (count > 0) {
-            badge.textContent = count > 9 ? '9+' : count;
-            badge.classList.add('vis');
-        }
+        if (count > 0) { badge.textContent = count > 9 ? '9+' : count; badge.classList.add('vis'); }
 
         btn.append(av, nm, dot, badge);
         list.appendChild(btn);
@@ -1782,7 +1678,6 @@ function renderDmList() {
 
 function subscribeToDm(peerId) {
     if (dmListeners[peerId] || !fbRoom) return;
-
     const key = dmChannelKey(myId, peerId);
     const ref = fbRoom.child(`dm/${key}`);
     const joinedAt = Date.now();
@@ -1791,7 +1686,6 @@ function subscribeToDm(peerId) {
         .on('child_added', snap => {
             const msg = snap.val();
             if (!msg) return;
-
             const chKey = `dm:${peerId}`;
             if (activeChannel === chKey && chatPanelOpen) {
                 appendChatMessage(msg);
@@ -1812,17 +1706,11 @@ function renderChannelBadge(channel) {
     const count = channelUnread[channel] || 0;
     if (channel === 'session') {
         const b = $('ch-badge-session');
-        if (b) {
-            b.textContent = count > 9 ? '9+' : count;
-            b.classList.toggle('vis', count > 0);
-        }
+        if (b) { b.textContent = count > 9 ? '9+' : count; b.classList.toggle('vis', count > 0); }
     } else {
         const peerId = channel.replace('dm:', '');
         const b = $(`dm-badge-${peerId}`);
-        if (b) {
-            b.textContent = count > 9 ? '9+' : count;
-            b.classList.toggle('vis', count > 0);
-        }
+        if (b) { b.textContent = count > 9 ? '9+' : count; b.classList.toggle('vis', count > 0); }
     }
 }
 
@@ -1835,13 +1723,9 @@ function updateUnreadBadges() {
     badge.textContent = total > 9 ? '9+' : total;
     badge.classList.toggle('vis', total > 0);
 
-    if (total === 0) {
-        document.title = 'Markdowner | MD Editor & Viewer';
-    } else if (hasDm && !hasSess) {
-        document.title = `(${total}) 🟢 Markdowner | MD Editor & Viewer`;
-    } else {
-        document.title = `(${total}) 🔴 Markdowner | MD Editor & Viewer`;
-    }
+    if (total === 0) document.title = 'Markdowner | MD Editor & Viewer';
+    else if (hasDm && !hasSess) document.title = `(${total}) 🟢 Markdowner | MD Editor & Viewer`;
+    else document.title = `(${total}) 🔴 Markdowner | MD Editor & Viewer`;
 }
 
 /* ── Chat panel toggle ── */
@@ -1900,7 +1784,6 @@ function sendChatMessage() {
     soundMessageSent();
     targetRef.push({ ...msgBase, text }).catch(() => { });
 }
-
 window.sendChat = sendChatMessage;
 
 /* ── Append message to DOM ── */
@@ -1914,14 +1797,11 @@ function appendChatMessage(msg) {
     const grouped = lastChatSenderId === msg.userId;
     lastChatSenderId = msg.userId;
 
-    const time = new Date(msg.ts).toLocaleTimeString('pt-BR', {
-        hour: '2-digit', minute: '2-digit',
-    });
+    const time = new Date(msg.ts).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
 
     const div = document.createElement('div');
     div.className = `chat-msg${grouped ? ' grouped' : ''}`;
 
-    // Side column (avatar or hover-time)
     const side = document.createElement('div');
     side.className = 'chat-msg-side';
 
@@ -1930,7 +1810,6 @@ function appendChatMessage(msg) {
         av.className = 'chat-msg-avatar';
         av.style.background = msg.userColor || '#888';
         av.title = msg.userName;
-
         if (msg.avatarUrl) {
             const img = document.createElement('img');
             img.src = msg.avatarUrl;
@@ -1947,7 +1826,6 @@ function appendChatMessage(msg) {
         side.appendChild(hoverTime);
     }
 
-    // Body column
     const body = document.createElement('div');
     body.className = 'chat-msg-body';
 
@@ -1964,7 +1842,6 @@ function appendChatMessage(msg) {
     if (msg.type === 'image' && msg.imageData) {
         const wrap = document.createElement('div');
         wrap.className = 'chat-msg-img-wrap';
-
         const imgEl = document.createElement('img');
         imgEl.className = 'chat-msg-img';
         imgEl.loading = 'lazy';
@@ -1972,14 +1849,12 @@ function appendChatMessage(msg) {
         imgEl.alt = 'imagem';
         imgEl.addEventListener('click', () => openLightbox(msg.imageData));
         wrap.appendChild(imgEl);
-
         if (msg.caption) {
             const cap = document.createElement('div');
             cap.className = 'chat-msg-img-caption';
             cap.textContent = msg.caption;
             wrap.appendChild(cap);
         }
-
         body.appendChild(wrap);
     } else {
         const textEl = document.createElement('div');
@@ -1993,7 +1868,7 @@ function appendChatMessage(msg) {
     container.appendChild(div);
     container.scrollTop = container.scrollHeight;
 
-    // Unread tracking (session channel only here; DMs are tracked in subscribeToDm)
+    // Unread tracking — session channel
     if (!isMine && !isLoadingHistory) {
         const isVisible = chatPanelOpen && activeChannel === 'session';
         if (!isVisible) {
@@ -2008,7 +1883,6 @@ function appendChatMessage(msg) {
 function renderChatEmptyState(channel) {
     const container = $('chat-messages');
     if (container.children.length) return;
-
     const isDm = channel?.startsWith('dm:');
     const div = document.createElement('div');
     div.className = 'chat-empty';
@@ -2023,7 +1897,6 @@ function addSystemMessage(text) {
     const container = $('chat-messages');
     const empty = container.querySelector('.chat-empty');
     if (empty) empty.remove();
-
     const div = document.createElement('div');
     div.className = 'chat-sys-msg';
     div.textContent = text;
@@ -2035,12 +1908,8 @@ function addSystemMessage(text) {
 /* ── Chat input ── */
 
 $('chat-input').addEventListener('keydown', e => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-        e.preventDefault();
-        sendChatMessage();
-    }
+    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendChatMessage(); }
 });
-
 $('chat-input').addEventListener('input', autoResizeChatInput);
 
 function autoResizeChatInput() {
@@ -2048,16 +1917,15 @@ function autoResizeChatInput() {
     el.style.height = 'auto';
     el.style.height = Math.min(el.scrollHeight, 88) + 'px';
 }
+
 /* ── Emoji picker ── */
 
 let emojiPickerOpen = false;
 
-// PT-BR: seta locale antes do primeiro uso
 const _picker = $('emoji-picker');
 if (_picker) {
     _picker.setAttribute('locale', 'pt');
-    _picker.setAttribute('data-source',
-        'https://cdn.jsdelivr.net/npm/emoji-picker-element-data@1/pt/cldr/data.json');
+    _picker.setAttribute('data-source', 'https://cdn.jsdelivr.net/npm/emoji-picker-element-data@1/pt/cldr/data.json');
 }
 
 function toggleEmojiPicker() {
@@ -2069,14 +1937,12 @@ function toggleEmojiPicker() {
 document.addEventListener('emoji-click', e => {
     const emoji = e.detail?.unicode;
     if (!emoji) return;
-
     const ta = $('chat-input');
     const pos = ta.selectionStart ?? ta.value.length;
     ta.value = ta.value.slice(0, pos) + emoji + ta.value.slice(pos);
     ta.selectionStart = ta.selectionEnd = pos + emoji.length;
     ta.focus();
     autoResizeChatInput();
-
     emojiPickerOpen = false;
     $('emoji-picker-wrap').classList.remove('open');
     $('emoji-btn').setAttribute('aria-expanded', 'false');
@@ -2084,18 +1950,12 @@ document.addEventListener('emoji-click', e => {
 
 document.addEventListener('click', e => {
     if (!emojiPickerOpen) return;
-
-    // FIX: usa .contains() no wrap E no btn — cobre SVG e qualquer filho
-    const insidePicker = $('emoji-picker-wrap').contains(e.target);
-    const insideBtn = $('emoji-btn').contains(e.target);
-
-    if (!insidePicker && !insideBtn) {
+    if (!$('emoji-picker-wrap').contains(e.target) && !$('emoji-btn').contains(e.target)) {
         emojiPickerOpen = false;
         $('emoji-picker-wrap').classList.remove('open');
         $('emoji-btn').setAttribute('aria-expanded', 'false');
     }
 });
-
 window.toggleEmojiPicker = toggleEmojiPicker;
 
 /* ── Image upload / paste ── */
@@ -2138,7 +1998,6 @@ function clearImagePreview() {
     $('chat-img-preview').classList.remove('vis');
     $('chat-img-preview-img').src = '';
 }
-
 window.clearImgPreview = clearImagePreview;
 
 /* ── Image compression ── */
@@ -2148,35 +2007,28 @@ function compressImage(file) {
         const isScreenshot = file.type === 'image/png';
         const maxPx = isScreenshot ? IMG.maxPxScreen : IMG.maxPxPhoto;
         const quality = isScreenshot ? IMG.qualityScreen : IMG.qualityPhoto;
-
         const img = new Image();
         const url = URL.createObjectURL(file);
 
         img.onload = () => {
             URL.revokeObjectURL(url);
-
             let { width: w, height: h } = img;
             if (w > maxPx || h > maxPx) {
                 if (w >= h) { h = Math.round(h * maxPx / w); w = maxPx; }
                 else { w = Math.round(w * maxPx / h); h = maxPx; }
             }
-
             const canvas = document.createElement('canvas');
-            canvas.width = w;
-            canvas.height = h;
+            canvas.width = w; canvas.height = h;
             const ctx = canvas.getContext('2d');
-
             if (isScreenshot) { ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, w, h); }
             ctx.drawImage(img, 0, 0, w, h);
 
             const b64 = canvas.toDataURL('image/jpeg', quality);
             if (b64.length <= IMG.maxB64) { resolve(b64); return; }
 
-            // Second pass — lower quality
             const b64b = canvas.toDataURL('image/jpeg', isScreenshot ? 0.70 : 0.45);
             if (b64b.length <= IMG.maxB64) { resolve(b64b); return; }
 
-            // Third pass — scale down + lower quality
             const c2 = document.createElement('canvas');
             c2.width = Math.round(w * 0.6);
             c2.height = Math.round(h * 0.6);
@@ -2186,12 +2038,7 @@ function compressImage(file) {
 
             reject(new Error('Imagem muito grande mesmo após compressão. Tente recortar antes de enviar.'));
         };
-
-        img.onerror = () => {
-            URL.revokeObjectURL(url);
-            reject(new Error('Não foi possível ler a imagem.'));
-        };
-
+        img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('Não foi possível ler a imagem.')); };
         img.src = url;
     });
 }
@@ -2204,91 +2051,57 @@ function sendImageMessage(targetRef, file, caption, msgBase) {
 }
 
 
-
-
-
 /* ═══════════════════════════════════════════════════════
    17. IMAGE LIGHTBOX
 ═══════════════════════════════════════════════════════ */
 
 let lbScale = 1;
-const LB_MIN = 0.2;
-const LB_MAX = 5;
+const LB_MIN = 0.2, LB_MAX = 5;
 let lbPan = { x: 0, y: 0 };
 let lbDrag = { active: false, moved: false, sx: 0, sy: 0, ox: 0, oy: 0 };
 
 function openLightbox(url) {
     $('img-lightbox-img').src = url;
-    lbScale = 1;
-    lbPan = { x: 0, y: 0 };
+    lbScale = 1; lbPan = { x: 0, y: 0 };
     applyLightboxTransform();
     $('img-lightbox').classList.add('vis');
 }
-
 function closeLightbox() {
     $('img-lightbox').classList.remove('vis');
     $('img-lightbox-img').src = '';
 }
-
 function applyLightboxTransform() {
-    $('img-lightbox-img').style.transform =
-        `translate(${lbPan.x}px, ${lbPan.y}px) scale(${lbScale})`;
+    $('img-lightbox-img').style.transform = `translate(${lbPan.x}px, ${lbPan.y}px) scale(${lbScale})`;
     $('lb-zoom-level').textContent = `${Math.round(lbScale * 100)}%`;
 }
-
 function lbZoom(delta) {
     lbScale = Math.min(LB_MAX, Math.max(LB_MIN, lbScale + delta));
     applyLightboxTransform();
 }
-
-function lbResetZoom() {
-    lbScale = 1;
-    lbPan = { x: 0, y: 0 };
-    applyLightboxTransform();
-}
-
+function lbResetZoom() { lbScale = 1; lbPan = { x: 0, y: 0 }; applyLightboxTransform(); }
 function lbDownload() {
     const src = $('img-lightbox-img').src;
     if (!src) return;
     const a = document.createElement('a');
-    a.href = src;
-    a.download = `markdowner-chat-${Date.now()}.jpg`;
+    a.href = src; a.download = `markdowner-chat-${Date.now()}.jpg`;
     a.click();
 }
 
-// Scroll to zoom
-$('img-lightbox').addEventListener('wheel', e => {
-    e.preventDefault();
-    lbZoom(e.deltaY < 0 ? 0.15 : -0.15);
-}, { passive: false });
-
-// Click backdrop to close (only if not a drag)
-$('lb-img-wrap').addEventListener('click', e => {
-    if (lbDrag.moved) return;
-    if (e.target === $('lb-img-wrap')) closeLightbox();
-});
-
-// Drag to pan
+$('img-lightbox').addEventListener('wheel', e => { e.preventDefault(); lbZoom(e.deltaY < 0 ? 0.15 : -0.15); }, { passive: false });
+$('lb-img-wrap').addEventListener('click', e => { if (lbDrag.moved) return; if (e.target === $('lb-img-wrap')) closeLightbox(); });
 $('lb-img-wrap').addEventListener('mousedown', e => {
     if (e.target !== $('lb-img-wrap') && e.target !== $('img-lightbox-img')) return;
     lbDrag = { active: true, moved: false, sx: e.clientX, sy: e.clientY, ox: lbPan.x, oy: lbPan.y };
     $('lb-img-wrap').classList.add('grabbing');
 });
-
 window.addEventListener('mousemove', e => {
     if (!lbDrag.active) return;
-    const dx = e.clientX - lbDrag.sx;
-    const dy = e.clientY - lbDrag.sy;
+    const dx = e.clientX - lbDrag.sx, dy = e.clientY - lbDrag.sy;
     if (Math.abs(dx) > 4 || Math.abs(dy) > 4) lbDrag.moved = true;
-    lbPan.x = lbDrag.ox + dx;
-    lbPan.y = lbDrag.oy + dy;
+    lbPan.x = lbDrag.ox + dx; lbPan.y = lbDrag.oy + dy;
     applyLightboxTransform();
 });
-
-window.addEventListener('mouseup', () => {
-    lbDrag.active = false;
-    $('lb-img-wrap').classList.remove('grabbing');
-});
+window.addEventListener('mouseup', () => { lbDrag.active = false; $('lb-img-wrap').classList.remove('grabbing'); });
 
 window.lbZoom = lbZoom;
 window.lbResetZoom = lbResetZoom;
@@ -2301,17 +2114,13 @@ window.closeLightbox = closeLightbox;
 ═══════════════════════════════════════════════════════ */
 
 document.addEventListener('keydown', e => {
-    // Lightbox shortcuts
     if ($('img-lightbox').classList.contains('vis')) {
         if (e.key === 'Escape') { closeLightbox(); return; }
         if (e.key === '+' || e.key === '=') { lbZoom(0.25); return; }
         if (e.key === '-') { lbZoom(-0.25); return; }
         if (e.key === '0') { lbResetZoom(); return; }
     }
-
     if (e.key !== 'Escape') return;
-
-    // Dismiss modals in priority order
     if ($('profile-backdrop').classList.contains('vis')) { closeProfileModal(); return; }
     if ($('collab-backdrop').classList.contains('vis')) { closeCollabModal(); return; }
     if (chatPanelOpen) { toggleChat(); return; }
@@ -2325,9 +2134,7 @@ document.addEventListener('keydown', e => {
 $('cm-join-code').addEventListener('input', function () {
     const val = this.value.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 6);
     this.value = val;
-    if (val.length === 6 && $('cm-join-name').value.trim()) {
-        setTimeout(joinSession, 280);
-    }
+    if (val.length === 6 && $('cm-join-name').value.trim()) setTimeout(joinSession, 280);
 });
 
 $('cm-host-name').addEventListener('keydown', e => { if (e.key === 'Enter') hostSession(); });
@@ -2352,12 +2159,9 @@ $('cm-join-code').addEventListener('keydown', e => { if (e.key === 'Enter') join
     updateCharCount();
     saveStatusEl.textContent = 'Salvo';
 
-    // Default to editor-only on small screens
     if (window.innerWidth <= 700) setView('edit');
-
-    // Show welcome modal on first visit
     if (!lsGet(STORAGE_KEYS.toured)) setTimeout(showWelcomeModal, 600);
-    checkUrlSession(); // ← novo
-    checkRejoin();     // ← novo
-})();
 
+    checkUrlSession();
+    checkRejoin();
+})();

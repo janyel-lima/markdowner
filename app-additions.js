@@ -1,3 +1,11 @@
+/**
+ * Markdowner — app-additions.js
+ * Feature additions: Find & Replace, Preview Search, Export HTML, Stats Panel
+ * Loads AFTER app.js — relies on globals: $, editorEl, previewEl, escHtml,
+ * hexToRgbString, renderPreview, updateCharCount, scheduleSave,
+ * scheduleRemoteDocWrite, isDark, currentAcc1, currentAcc2, showToast
+ */
+
 /* ═══════════════════════════════════════════════════════
    ★ FEATURE 1 — FIND & REPLACE  (Editor)
    ─────────────────────────────────────────────────────
@@ -25,21 +33,21 @@ function escapeRegex(str) {
 
 /* ── Backdrop setup (run once) ── */
 (function setupBackdropSync() {
-    // Sync backdrop scroll whenever the editor scrolls
     editorEl.addEventListener('scroll', () => {
         const bd = $('find-hl-backdrop');
         if (bd) { bd.scrollTop = editorEl.scrollTop; bd.scrollLeft = editorEl.scrollLeft; }
     });
-    // Keep backdrop in sync when user keeps typing while find is open
+
     editorEl.addEventListener('input', () => {
         if (!findPanelOpen) return;
         recomputeMatches();
-        // Update current-index heuristic from scroll position (no cursor move)
         if (findMatches.length) {
             const c = getApproxCaretFromScroll();
             const i = findMatches.findIndex(m => m.start >= c);
             findCurrentIdx = i >= 0 ? i : 0;
-        } else { findCurrentIdx = 0; }
+        } else {
+            findCurrentIdx = 0;
+        }
         updateEditorBackdrop();
         updateFindStatus();
     });
@@ -81,7 +89,7 @@ function closeFind() {
     $('find-panel').classList.remove('open');
     $('find-replace-row').style.display = 'none';
     $('find-toggle-replace').classList.remove('on');
-    updateEditorBackdrop(); // clears backdrop + removes find-active class
+    updateEditorBackdrop();
     updateFindStatus();
     editorEl.focus();
 }
@@ -108,19 +116,19 @@ function recomputeMatches() {
     }
 }
 
-/** Called by oninput on the find field — never touches editor selection */
 function updateFindMatches() {
     recomputeMatches();
     if (findMatches.length) {
         const c = getApproxCaretFromScroll();
         const i = findMatches.findIndex(mt => mt.start >= c);
         findCurrentIdx = i >= 0 ? i : 0;
-    } else { findCurrentIdx = 0; }
+    } else {
+        findCurrentIdx = 0;
+    }
     updateEditorBackdrop();
     updateFindStatus();
 }
 
-/** Visible line top ≈ character offset, used to pick starting index */
 function getApproxCaretFromScroll() {
     const lineH = parseFloat(getComputedStyle(editorEl).lineHeight) || 20;
     const padTop = parseFloat(getComputedStyle(editorEl).paddingTop) || 0;
@@ -131,23 +139,22 @@ function getApproxCaretFromScroll() {
     return offset;
 }
 
-/* ── Navigate (DOES touch editor, then returns focus) ── */
+/* ── Navigate (DOES touch editor selection, then returns focus) ── */
 
 function navigateFind(idx) {
     if (!findMatches.length) return;
     findCurrentIdx = ((idx % findMatches.length) + findMatches.length) % findMatches.length;
     const match = findMatches[findCurrentIdx];
 
-    // Select in editor so the OS shows it, scroll to center
     editorEl.focus();
     editorEl.setSelectionRange(match.start, match.end);
+
     const lines = editorEl.value.substr(0, match.start).split('\n');
     const lineH = parseFloat(getComputedStyle(editorEl).lineHeight) || 20;
     const padTop = parseFloat(getComputedStyle(editorEl).paddingTop) || 0;
     editorEl.scrollTop = Math.max(0,
         (lines.length - 1) * lineH + padTop - editorEl.clientHeight / 2 + lineH / 2);
 
-    // Update active highlight in backdrop, then return focus
     updateEditorBackdrop();
     updateFindStatus();
     $('find-input').focus();
@@ -164,7 +171,6 @@ function updateEditorBackdrop() {
     if (!bd) return;
 
     if (!findPanelOpen || !findMatches.length) {
-        // Clear backdrop, restore editor opaque background
         bd.innerHTML = '';
         editorEl.classList.remove('find-active');
         return;
@@ -173,11 +179,9 @@ function updateEditorBackdrop() {
     editorEl.classList.add('find-active');
 
     const text = editorEl.value;
-    let html = '';
-    let last = 0;
+    let html = '', last = 0;
 
     findMatches.forEach((match, i) => {
-        // Plain text segment before this match
         html += escHtml(text.slice(last, match.start));
         const cls = i === findCurrentIdx ? 'find-hl find-hl-active' : 'find-hl';
         html += `<mark class="${cls}">${escHtml(text.slice(match.start, match.end))}</mark>`;
@@ -185,11 +189,9 @@ function updateEditorBackdrop() {
     });
 
     html += escHtml(text.slice(last));
-    // Zero-width space at end forces correct height for the last line
-    html += '\u200b';
+    html += '\u200b'; // force correct height on last line
 
     bd.innerHTML = html;
-    // Keep scroll in sync
     bd.scrollTop = editorEl.scrollTop;
     bd.scrollLeft = editorEl.scrollLeft;
 }
@@ -200,7 +202,8 @@ function doReplace() {
     if (!findMatches.length) return;
     const match = findMatches[findCurrentIdx];
     const rep = $('replace-input').value;
-    editorEl.value = editorEl.value.slice(0, match.start) + rep + editorEl.value.slice(match.end);
+    editorEl.value =
+        editorEl.value.slice(0, match.start) + rep + editorEl.value.slice(match.end);
     editorEl.focus();
     editorEl.setSelectionRange(match.start, match.start + rep.length);
     renderPreview(); updateCharCount(); scheduleSave(); scheduleRemoteDocWrite();
@@ -216,8 +219,10 @@ function doReplaceAll() {
     const cnt = (editorEl.value.match(rx) || []).length;
     editorEl.value = editorEl.value.replace(rx, $('replace-input').value);
     renderPreview(); updateCharCount(); scheduleSave(); scheduleRemoteDocWrite();
-    recomputeMatches(); findCurrentIdx = 0;
-    updateEditorBackdrop(); updateFindStatus();
+    recomputeMatches();
+    findCurrentIdx = 0;
+    updateEditorBackdrop();
+    updateFindStatus();
     showToast(`✓ ${cnt} substituição${cnt !== 1 ? 'ões' : ''} feita${cnt !== 1 ? 's' : ''}`);
     $('find-input').focus();
 }
@@ -246,25 +251,26 @@ function handleReplaceKey(e) {
     if (e.key === 'Tab' && e.shiftKey) { e.preventDefault(); $('find-input').focus(); }
 }
 
-window.openFind = openFind; window.closeFind = closeFind;
-window.toggleFindReplace = toggleFindReplace; window.updateFindMatches = updateFindMatches;
-window.findNext = findNext; window.findPrev = findPrev; window.toggleFindCase = toggleFindCase;
-window.doReplace = doReplace; window.doReplaceAll = doReplaceAll;
-window.handleFindKey = handleFindKey; window.handleReplaceKey = handleReplaceKey;
+window.openFind = openFind;
+window.closeFind = closeFind;
+window.toggleFindReplace = toggleFindReplace;
+window.updateFindMatches = updateFindMatches;
+window.findNext = findNext;
+window.findPrev = findPrev;
+window.toggleFindCase = toggleFindCase;
+window.doReplace = doReplace;
+window.doReplaceAll = doReplaceAll;
+window.handleFindKey = handleFindKey;
+window.handleReplaceKey = handleReplaceKey;
 
 
 /* ═══════════════════════════════════════════════════════
    ★ FEATURE 2 — PREVIEW SEARCH
    ─────────────────────────────────────────────────────
-   THE BUG that caused "only first letter works":
-     clearPreviewMarks called mark.replaceWith(newNode),
-     then immediately checked mark.parentNode — which is
-     already null after replaceWith removes the mark.
-     normalize() never ran → adjacent text nodes stayed
-     fragmented → regex couldn't find multi-char strings.
-
-   FIX: save parent BEFORE replacing, normalize parents
-   AFTER all marks in the document have been removed.
+   FIX: clearPreviewMarks saves parent BEFORE replacing,
+   then normalizes AFTER all marks are removed.
+   This prevents fragmented text nodes that break
+   multi-character searches.
 ═══════════════════════════════════════════════════════ */
 
 let pvMarks = [];
@@ -288,33 +294,29 @@ function closePreviewFind() {
 }
 
 /**
- * ★ THE FIX: collect parents BEFORE any DOM change,
- *   normalize ALL of them AFTER all marks are removed.
- *   This merges fragmented text nodes so the next search
- *   sees whole words in single text nodes.
+ * Collect parents BEFORE any DOM change, normalize AFTER all marks removed.
+ * This merges fragmented text nodes so subsequent searches work on whole words.
  */
 function clearPreviewMarks() {
     const parents = new Set();
 
     previewEl.querySelectorAll('mark.pv-mark').forEach(mark => {
-        const parent = mark.parentNode; // grab BEFORE removal
+        const parent = mark.parentNode;
         if (parent) {
-            // replaceChild is safer/faster than replaceWith for older browsers too
             parent.replaceChild(document.createTextNode(mark.textContent), mark);
             parents.add(parent);
         }
     });
 
-    // Normalize every affected parent AFTER the full querySelectorAll loop,
-    // so no parent is normalized while siblings are still being processed.
+    // Normalize AFTER all marks removed — not mid-loop
     parents.forEach(p => p.normalize());
 
     pvMarks = [];
 }
 
 /**
- * Walk text nodes under root and wrap every occurrence of
- * query in <mark class="pv-mark">.  Returns array of marks.
+ * Walk text nodes under root and wrap every match in <mark class="pv-mark">.
+ * Returns array of created mark elements.
  */
 function markTextInPreview(root, query, caseSen) {
     const marks = [];
@@ -323,7 +325,6 @@ function markTextInPreview(root, query, caseSen) {
     const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, {
         acceptNode(node) {
             const tag = node.parentElement?.tagName?.toLowerCase();
-            // Skip scripts, styles, and marks we already created (prevent double-wrap)
             if (tag === 'script' || tag === 'style' || tag === 'mark') {
                 return NodeFilter.FILTER_SKIP;
             }
@@ -331,7 +332,7 @@ function markTextInPreview(root, query, caseSen) {
         }
     });
 
-    // Collect first — mutating DOM while walking invalidates the walker
+    // Collect all text nodes first — mutating DOM while walking invalidates walker
     const textNodes = [];
     let n;
     while ((n = walker.nextNode())) textNodes.push(n);
@@ -340,15 +341,13 @@ function markTextInPreview(root, query, caseSen) {
         const text = node.nodeValue;
         if (!text) return;
 
-        rx.lastIndex = 0; // reset for every new text node
+        rx.lastIndex = 0;
         const parts = [];
         let lastEnd = 0;
         let m;
 
         while ((m = rx.exec(text)) !== null) {
-            if (m.index > lastEnd) {
-                parts.push(document.createTextNode(text.slice(lastEnd, m.index)));
-            }
+            if (m.index > lastEnd) parts.push(document.createTextNode(text.slice(lastEnd, m.index)));
             const mark = document.createElement('mark');
             mark.className = 'pv-mark';
             mark.textContent = m[0];
@@ -357,7 +356,7 @@ function markTextInPreview(root, query, caseSen) {
             lastEnd = m.index + m[0].length;
         }
 
-        if (!parts.length) return; // no match in this node
+        if (!parts.length) return;
         if (lastEnd < text.length) parts.push(document.createTextNode(text.slice(lastEnd)));
 
         const frag = document.createDocumentFragment();
@@ -411,7 +410,7 @@ function handlePvFindKey(e) {
     if (e.key === 'Escape') { e.preventDefault(); closePreviewFind(); }
 }
 
-// Re-run preview search after re-render (marks are wiped by innerHTML replace)
+// Re-run preview search after re-render (innerHTML replace wipes marks)
 (function patchRenderPreview() {
     const _orig = renderPreview;
     renderPreview = function () {
@@ -426,8 +425,10 @@ function handlePvFindKey(e) {
 window.openPreviewFind = openPreviewFind;
 window.closePreviewFind = closePreviewFind;
 window.updatePreviewFind = updatePreviewFind;
-window.pvFindNext = pvFindNext; window.pvFindPrev = pvFindPrev;
-window.togglePvFindCase = togglePvFindCase; window.handlePvFindKey = handlePvFindKey;
+window.pvFindNext = pvFindNext;
+window.pvFindPrev = pvFindPrev;
+window.togglePvFindCase = togglePvFindCase;
+window.handlePvFindKey = handlePvFindKey;
 
 
 /* ═══════════════════════════════════════════════════════
@@ -450,7 +451,7 @@ function exportHtml() {
 
     const title = (editorEl.value.match(/^#\s+(.+)/m) || [])[1] || 'Markdowner Export';
 
-    // Clone preview without any search marks leaking in
+    // Clone preview without search marks
     const clone = previewEl.cloneNode(true);
     clone.querySelectorAll('mark.pv-mark').forEach(m => {
         m.parentNode.replaceChild(document.createTextNode(m.textContent), m);
@@ -552,8 +553,8 @@ window.closeStats = closeStats;
 document.addEventListener('keydown', e => {
     const mod = e.ctrlKey || e.metaKey;
 
+    // Ctrl+F — open editor find (if editor visible) or preview find
     if (mod && e.key === 'f' && !e.shiftKey) {
-        // Ctrl+F: open editor find if editor is visible, else preview find
         if (!$('ep').classList.contains('gone')) {
             e.preventDefault(); openFind(false);
         } else if (!$('pp').classList.contains('gone')) {
@@ -562,11 +563,13 @@ document.addEventListener('keydown', e => {
         return;
     }
 
+    // Ctrl+H — open find & replace (editor only)
     if (mod && e.key === 'h') {
         if (!$('ep').classList.contains('gone')) { e.preventDefault(); openFind(true); }
         return;
     }
 
+    // Escape — close panels in priority order
     if (e.key === 'Escape') {
         if (findPanelOpen) { closeFind(); return; }
         if (pvPanelOpen) { closePreviewFind(); return; }

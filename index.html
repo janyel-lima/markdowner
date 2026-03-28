@@ -233,9 +233,9 @@
     <!-- ═══════════════ PRESENCE BAR ═════════════════════ -->
     <div id="presence-bar" role="status" aria-label="Sessão ativa">
         <div class="pb-dot" aria-hidden="true"></div>
-        <span class="pb-label">Sessão ativa</span>
+        <span class="pb-label" id="pb-label">Sessão ativa</span>
         <div id="presence-list" aria-label="Participantes"></div>
-        <span class="pb-room-code" id="pb-room-code" onclick="copyRoomCode()" title="Clique para copiar o código"
+        <span class="pb-room-code" id="pb-room-code" onclick="copyRoomCode()" title="Clique para copiar o link"
             role="button" tabindex="0">···</span>
         <button class="pb-profile-btn" onclick="openProfileModal()" title="Editar perfil">
             <svg width="12" height="12" viewBox="0 0 14 14" fill="currentColor" aria-hidden="true">
@@ -257,7 +257,6 @@
                 <div class="pbar-dot pbar-dot-a1" aria-hidden="true"></div>
                 <span class="pbar-tag">Markdown</span>
 
-                <!-- Stats counter (clickable) + stats popover -->
                 <div class="pbar-meta-wrap">
                     <span class="pbar-meta" id="cc" role="button" tabindex="0" aria-haspopup="true"
                         title="Ver estatísticas detalhadas" onclick="toggleStats()" aria-live="polite">— chars</span>
@@ -304,7 +303,6 @@
                     </div>
                 </div>
 
-                <!-- Find trigger button -->
                 <button class="pbar-find-btn" id="find-trigger-btn" onclick="openFind(false)"
                     title="Buscar no editor (Ctrl+F)" aria-label="Abrir busca no editor">
                     <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"
@@ -371,19 +369,8 @@
                 </div>
             </div>
 
-            <!--
-              ★ EDITOR WRAP: positions the highlight backdrop
-                 behind the textarea. Both must be children of this div.
-            -->
             <div class="editor-wrap">
-                <!--
-                  ★ BACKDROP: invisible text + colored <mark> spans.
-                     Synced in position, font, padding and scroll to #editor.
-                     When #editor has .find-active, its bg = transparent
-                     so these marks show through.
-                -->
                 <div id="find-hl-backdrop" aria-hidden="true"></div>
-
                 <textarea id="editor" spellcheck="false" autocorrect="off" autocapitalize="off"
                     aria-label="Editor de Markdown" aria-multiline="true"></textarea>
             </div>
@@ -405,7 +392,6 @@
                 <div class="pbar-dot pbar-dot-a2" aria-hidden="true"></div>
                 <span class="pbar-tag">Preview</span>
 
-                <!-- Preview find trigger -->
                 <button class="pbar-find-btn pbar-find-btn-preview" id="pv-find-trigger-btn" onclick="openPreviewFind()"
                     title="Buscar no preview (Ctrl+F)" aria-label="Buscar no preview">
                     <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"
@@ -583,12 +569,16 @@
                                 class="cm-copy-code" onclick="copyRoomCode()">Copiar</button></div>
                         <div class="cm-code-hint">Código: <span class="cm-code-val" id="cm-code-val">···</span></div>
                     </div>
+                    <!-- ★ Session timer info — updated dynamically by JS -->
+                    <div id="cm-session-info"
+                        style="font-size:11px;color:var(--tx3);font-family:var(--fm);padding:2px 0;"></div>
                     <div id="cm-participants-area">
                         <div class="cm-label">Participantes</div>
                         <div id="cm-participants-list" aria-live="polite"></div>
                     </div>
                     <p class="cm-note">Qualquer pessoa com o código pode <strong>ver e editar o documento em tempo
-                            real</strong> e participar do chat da sessão.</p>
+                            real</strong> e participar do chat da sessão. Sessões duram no máximo <strong>7
+                            horas</strong>.</p>
                     <button class="cm-btn" style="background:var(--s3);color:var(--tx2);border:1px solid var(--bd);"
                         onclick="closeCollabModal()">Fechar e continuar</button>
                 </div>
@@ -774,7 +764,7 @@
         window._FB_PROJECT_ID = '__FIREBASE_PROJECT_ID__';
     </script>
     <script src="app.js" defer></script>
-    <!-- app_additions.js must load AFTER app.js (defer preserves order) -->
+    <!-- app-additions.js must load AFTER app.js (defer preserves order) -->
     <script src="app-additions.js" defer></script>
 
 </body>
