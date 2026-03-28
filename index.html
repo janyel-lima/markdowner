@@ -6,32 +6,26 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>Markdowner | MD Editor &amp; Viewer</title>
 
-    <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link
         href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500&family=IBM+Plex+Sans:wght@300;400;500;600;700&display=swap"
         rel="stylesheet">
 
-    <!-- Highlight.js themes (toggled via JS) -->
     <link id="hl-dark" rel="stylesheet"
         href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark-dimmed.min.css">
     <link id="hl-light" rel="stylesheet"
         href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.min.css" disabled>
 
-    <!-- App styles -->
     <link rel="stylesheet" href="styles.css">
 </head>
 
 <body>
 
-    <!-- ═══════════════════════════════════════════ HEADER -->
-
+    <!-- ═══════════════ HEADER ═══════════════════════════ -->
     <header id="header">
 
-        <!-- ── Left zone: brand + view switcher ── -->
         <div class="h-left">
-
             <div class="brand" id="t-brand">
                 <div class="brand-mark">
                     <svg viewBox="0 0 16 16" aria-hidden="true">
@@ -67,18 +61,14 @@
                     <span class="lbl">Preview</span>
                 </button>
             </div>
-
         </div>
 
-        <!-- ── Center zone: save status ── -->
         <div class="h-center">
             <span id="save-status" aria-live="polite" aria-atomic="true">Salvo</span>
         </div>
 
-        <!-- ── Right zone: actions ── -->
         <div class="h-right" role="toolbar" aria-label="Ações">
 
-            <!-- File actions -->
             <div class="h-group">
                 <button class="hbtn" id="t-copy" onclick="copyMd()" title="Copiar Markdown">
                     <svg viewBox="0 0 14 14" fill="currentColor" aria-hidden="true">
@@ -134,7 +124,6 @@
 
             <div class="h-div" aria-hidden="true"></div>
 
-            <!-- Customization -->
             <div class="h-group">
                 <div class="color-wrap hbtn-wrap" id="colorWrap">
                     <button class="hbtn color-trigger" id="t-colors" onclick="toggleColor()" aria-haspopup="true"
@@ -149,9 +138,7 @@
                         </svg>
                     </button>
                     <div class="cpanel" id="cpanel" role="dialog" aria-label="Personalizar cores">
-                        <div class="cpanel-header">
-                            <span class="cpanel-title">Personalizar cores</span>
-                        </div>
+                        <div class="cpanel-header"><span class="cpanel-title">Personalizar cores</span></div>
                         <div class="cpanel-body">
                             <div class="color-row">
                                 <div class="color-row-label" id="lbl-c1">Cor principal</div>
@@ -193,7 +180,6 @@
 
             <div class="h-div" aria-hidden="true"></div>
 
-            <!-- Utilities -->
             <div class="h-group">
                 <button class="hbtn" id="sound-btn" onclick="toggleSound()" title="Silenciar sons">
                     <svg viewBox="0 0 14 14" fill="currentColor" aria-hidden="true">
@@ -222,7 +208,6 @@
 
             <div class="h-div" aria-hidden="true"></div>
 
-            <!-- Primary CTA: Collaborate -->
             <button id="collab-btn" onclick="openCollabModal()" title="Colaborar em tempo real">
                 <svg viewBox="0 0 14 14" fill="currentColor" aria-hidden="true">
                     <circle cx="4.5" cy="4" r="2" />
@@ -234,23 +219,18 @@
                 <span class="lbl">Colaborar</span>
                 <span id="collab-pulse" aria-hidden="true"></span>
             </button>
-
-        </div><!-- /.h-right -->
-
+        </div>
     </header>
 
-
-    <!-- ═══════════════════════════════════════════ REJOIN BAR -->
+    <!-- ═══════════════ REJOIN BAR ════════════════════════ -->
     <div id="rejoin-bar" role="alert">
         <div class="rejoin-dot" aria-hidden="true"></div>
-        <span class="rejoin-label">
-            Você estava na sessão <strong id="rejoin-code-lbl">···</strong>
-        </span>
+        <span class="rejoin-label">Você estava na sessão <strong id="rejoin-code-lbl">···</strong></span>
         <button class="rejoin-btn-primary" onclick="rejoinSession()">Reconectar</button>
         <button class="rejoin-btn-dismiss" onclick="dismissRejoin()" aria-label="Dispensar">✕</button>
     </div>
 
-    <!-- ═══════════════════════════════════════════ PRESENCE BAR -->
+    <!-- ═══════════════ PRESENCE BAR ═════════════════════ -->
     <div id="presence-bar" role="status" aria-label="Sessão ativa">
         <div class="pb-dot" aria-hidden="true"></div>
         <span class="pb-label">Sessão ativa</span>
@@ -267,20 +247,19 @@
         <button id="pb-leave" onclick="leaveSession()">Sair</button>
     </div>
 
-
-    <!-- ═══════════════════════════════════════════ WORKSPACE -->
+    <!-- ═══════════════ WORKSPACE ═════════════════════════ -->
     <main id="workspace">
 
-        <!-- Editor panel -->
+        <!-- ── Editor panel ── -->
         <section class="panel" id="ep" aria-label="Editor Markdown">
             <div class="pbar" id="t-epbar">
                 <div class="pbar-dot pbar-dot-a1" aria-hidden="true"></div>
                 <span class="pbar-tag">Markdown</span>
-                <!-- ★ NEW: Stats trigger on char counter -->
+
+                <!-- ★ Stats trigger + panel -->
                 <div class="pbar-meta-wrap">
                     <span class="pbar-meta" id="cc" role="button" tabindex="0" aria-haspopup="true"
                         title="Ver estatísticas detalhadas" onclick="toggleStats()" aria-live="polite">— chars</span>
-                    <!-- ★ NEW: Stats panel -->
                     <div id="stats-panel" role="dialog" aria-label="Estatísticas do documento">
                         <div class="stats-header">
                             <span class="stats-title">Estatísticas</span>
@@ -322,9 +301,10 @@
                         </div>
                     </div>
                 </div>
-                <!-- ★ NEW: Find button in pbar -->
-                <button class="pbar-find-btn" id="find-trigger-btn" onclick="openFind(false)" title="Buscar (Ctrl+F)"
-                    aria-label="Abrir busca">
+
+                <!-- ★ Find trigger -->
+                <button class="pbar-find-btn" id="find-trigger-btn" onclick="openFind(false)"
+                    title="Buscar no editor (Ctrl+F)" aria-label="Abrir busca">
                     <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"
                         aria-hidden="true">
                         <circle cx="6" cy="6" r="4" />
@@ -333,7 +313,7 @@
                 </button>
             </div>
 
-            <!-- ★ NEW: Find & Replace panel -->
+            <!-- ★ Find & Replace panel (editor) -->
             <div id="find-panel" role="search" aria-label="Buscar e substituir">
                 <div class="find-row">
                     <div class="find-input-group">
@@ -349,7 +329,7 @@
                     </div>
                     <div class="find-actions">
                         <button class="find-btn" id="find-case" onclick="toggleFindCase()"
-                            title="Diferenciar maiúsculas/minúsculas (Alt+C)">Aa</button>
+                            title="Diferenciar maiúsculas (Alt+C)">Aa</button>
                         <button class="find-btn find-nav" onclick="findPrev()" title="Anterior (Shift+Enter)">
                             <svg viewBox="0 0 10 10" fill="currentColor" aria-hidden="true">
                                 <path d="M5 8V2M2 5l3-3 3 3" />
@@ -361,7 +341,7 @@
                             </svg>
                         </button>
                         <button class="find-btn find-replace-toggle" id="find-toggle-replace"
-                            onclick="toggleFindReplace()" title="Mostrar substituição (Ctrl+H)">
+                            onclick="toggleFindReplace()" title="Substituir (Ctrl+H)">
                             <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4"
                                 stroke-linecap="round" aria-hidden="true">
                                 <path d="M1 4h8M6 2l3 2-3 2M13 10H5M8 12l-3-2 3-2" />
@@ -401,26 +381,66 @@
             </div>
         </div>
 
-        <!-- Preview panel -->
+        <!-- ── Preview panel ── -->
         <section class="panel" id="pp" aria-label="Preview renderizado">
             <div class="pbar" id="t-ppbar">
                 <div class="pbar-dot pbar-dot-a2" aria-hidden="true"></div>
                 <span class="pbar-tag">Preview</span>
+
+                <!-- ★ NEW: preview find trigger -->
+                <button class="pbar-find-btn pbar-find-btn-preview" id="pv-find-trigger-btn" onclick="openPreviewFind()"
+                    title="Buscar no preview (Ctrl+F no modo Preview)" aria-label="Buscar no preview">
+                    <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"
+                        aria-hidden="true">
+                        <circle cx="6" cy="6" r="4" />
+                        <path d="M9 9l3 3" />
+                    </svg>
+                </button>
             </div>
+
+            <!-- ★ NEW: Preview find panel -->
+            <div id="pv-find-panel" role="search" aria-label="Buscar no preview">
+                <div class="find-row">
+                    <div class="find-input-group">
+                        <svg class="find-ico" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4"
+                            stroke-linecap="round" aria-hidden="true">
+                            <circle cx="6" cy="6" r="4" />
+                            <path d="M9 9l3 3" />
+                        </svg>
+                        <input id="pv-find-input" class="find-input" type="text" placeholder="Buscar no preview…"
+                            autocomplete="off" spellcheck="false" oninput="updatePreviewFind()"
+                            onkeydown="handlePvFindKey(event)">
+                        <span id="pv-find-status" class="find-status" aria-live="polite"></span>
+                    </div>
+                    <div class="find-actions">
+                        <button class="find-btn" id="pv-find-case" onclick="togglePvFindCase()"
+                            title="Diferenciar maiúsculas">Aa</button>
+                        <button class="find-btn find-nav" onclick="pvFindPrev()" title="Anterior (Shift+Enter)">
+                            <svg viewBox="0 0 10 10" fill="currentColor" aria-hidden="true">
+                                <path d="M5 8V2M2 5l3-3 3 3" />
+                            </svg>
+                        </button>
+                        <button class="find-btn find-nav" onclick="pvFindNext()" title="Próximo (Enter)">
+                            <svg viewBox="0 0 10 10" fill="currentColor" aria-hidden="true">
+                                <path d="M5 2v6M2 5l3 3 3-3" />
+                            </svg>
+                        </button>
+                        <button class="find-btn find-close" onclick="closePreviewFind()" title="Fechar (Esc)"
+                            aria-label="Fechar busca no preview">✕</button>
+                    </div>
+                </div>
+            </div>
+
             <div id="preview" aria-live="polite" aria-label="Conteúdo renderizado"></div>
         </section>
 
     </main>
 
-
-    <!-- ═══════════════════════════════════════════ TOAST -->
+    <!-- ═══════════════ TOAST ═══════════════════════════ -->
     <div class="toast" id="toast" role="status" aria-live="polite" aria-atomic="true"></div>
-
-    <!-- Mobile bottom-sheet overlay -->
     <div class="sheet-overlay" id="sheetOverlay" onclick="closeAllDropdowns()" aria-hidden="true"></div>
 
-
-    <!-- ═══════════════════════════════════════════ IMPORT CONFIRM MODAL -->
+    <!-- ═══════════════ IMPORT CONFIRM ══════════════════ -->
     <div id="imp-backdrop" role="dialog" aria-modal="true" aria-labelledby="imp-title">
         <div class="imp-card">
             <div class="imp-icon" aria-hidden="true">⬆</div>
@@ -434,14 +454,12 @@
         </div>
     </div>
 
-
-    <!-- ═══════════════════════════════════════════ WELCOME MODAL -->
+    <!-- ═══════════════ WELCOME MODAL ═══════════════════ -->
     <div id="tw-backdrop" role="dialog" aria-modal="true" aria-label="Bem-vindo ao Markdowner">
         <div class="tw-card">
             <div class="tw-hero">
                 <div class="tw-badge">
-                    <div class="tw-badge-dot" aria-hidden="true"></div>
-                    <span class="tw-badge-label">Bem-vindo</span>
+                    <div class="tw-badge-dot" aria-hidden="true"></div><span class="tw-badge-label">Bem-vindo</span>
                 </div>
                 <h1 class="tw-title">Markdowner <em>MD Editor &amp; Viewer</em></h1>
                 <p class="tw-desc">Seu editor de referências para atendimento N1. Escreva em Markdown, visualize ao vivo
@@ -479,23 +497,19 @@
                     </div>
                 </div>
                 <div class="tw-actions">
-                    <button class="tw-primary" id="tw-start">
-                        <svg width="12" height="12" viewBox="0 0 14 14" fill="currentColor" aria-hidden="true">
+                    <button class="tw-primary" id="tw-start"><svg width="12" height="12" viewBox="0 0 14 14"
+                            fill="currentColor" aria-hidden="true">
                             <path d="M4 2l8 5-8 5V2z" />
-                        </svg>
-                        Fazer o tour interativo
-                    </button>
+                        </svg>Fazer o tour interativo</button>
                     <button class="tw-secondary" id="tw-skip">Pular, já sei usar</button>
                 </div>
             </div>
         </div>
     </div>
 
-
-    <!-- ═══════════════════════════════════════════ TOUR SPOTLIGHT + CARD -->
+    <!-- ═══════════════ TOUR ══════════════════════════════ -->
     <div id="tour-blocker" aria-hidden="true"></div>
     <div id="tour-spot" aria-hidden="true"></div>
-
     <div id="tour-card" role="dialog" aria-modal="true" aria-labelledby="tc-title">
         <div class="tc-head">
             <span class="tc-phase" id="tc-phase">Interface</span>
@@ -516,12 +530,10 @@
         </div>
     </div>
 
-
-    <!-- ═══════════════════════════════════════════ COLLABORATE MODAL -->
+    <!-- ═══════════════ COLLAB MODAL ═════════════════════ -->
     <div id="collab-backdrop" onclick="closeCollabOnBg(event)" role="dialog" aria-modal="true"
         aria-label="Colaboração em tempo real">
         <div class="collab-modal" id="collab-modal">
-
             <div class="cm-header">
                 <div class="cm-title">
                     <svg viewBox="0 0 14 14" fill="currentColor" aria-hidden="true">
@@ -535,38 +547,27 @@
                 </div>
                 <button class="cm-close" onclick="closeCollabModal()" aria-label="Fechar">✕</button>
             </div>
-
             <div class="cm-tabs" role="tablist">
                 <button class="cm-tab on" id="cm-tab-create" role="tab" aria-selected="true"
                     onclick="switchCollabTab('create')">✦ Criar sessão</button>
                 <button class="cm-tab" id="cm-tab-join" role="tab" aria-selected="false"
                     onclick="switchCollabTab('join')">→ Entrar em sessão</button>
             </div>
-
-            <!-- Create tab -->
             <div id="cm-create-body" class="cm-body" role="tabpanel" aria-labelledby="cm-tab-create">
-                <div>
-                    <label class="cm-label" for="cm-host-name">Seu nome</label>
-                    <input class="cm-input" id="cm-host-name" placeholder="Ex: Ana" maxlength="24" autocomplete="off">
-                </div>
+                <div><label class="cm-label" for="cm-host-name">Seu nome</label><input class="cm-input"
+                        id="cm-host-name" placeholder="Ex: Ana" maxlength="24" autocomplete="off"></div>
                 <div id="cm-create-step1">
-                    <button class="cm-btn a2" id="cm-create-btn" onclick="hostSession()">
-                        <svg viewBox="0 0 14 14" fill="currentColor" width="13" height="13" aria-hidden="true">
+                    <button class="cm-btn a2" id="cm-create-btn" onclick="hostSession()"><svg viewBox="0 0 14 14"
+                            fill="currentColor" width="13" height="13" aria-hidden="true">
                             <path d="M7 1v12M1 7h12" />
-                        </svg>
-                        Criar sessão
-                    </button>
+                        </svg>Criar sessão</button>
                 </div>
                 <div id="cm-create-step2" style="display:none;flex-direction:column;gap:12px;">
                     <div>
                         <div class="cm-label">Link da sessão — compartilhe com seus colegas</div>
-                        <div class="cm-link-display">
-                            <span class="cm-share-url" id="cm-share-url">···</span>
-                            <button class="cm-copy-code" onclick="copyRoomCode()">Copiar</button>
-                        </div>
-                        <div class="cm-code-hint">
-                            Código: <span class="cm-code-val" id="cm-code-val">···</span>
-                        </div>
+                        <div class="cm-link-display"><span class="cm-share-url" id="cm-share-url">···</span><button
+                                class="cm-copy-code" onclick="copyRoomCode()">Copiar</button></div>
+                        <div class="cm-code-hint">Código: <span class="cm-code-val" id="cm-code-val">···</span></div>
                     </div>
                     <div id="cm-participants-area">
                         <div class="cm-label">Participantes</div>
@@ -578,34 +579,23 @@
                         onclick="closeCollabModal()">Fechar e continuar</button>
                 </div>
             </div>
-
-            <!-- Join tab -->
             <div id="cm-join-body" class="cm-body" role="tabpanel" aria-labelledby="cm-tab-join" style="display:none">
-                <div>
-                    <label class="cm-label" for="cm-join-name">Seu nome</label>
-                    <input class="cm-input" id="cm-join-name" placeholder="Ex: Bruno" maxlength="24" autocomplete="off">
-                </div>
-                <div>
-                    <label class="cm-label" for="cm-join-code">Código da sessão</label>
-                    <input class="cm-input" id="cm-join-code" placeholder="Ex: AB3K9Z" maxlength="6"
+                <div><label class="cm-label" for="cm-join-name">Seu nome</label><input class="cm-input"
+                        id="cm-join-name" placeholder="Ex: Bruno" maxlength="24" autocomplete="off"></div>
+                <div><label class="cm-label" for="cm-join-code">Código da sessão</label><input class="cm-input"
+                        id="cm-join-code" placeholder="Ex: AB3K9Z" maxlength="6"
                         style="font-family:var(--fm);letter-spacing:.18em;font-size:18px;text-transform:uppercase"
-                        autocomplete="off" inputmode="text">
-                </div>
+                        autocomplete="off" inputmode="text"></div>
                 <button class="cm-btn a2" id="cm-join-btn" onclick="joinSession()">Entrar na sessão →</button>
                 <div class="cm-status" id="cm-join-status" aria-live="polite"></div>
             </div>
-
         </div>
     </div>
 
-
-    <!-- ═══════════════════════════════════════════ CHAT PANEL -->
+    <!-- ═══════════════ CHAT PANEL ════════════════════════ -->
     <aside id="chat-panel" aria-label="Chat da sessão">
-
-        <!-- Sidebar -->
         <div id="chat-sidebar">
             <div class="chat-sidebar-noise" aria-hidden="true"></div>
-
             <div id="chat-sidebar-head">
                 <div class="cp-profile-pill" onclick="openProfileModal()" role="button" tabindex="0"
                     title="Editar perfil">
@@ -619,9 +609,7 @@
                     </svg>
                 </button>
             </div>
-
             <div class="chat-sidebar-section-label"><span>Canais</span></div>
-
             <button class="chat-channel-btn active" id="ch-session" onclick="switchChannel('session')">
                 <div class="ch-btn-indicator" aria-hidden="true"></div>
                 <svg width="13" height="13" viewBox="0 0 14 14" fill="currentColor" aria-hidden="true">
@@ -630,30 +618,22 @@
                 <span>sessão</span>
                 <span class="ch-badge" id="ch-badge-session" aria-live="polite"></span>
             </button>
-
             <div class="chat-sidebar-section-label"><span>Mensagens diretas</span></div>
             <div id="dm-list" aria-label="Mensagens diretas"></div>
             <div class="chat-sidebar-footer" aria-hidden="true"></div>
         </div>
-
-        <!-- Main chat area -->
         <div id="chat-main">
             <div id="chat-channel-header">
-                <div id="chat-channel-title">
-                    <span id="chat-channel-icon" aria-hidden="true">#</span>
-                    <span id="chat-channel-name">sessão</span>
-                </div>
+                <div id="chat-channel-title"><span id="chat-channel-icon" aria-hidden="true">#</span><span
+                        id="chat-channel-name">sessão</span></div>
                 <div id="chat-channel-desc" aria-hidden="true"></div>
             </div>
-
             <div id="chat-messages" role="log" aria-live="polite" aria-label="Mensagens"></div>
-
             <div class="cp-input-row">
                 <div class="cp-input-outer">
                     <div id="emoji-picker-wrap" aria-label="Seletor de emojis">
                         <emoji-picker id="emoji-picker" locale="pt"
-                            data-source="https://cdn.jsdelivr.net/npm/emoji-picker-element-data@1/pt/cldr/data.json">
-                        </emoji-picker>
+                            data-source="https://cdn.jsdelivr.net/npm/emoji-picker-element-data@1/pt/cldr/data.json"></emoji-picker>
                     </div>
                     <div class="cp-input-box">
                         <div id="chat-img-preview" aria-label="Imagem selecionada">
@@ -694,64 +674,49 @@
                 </div>
             </div>
         </div>
-
     </aside>
 
-    <!-- ═══════════════════════════════════════════ IMAGE LIGHTBOX -->
+    <!-- ═══════════════ IMAGE LIGHTBOX ═══════════════════ -->
     <div id="img-lightbox" role="dialog" aria-modal="true" aria-label="Visualizador de imagem">
         <div id="lb-toolbar">
             <span id="lb-zoom-level" aria-live="polite">100%</span>
-            <button class="lb-btn" onclick="lbZoom(-0.25)" aria-label="Diminuir zoom">
-                <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"
-                    aria-hidden="true">
+            <button class="lb-btn" onclick="lbZoom(-0.25)" aria-label="Diminuir zoom"><svg viewBox="0 0 16 16"
+                    fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true">
                     <circle cx="7" cy="7" r="5" />
                     <path d="M11 11l3 3M5 7h4" />
-                </svg>
-            </button>
-            <button class="lb-btn" onclick="lbZoom(0.25)" aria-label="Aumentar zoom">
-                <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"
-                    aria-hidden="true">
+                </svg></button>
+            <button class="lb-btn" onclick="lbZoom(0.25)" aria-label="Aumentar zoom"><svg viewBox="0 0 16 16"
+                    fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true">
                     <circle cx="7" cy="7" r="5" />
                     <path d="M11 11l3 3M7 5v4M5 7h4" />
-                </svg>
-            </button>
-            <button class="lb-btn" onclick="lbResetZoom()" aria-label="Resetar zoom">
-                <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"
-                    stroke-linejoin="round" aria-hidden="true">
-                    <path d="M3 8a5 5 0 105-5H5M5 1v3h3" />
-                </svg>
-            </button>
-            <button class="lb-btn" onclick="lbDownload()" aria-label="Baixar imagem">
-                <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"
-                    stroke-linejoin="round" aria-hidden="true">
-                    <path d="M8 2v8M5 7l3 3 3-3M3 13h10" />
-                </svg>
-            </button>
-            <button class="lb-btn" onclick="closeLightbox()" aria-label="Fechar (Esc)">
-                <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"
+                </svg></button>
+            <button class="lb-btn" onclick="lbResetZoom()" aria-label="Resetar zoom"><svg viewBox="0 0 16 16"
+                    fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"
                     aria-hidden="true">
+                    <path d="M3 8a5 5 0 105-5H5M5 1v3h3" />
+                </svg></button>
+            <button class="lb-btn" onclick="lbDownload()" aria-label="Baixar imagem"><svg viewBox="0 0 16 16"
+                    fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"
+                    aria-hidden="true">
+                    <path d="M8 2v8M5 7l3 3 3-3M3 13h10" />
+                </svg></button>
+            <button class="lb-btn" onclick="closeLightbox()" aria-label="Fechar (Esc)"><svg viewBox="0 0 16 16"
+                    fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true">
                     <path d="M3 3l10 10M13 3L3 13" />
-                </svg>
-            </button>
+                </svg></button>
         </div>
-        <div id="lb-img-wrap">
-            <img id="img-lightbox-img" src="" alt="Imagem em tamanho completo">
-        </div>
+        <div id="lb-img-wrap"><img id="img-lightbox-img" src="" alt="Imagem em tamanho completo"></div>
     </div>
 
-
-    <!-- ═══════════════════════════════════════════ PROFILE MODAL -->
+    <!-- ═══════════════ PROFILE MODAL ════════════════════ -->
     <div id="profile-backdrop" onclick="closeProfileOnBg(event)" role="dialog" aria-modal="true"
         aria-labelledby="profile-modal-title">
         <div class="profile-modal">
-            <h2 class="profile-modal-title" id="profile-modal-title">
-                <svg width="16" height="16" viewBox="0 0 14 14" fill="currentColor" aria-hidden="true">
+            <h2 class="profile-modal-title" id="profile-modal-title"><svg width="16" height="16" viewBox="0 0 14 14"
+                    fill="currentColor" aria-hidden="true">
                     <circle cx="7" cy="4.5" r="2.5" />
                     <path d="M1 13c0-3 2.5-5 6-5s6 2 6 5" />
-                </svg>
-                Seu perfil
-            </h2>
-
+                </svg>Seu perfil</h2>
             <div class="profile-preview" aria-hidden="true">
                 <div class="profile-avatar-big" id="profile-avatar-big"></div>
                 <div>
@@ -759,28 +724,17 @@
                     <div class="profile-color-display" id="profile-color-display">Cor do avatar</div>
                 </div>
             </div>
-
-            <div>
-                <label class="cm-label" for="profile-name-input">Nome de exibição</label>
-                <input class="cm-input" id="profile-name-input" placeholder="Seu nome" maxlength="32"
-                    autocomplete="off">
-            </div>
-
-            <div>
-                <label class="cm-label" for="profile-avatar-input">
-                    URL da foto de perfil <span style="font-weight:400;color:var(--tx3)">(opcional)</span>
-                </label>
-                <input class="cm-input" id="profile-avatar-input" placeholder="https://..." type="url">
-            </div>
-
+            <div><label class="cm-label" for="profile-name-input">Nome de exibição</label><input class="cm-input"
+                    id="profile-name-input" placeholder="Seu nome" maxlength="32" autocomplete="off"></div>
+            <div><label class="cm-label" for="profile-avatar-input">URL da foto de perfil <span
+                        style="font-weight:400;color:var(--tx3)">(opcional)</span></label><input class="cm-input"
+                    id="profile-avatar-input" placeholder="https://..." type="url"></div>
             <button class="cm-btn a2" onclick="saveProfile()">Salvar perfil</button>
             <button class="profile-cancel-btn" onclick="closeProfileModal()">Cancelar</button>
         </div>
     </div>
 
-
-
-    <!-- ═══════════════════════════════════════════ CHAT FAB -->
+    <!-- ═══════════════ CHAT FAB ══════════════════════════ -->
     <button id="chat-toggle-btn" onclick="toggleChat()" title="Abrir chat da sessão" aria-label="Abrir chat">
         <svg class="fab-ico-chat" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
             <path d="M2 3h16a1 1 0 011 1v9a1 1 0 01-1 1h-7l-3 3-3-3H2a1 1 0 01-1-1V4a1 1 0 011-1z" />
@@ -792,28 +746,21 @@
         <span class="chat-badge" id="chat-badge" aria-live="polite"></span>
     </button>
 
-    <!-- ═══════════════════════════════════════════ SCRIPTS -->
-
-    <!-- Markdown parser -->
+    <!-- ═══════════════ SCRIPTS ═══════════════════════════ -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/9.1.6/marked.min.js"></script>
-    <!-- XSS sanitiser -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.1.6/purify.min.js"></script>
-    <!-- Syntax highlighting -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
-    <!-- Firebase (needed for real-time collab) -->
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
-    <!-- Emoji picker web component -->
     <script type="module" src="https://cdn.jsdelivr.net/npm/emoji-picker-element@1/index.js"></script>
-
-    <!-- App logic (deferred so DOM is ready) -->
-
     <script>
         window._FB_API_KEY = '__FIREBASE_API_KEY__';
         window._FB_DB_URL = '__FIREBASE_DB_URL__';
         window._FB_PROJECT_ID = '__FIREBASE_PROJECT_ID__';
     </script>
     <script src="app.js" defer></script>
+    <!-- ★ Append AFTER app.js -->
+    <script src="app_additions.js" defer></script>
 
 </body>
 

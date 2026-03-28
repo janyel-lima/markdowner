@@ -4564,23 +4564,13 @@ emoji-picker {
     }
 }
 
-/*
- * styles_additions.css
- * Markdowner — 3 new closing features
- *
- * INSTRUCTIONS: Append the content of this file to the
- * bottom of your existing styles.css file.
- *
- * Features added:
- *   1. Find & Replace panel  (#find-panel)
- *   2. Word Count Stats Panel (#stats-panel)
- *   3. Export HTML button styling (reuses .exp-item — no new CSS needed)
- */
-
-
 /* ═══════════════════════════════════════════════════════
-   PBAR META WRAP — wraps the char counter + stats panel
+   Append to bottom of styles.css
+   ★ Covers: stats panel · find&replace · preview search
 ═══════════════════════════════════════════════════════ */
+
+
+/* ── Pbar meta wrap ────────────────────────────────── */
 
 .pbar-meta-wrap {
     margin-left: auto;
@@ -4589,9 +4579,9 @@ emoji-picker {
     align-items: center;
 }
 
-/* Override the standalone margin-left rule that already exists */
+/* Override standalone margin-left from base rule */
 .pbar-meta {
-    margin-left: 0;
+    margin-left: 0 !important;
     cursor: pointer;
     padding: 2px 6px;
     border-radius: var(--rr);
@@ -4600,10 +4590,10 @@ emoji-picker {
 
 .pbar-meta:hover {
     color: var(--a2);
-    background: rgba(var(--a2r), .08);
+    background: rgba(var(--a2r), .09);
 }
 
-/* Find trigger button that lives in the pbar */
+/* Find trigger in pbar — shared by both editor and preview */
 .pbar-find-btn {
     background: transparent;
     border: none;
@@ -4629,10 +4619,18 @@ emoji-picker {
     background: rgba(var(--a1r), .1);
 }
 
+/* Preview panel find button uses a2 accent */
+.pbar-find-btn-preview {
+    margin-left: auto;
+}
 
-/* ═══════════════════════════════════════════════════════
-   STATS PANEL
-═══════════════════════════════════════════════════════ */
+.pbar-find-btn-preview:hover {
+    color: var(--a2);
+    background: rgba(var(--a2r), .1);
+}
+
+
+/* ── Stats panel ───────────────────────────────────── */
 
 #stats-panel {
     position: absolute;
@@ -4664,12 +4662,12 @@ emoji-picker {
 }
 
 .stats-title {
+    font-family: var(--fm);
     font-size: var(--fs-2xs);
     font-weight: 700;
     color: var(--txh);
     letter-spacing: .1em;
     text-transform: uppercase;
-    font-family: var(--fm);
 }
 
 .stats-close {
@@ -4721,13 +4719,13 @@ emoji-picker {
 }
 
 .stats-label {
+    font-family: var(--fm);
     font-size: 9px;
     font-weight: 600;
     color: var(--tx3);
     letter-spacing: .08em;
     text-transform: uppercase;
     text-align: center;
-    font-family: var(--fm);
 }
 
 .stats-reading {
@@ -4753,11 +4751,10 @@ emoji-picker {
 }
 
 
-/* ═══════════════════════════════════════════════════════
-   FIND & REPLACE PANEL
-═══════════════════════════════════════════════════════ */
+/* ── Find & Replace — shared base ──────────────────── */
 
-#find-panel {
+#find-panel,
+#pv-find-panel {
     height: 0;
     overflow: hidden;
     background: var(--s1);
@@ -4770,9 +4767,27 @@ emoji-picker {
         background var(--tw);
 }
 
-#find-panel.open {
+#find-panel.open,
+#pv-find-panel.open {
     height: auto;
     border-bottom-color: var(--bd);
+}
+
+/* Tint the preview find panel with a2 instead of a1 */
+#pv-find-panel .find-input-group:focus-within {
+    border-color: var(--a2);
+    box-shadow: 0 0 0 2px rgba(var(--a2r), .12);
+}
+
+#pv-find-panel .find-btn:hover {
+    color: var(--a2);
+    border-color: var(--a2);
+}
+
+#pv-find-panel .find-btn.on {
+    background: rgba(var(--a2r), .13);
+    color: var(--a2);
+    border-color: rgba(var(--a2r), .3);
 }
 
 .find-row {
@@ -4855,7 +4870,7 @@ emoji-picker {
     flex-shrink: 0;
     letter-spacing: .03em;
     padding-right: 2px;
-    min-width: 46px;
+    min-width: 48px;
     text-align: right;
     transition: color .15s;
 }
@@ -4922,8 +4937,8 @@ emoji-picker {
 
 .find-close:hover {
     border-color: var(--bd);
-    color: var(--tx);
     background: var(--s2);
+    color: var(--tx);
 }
 
 .find-replace-toggle {
@@ -4937,9 +4952,8 @@ emoji-picker {
 }
 
 .find-replace-btn {
-    font-size: var(--fs-mono-xs);
-    letter-spacing: .04em;
     background: var(--s2);
+    letter-spacing: .04em;
 }
 
 .find-replace-all {
@@ -4954,7 +4968,39 @@ emoji-picker {
     border-color: rgba(var(--a1r), .4);
 }
 
-/* Mobile tweaks */
+
+/* ── Preview search — mark highlights ──────────────── */
+
+/* All matches */
+mark.pv-mark {
+    background: rgba(var(--a2r), .28);
+    color: inherit;
+    border-radius: 2px;
+    padding: 0 1px;
+    /* No outline — keep text readable */
+}
+
+[data-theme="light"] mark.pv-mark {
+    background: rgba(var(--a2r), .22);
+}
+
+/* Active / current match */
+mark.pv-mark-active {
+    background: var(--a2);
+    color: #fff;
+    border-radius: 3px;
+    padding: 0 2px;
+    box-shadow: 0 0 0 2px rgba(var(--a2r), .4);
+    outline: none;
+}
+
+[data-theme="light"] mark.pv-mark-active {
+    color: #fff;
+}
+
+
+/* ── Mobile adjustments ────────────────────────────── */
+
 @media (max-width: 700px) {
 
     .find-row,
