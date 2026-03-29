@@ -1147,8 +1147,12 @@ function hostSession() {
                 hostId: myId,
             });
         })
-        .then(() => {
-            joinRoom();
+        // Read the room back so we get the real server-resolved createdAt
+        .then(() => fbRoom.child('createdAt').once('value'))
+        .then(snap => {
+            // snap.val() is the server timestamp; fall back to Date.now() if somehow null
+            const createdAt = snap.val() || Date.now();
+            joinRoom(createdAt);
             $('cm-create-step1').style.display = 'none';
             $('cm-create-step2').style.display = 'flex';
             $('cm-code-val').textContent = roomCode;
@@ -1214,7 +1218,8 @@ function joinSession() {
             hostId = data.hostId || '';
 
             showJoinStatus('✓ Conectado com sucesso!', 'ok');
-            joinRoom();
+            // Pass createdAt directly — we already have it, no second round-trip needed
+            joinRoom(created);
             activateSessionUI();
 
             setTimeout(() => {
@@ -1243,7 +1248,14 @@ function showJoinStatus(message, type) {
 
 /* ── Room listeners ── */
 
-function joinRoom() {
+/**
+ * @param {number} createdAt  Server-resolved Unix ms timestamp of when the
+ *   room was created.  Passed in by both hostSession (reads it back after set)
+ *   and joinSession (already has it from the initial room fetch).
+ *   This eliminates the previous second async read that could arrive late /
+ *   return null and cause the timer to start from the wrong baseline.
+ */
+function joinRoom(createdAt) {
     saveLastSession(roomCode);
 
     const userRef = fbRoom.child(`users/${myId}`);
@@ -1255,13 +1267,14 @@ function joinRoom() {
     });
     userRef.onDisconnect().remove();
 
-    // ── Session expiry timer ──────────────────────────
-    fbRoom.child('createdAt').once('value', snap => {
-        const created = snap.val();
-        if (!created) { sessionStartedAt = Date.now(); startSessionTimerDisplay(); return; }
-
-        sessionStartedAt = created;
-        const elapsed = Date.now() - created;
+    // ── Session expiry timer (uses the authoritative createdAt) ──
+    if (!createdAt) {
+        // Last-resort fallback — should never happen in normal flow
+        sessionStartedAt = Date.now();
+        startSessionTimerDisplay();
+    } else {
+        sessionStartedAt = createdAt;
+        const elapsed = Date.now() - createdAt;
         const remaining = SESSION_MAX_MS - elapsed;
 
         if (remaining <= 0) {
@@ -1276,7 +1289,7 @@ function joinRoom() {
             showToast('⏰ Sessão encerrada — limite de 7 horas atingido.');
             leaveSession(false);
         }, remaining);
-    });
+    }
 
     // ── Keepalive: heartbeat + reconnect watcher ─────
     _startHeartbeat();
