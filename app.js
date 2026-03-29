@@ -968,6 +968,54 @@ let sessionListeners = [];
 let writeDocTimer = null;
 let applyingRemote = false;
 
+// ── Firebase keepalive ─────────────────────────────
+// The SDK silently drops the WS connection after ~60 s of no data.
+// We prevent that with a periodic lastSeen write + a reconnect listener
+// that re-registers onDisconnect so presence survives brief network gaps.
+let _heartbeatTimer = null;
+let _connectedRef = null;
+let _connectedHandler = null;
+
+function _startHeartbeat() {
+    _stopHeartbeat();
+    // Write every 3 min to keep the WS alive
+    _heartbeatTimer = setInterval(() => {
+        if (fbRoom && myId) {
+            fbRoom.child(`users/${myId}/lastSeen`)
+                .set(firebase.database.ServerValue.TIMESTAMP)
+                .catch(() => { });
+        }
+    }, 3 * 60 * 1000);
+}
+
+function _stopHeartbeat() {
+    clearInterval(_heartbeatTimer);
+    _heartbeatTimer = null;
+    if (_connectedRef && _connectedHandler) {
+        _connectedRef.off('value', _connectedHandler);
+        _connectedRef = null;
+        _connectedHandler = null;
+    }
+}
+
+/** Re-register onDisconnect + re-write presence whenever Firebase reconnects */
+function _watchConnection() {
+    if (!fbDb) return;
+    _connectedRef = fbDb.ref('.info/connected');
+    _connectedHandler = _connectedRef.on('value', snap => {
+        if (!snap.val() || !fbRoom || !myId) return;
+        // We just (re-)connected — re-register onDisconnect so it fires correctly
+        const userRef = fbRoom.child(`users/${myId}`);
+        userRef.onDisconnect().remove();
+        // Re-write our presence in case Firebase dropped us while offline
+        userRef.update({
+            name: myName,
+            color: myColor,
+            avatarUrl: myAvatarUrl || '',
+        }).catch(() => { });
+    });
+}
+
 // ── Session timer (7-hour max) ──────────────────────
 let sessionStartedAt = 0;    // Unix ms from Firebase
 let sessionAutoLeaveTimer = null; // setTimeout handle
@@ -1230,6 +1278,10 @@ function joinRoom() {
         }, remaining);
     });
 
+    // ── Keepalive: heartbeat + reconnect watcher ─────
+    _startHeartbeat();
+    _watchConnection();
+
     // ── Sync hostId ──────────────────────────────────
     fbRoom.child('hostId').once('value', snap => { hostId = snap.val() || ''; });
 
@@ -1283,11 +1335,12 @@ function leaveSession(silent = false) {
     history.pushState({}, '', location.pathname);
     clearLastSession();
 
-    // Clear session timers
+    // Clear session timers + keepalive
     clearTimeout(sessionAutoLeaveTimer);
     sessionAutoLeaveTimer = null;
     stopSessionTimerDisplay();
     sessionStartedAt = 0;
+    _stopHeartbeat();
 
     if (!roomCode) return;
 

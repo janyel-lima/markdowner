@@ -33,9 +33,14 @@ function escapeRegex(str) {
 
 /* ── Backdrop setup (run once) ── */
 (function setupBackdropSync() {
+    // Sync backdrop scroll whenever the editor scrolls.
+    // rAF ensures we read scrollTop AFTER the layout engine has settled.
     editorEl.addEventListener('scroll', () => {
-        const bd = $('find-hl-backdrop');
-        if (bd) { bd.scrollTop = editorEl.scrollTop; bd.scrollLeft = editorEl.scrollLeft; }
+        if (!findPanelOpen) return;
+        requestAnimationFrame(() => {
+            const bd = $('find-hl-backdrop');
+            if (bd) { bd.scrollTop = editorEl.scrollTop; bd.scrollLeft = editorEl.scrollLeft; }
+        });
     });
 
     editorEl.addEventListener('input', () => {
@@ -146,18 +151,29 @@ function navigateFind(idx) {
     findCurrentIdx = ((idx % findMatches.length) + findMatches.length) % findMatches.length;
     const match = findMatches[findCurrentIdx];
 
+    // 1. Move editor selection so the OS highlights it
     editorEl.focus();
     editorEl.setSelectionRange(match.start, match.end);
 
+    // 2. Compute the target scroll that centres the match vertically
     const lines = editorEl.value.substr(0, match.start).split('\n');
     const lineH = parseFloat(getComputedStyle(editorEl).lineHeight) || 20;
     const padTop = parseFloat(getComputedStyle(editorEl).paddingTop) || 0;
-    editorEl.scrollTop = Math.max(0,
+    const targetScroll = Math.max(0,
         (lines.length - 1) * lineH + padTop - editorEl.clientHeight / 2 + lineH / 2);
 
-    updateEditorBackdrop();
-    updateFindStatus();
-    $('find-input').focus();
+    editorEl.scrollTop = targetScroll;
+
+    // 3. Sync backdrop AFTER the browser has painted the new scroll position.
+    //    Without rAF the backdrop reads editorEl.scrollTop before the layout
+    //    engine has flushed, producing the off-by-one visual glitch.
+    requestAnimationFrame(() => {
+        const bd = $('find-hl-backdrop');
+        if (bd) { bd.scrollTop = editorEl.scrollTop; bd.scrollLeft = editorEl.scrollLeft; }
+        updateEditorBackdrop();
+        updateFindStatus();
+        $('find-input').focus();
+    });
 }
 
 function findNext() { navigateFind(findCurrentIdx + 1); }
